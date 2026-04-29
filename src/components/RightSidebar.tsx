@@ -12,6 +12,7 @@ const FOLDERS = [
     { id: 'relations', title: 'Связи в данных', types: ['correlation', 'cross_deps'] },
     { id: 'distributions', title: 'Распределения признаков', types: ['category_count', 'numeric_hist'] },
     { id: 'anomalies', title: 'Аномалии', types: ['outliers'] },
+    { id: 'trends', title: 'Временные ряды', types: ['trend_line'] },
 ];
 
 export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChart, isDatasetLoaded }) => {
@@ -32,6 +33,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
         if (chart.type === 'numeric_hist') return { title: 'Распределение:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Числовой столбец' };
         if (chart.type === 'outliers') return { title: 'Аномалии:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Boxplot (Выбросы)' };
         if (chart.type === 'cross_deps') return { title: 'Кросс-зависимости', columnName: null, subtitle: 'Пузырьковая матрица' };
+        if (chart.type === 'trend_line') return { title: 'Тренды во времени:', columnName: chart.data?.date_col || 'Date', subtitle: 'Линейный график' };
         return { title: 'График', columnName: null, subtitle: null };
     };
 

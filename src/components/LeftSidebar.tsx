@@ -12,6 +12,14 @@ export const LeftSidebar: React.FC<SidebarProps> = ({ sessions, activeChat, onSe
     // Добавляем тестовый неактивный чат чисто для визуальной проверки стилей
     const displaySessions = [...[...sessions].reverse()]    ;
 
+    const formatLongText = (text: string) => {
+        if (!text) return '';
+        return text
+            .split('_').join('_\u200B')
+            .split('.').join('.\u200B')
+            .split('-').join('-\u200B');
+    };
+
     return (
         <div className="col-left">
             <label className="btn-upload">
@@ -25,8 +33,8 @@ export const LeftSidebar: React.FC<SidebarProps> = ({ sessions, activeChat, onSe
                         className={`chat-item ${s.id === activeChat ? 'active' : ''}`} 
                         onClick={() => s.id !== 'dummy-1' && onSelectChat(s.id)}
                     >
-                        <div className="dataset-desc">{s.datasetName}</div>
-                        <div className="dataset-name">{s.filename}</div>
+                        <div className="dataset-desc">{formatLongText(s.datasetName)}</div>
+                        <div className="dataset-name">{formatLongText(s.filename)}</div>
                     </div>
                 ))}
             </div>

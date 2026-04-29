@@ -1,5 +1,5 @@
 export interface ChartData {
-    type: 'correlation' | 'column_stats' | 'category_count' | 'numeric_hist' | 'outliers' | 'cross_deps';
+    type: 'correlation' | 'column_stats' | 'category_count' | 'numeric_hist' | 'outliers' | 'cross_deps' | 'trend_line';
     data: any;
 }
 

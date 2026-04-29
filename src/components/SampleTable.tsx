@@ -15,6 +15,34 @@ export const SampleTable: React.FC<{ dataPool: any[] }> = ({ dataPool }) => {
         refreshSample();
     }, [dataPool]);
 
+    // --- ФУНКЦИЯ ДЛЯ КРАСИВОГО ОТОБРАЖЕНИЯ ДАННЫХ ---
+    const formatCellValue = (header: string, val: any) => {
+        if (val == null) return '';
+        
+        // Проверяем, похоже ли название столбца на дату
+        const isDateColumn = ['date', 'time', 'дата', 'день', 'месяц', 'год', 'period'].some(kw => 
+            header.toLowerCase().includes(kw)
+        );
+
+        // Если это число в диапазоне Excel-дат
+        if (isDateColumn && typeof val === 'number' && val > 10000 && val < 100000) {
+            // Магия перевода из Excel Serial Date в JS Date
+            const ms = Math.round((val - 25569) * 86400 * 1000);
+            const d = new Date(ms);
+            
+            // Жестко отсекаем время, оставляя только формат YYYY-MM-DD 
+            // Это вернет дату ровно в том виде, в котором она была в изначальном файле
+            return d.toISOString().substring(0, 10);
+        }
+
+        // Заодно округляем бесконечные дроби (например, 0.3333333333)
+        if (typeof val === 'number' && !Number.isInteger(val)) {
+            return Number(val.toFixed(4));
+        }
+
+        return String(val);
+    };
+
     if (sample.length === 0) return null;
     const headers = Object.keys(sample[0]);
 
@@ -69,7 +97,8 @@ export const SampleTable: React.FC<{ dataPool: any[] }> = ({ dataPool }) => {
                     </thead>
                     <tbody>
                         {sample.map((row, i) => (
-                            <tr key={i}>{headers.map(h => <td key={h}>{row[h]}</td>)}</tr>
+                            // ПРИМЕНЯЕМ ФОРМАТТЕР К ЗНАЧЕНИЯМ ЯЧЕЕК
+                            <tr key={i}>{headers.map(h => <td key={h}>{formatCellValue(h, row[h])}</td>)}</tr>
                         ))}
                     </tbody>
                 </table>
