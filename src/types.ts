@@ -1,5 +1,5 @@
 export interface ChartData {
-    type: 'correlation' | 'column_stats';
+    type: 'correlation' | 'column_stats' | 'category_count' | 'numeric_hist';
     data: any;
 }
 

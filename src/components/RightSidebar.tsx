@@ -9,49 +9,80 @@ interface RightSidebarProps {
 
 export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChart }) => {
     
-    // Функция для программного определения названия графика
-    const getChartTitle = (chart: ChartData) => {
+    const getChartInfo = (chart: ChartData) => {
         if (chart.type === 'correlation') {
-            return 'Корреляционная матрица';
+            return { title: 'Корреляционная матрица', columnName: null, subtitle: null };
         }
-        if (chart.type === 'column_stats') {
-            const catCols = Object.keys(chart.data?.categorical || {});
-            if (catCols.length > 0) {
-                return `Распределение: ${catCols[0]}`;
-            }
-            return 'Статистика';
+        if (chart.type === 'category_count') {
+            return { 
+                title: 'Распределение:', 
+                columnName: chart.data?.column_name || 'Unknown', 
+                subtitle: 'Категориальный столбец' 
+            };
         }
-        return 'График';
+        if (chart.type === 'numeric_hist') {
+            return { 
+                title: 'Распределение:', 
+                columnName: chart.data?.column_name || 'Unknown', 
+                subtitle: 'Числовой столбец' 
+            };
+        }
+        return { title: 'График', columnName: null, subtitle: null };
     };
 
     return (
         <div className="col-right">
-            {charts.map((c, i) => (
-                <div 
-                    key={i} 
-                    className="chart-preview-box" 
-                    onClick={() => onSelectChart(c)}
-                    // Переопределяем выравнивание, чтобы заголовок был сверху
-                    style={{ flexDirection: 'column' }} 
-                >
-                    {/* Сам заголовок */}
-                    <div style={{ 
-                        fontSize: '13px', 
-                        fontWeight: 600, 
-                        color: '#444', 
-                        marginBottom: '5px', 
-                        textAlign: 'left', 
-                        width: '100%',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis' // Чтобы слишком длинные названия не ломали верстку
-                    }}>
-                        {getChartTitle(c)}
+            {charts.map((c, i) => {
+                const info = getChartInfo(c);
+
+                // МАГИЯ ЗДЕСЬ: Вставляем невидимый пробел (\u200B) перед каждым подчеркиванием.
+                // Это позволяет браузеру переносить строку, оставляя "_" в начале новой строки.
+                const formattedColumnName = info.columnName 
+                    ? info.columnName.split('_').join('\u200B_')
+                    : '';
+
+                return (
+                    <div 
+                        key={i} 
+                        className="chart-preview-box" 
+                        onClick={() => onSelectChart(c)}
+                        style={{ flexDirection: 'column' }} 
+                    >
+                        {/* Обновленный заголовок */}
+                        <div style={{ 
+                            fontSize: '13px', 
+                            fontWeight: 600, 
+                            color: '#444', 
+                            marginBottom: info.subtitle ? '2px' : '10px', 
+                            textAlign: 'left', 
+                            width: '100%',
+                            // Убрали nowrap и ellipsis, разрешили перенос
+                            whiteSpace: 'normal',   
+                            wordBreak: 'break-word', 
+                            lineHeight: '1.3'
+                        }}>
+                            {info.title} {formattedColumnName}
+                        </div>
+                        
+                        {/* Подзаголовок */}
+                        {info.subtitle && (
+                            <div style={{ 
+                                fontSize: '11px', 
+                                fontStyle: 'italic', 
+                                color: '#888', 
+                                marginBottom: '8px', 
+                                textAlign: 'left', 
+                                width: '100%' 
+                            }}>
+                                {info.subtitle}
+                            </div>
+                        )}
+                        
+                        <DataCharts charts={[c]} preview={true} />
                     </div>
-                    
-                    <DataCharts charts={[c]} preview={true} />
-                </div>
-            ))}
+                );
+            })}
+            
             {charts.length === 0 && (
                 <div style={{color: '#888', fontStyle: 'italic', fontSize: '14px', textAlign: 'center', marginTop: '40px'}}>
                     Здесь появятся графики<br/>после анализа

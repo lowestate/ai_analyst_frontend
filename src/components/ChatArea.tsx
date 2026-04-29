@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Message, ChartData } from '../types';
 import { SampleTable } from './SampleTable';
 
@@ -15,12 +17,10 @@ interface ChatAreaProps {
 
 export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loading, loadingPhrase, input, setInput, onSendMessage, localDataPool }) => {
     
-    // Функция для получения названия графика
     const getChartTitle = (chart: ChartData) => {
         if (chart.type === 'correlation') return 'Корреляционная матрица';
-        if (chart.type === 'column_stats') {
-            const catCols = Object.keys(chart.data?.categorical || {});
-            return catCols.length > 0 ? `Распределение: ${catCols[0]}` : 'Статистика';
+        if (chart.type === 'category_count' || chart.type === 'numeric_hist') {
+            return `Распределение: ${chart.data.column_name}`;
         }
         return 'График';
     };
@@ -32,38 +32,39 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loadin
                     <SampleTable dataPool={localDataPool} />
                 )}
 
-                {messages.map(msg => (
-                    <div key={msg.id} className={`msg-row ${msg.sender}`}>
-                        
-                        {/* Если это агент и у него есть графики, оборачиваем в div с заголовком */}
-                        {msg.sender === 'agent' && msg.charts && msg.charts.length > 0 ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', width: '66.66%' }}>
-                                <div style={{ 
-                                    fontSize: '13px', 
-                                    fontStyle: 'italic', 
-                                    color: '#666', 
-                                    marginBottom: '6px', 
-                                    marginLeft: '15px' 
-                                }}>
-                                    {msg.charts.map(c => `Добавлен новый график: ${getChartTitle(c)}`).join(' | ')}
-                                </div>
-                                <div className={`msg-bubble ${msg.sender} ${msg.isError ? 'error' : ''}`} style={{ width: '100%' }}>
-                                    {msg.text.split('\n').map((line, i) => (
-                                        <React.Fragment key={i}>{line}<br/></React.Fragment>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : (
-                            /* Обычный рендер для юзера или агента без графиков */
-                            <div className={`msg-bubble ${msg.sender} ${msg.isError ? 'error' : ''}`}>
-                                {msg.text.split('\n').map((line, i) => (
-                                    <React.Fragment key={i}>{line}<br/></React.Fragment>
-                                ))}
-                            </div>
-                        )}
+                {messages.map(msg => {
+                    let chartNotification = null;
+                    if (msg.sender === 'agent' && msg.charts && msg.charts.length > 0) {
+                        const chartNames = msg.charts.map(c => getChartTitle(c)).join(', ');
+                        const isMultiple = msg.charts.length > 1;
+                        chartNotification = isMultiple 
+                            ? `Добавлены новые графики: ${chartNames}` 
+                            : `Добавлен новый график: ${chartNames}`;
+                    }
 
-                    </div>
-                ))}
+                    return (
+                        <div key={msg.id} className={`msg-row ${msg.sender}`}>
+                            {chartNotification ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', width: '66.66%' }}>
+                                    <div style={{ fontSize: '13px', fontStyle: 'italic', color: '#666', marginBottom: '6px', marginLeft: '15px', width: '100%', whiteSpace: 'normal', wordWrap: 'break-word', lineHeight: '1.4' }}>
+                                        {chartNotification}
+                                    </div>
+                                    <div className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''}`} style={{ width: '100%' }}>
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                            {msg.text}
+                                        </ReactMarkdown>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''}`}>
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {msg.text}
+                                    </ReactMarkdown>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
 
                 {loading && (
                     <div className="msg-row agent">

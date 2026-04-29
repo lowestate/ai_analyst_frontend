@@ -47,14 +47,14 @@ const GLOBAL_STYLES = `
 
     /* Агент: 2/3 ширины, слева, белый фон, без обводки, треугольник слева-снизу */
     .msg-row.agent { justify-content: flex-start; }
-    .msg-bubble.agent { width: 66.66%; background: #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .msg-bubble.agent { width: 70%; background: #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
     /* Агент (Ошибка) */
     .msg-bubble.agent.error { background: #ffe6e6; border: 1px solid #800000; box-shadow: none; }
 
     /* Пользователь: 1/3 ширины, справа, белый фон, черная обводка, треугольник справа-снизу */
     .msg-row.user { justify-content: flex-end; }
-    .msg-bubble.user { width: 33.33%; background: #ffffff; border: 1px solid #000000; }
+    .msg-bubble.user { width: 30%; background: #ffffff; border: 1px solid #000000; }
 
     /* Инпут */
     .input-container { padding: 15px 0; display: flex; justify-content: center; background: transparent; }
@@ -104,8 +104,31 @@ const GLOBAL_STYLES = `
     .sample-table th { background: #f5f5f5; font-weight: 600; }
 
     /* --- ПРАВАЯ КОЛОНКА --- */
-    .col-right { flex: 1; background: linear-gradient(to right, #e0f0ff, #ffffff); border-left: 1px solid #e0e0e0; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 20px; min-width: 0; }
-    .chart-preview-box { width: 95%; background: #ffffff; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; cursor: pointer; transition: transform 0.2s; display: flex; justify-content: center; align-items: center; padding: 10px; }
+    .col-right { 
+        flex: 1; 
+        background: linear-gradient(to right, #e0f0ff, #ffffff); 
+        border-left: 1px solid #e0e0e0; 
+        /* overflow-y: auto сам убирает скролл, если контент влезает */
+        overflow-y: auto; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        padding: 20px 0; 
+        gap: 25px; 
+        min-width: 0; 
+    }
+
+    .chart-preview-box { 
+        width: 90%; /* Немного уменьшили ширину для отступов */
+        background: #ffffff; 
+        border-radius: 8px; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
+        cursor: pointer; 
+        transition: transform 0.2s; 
+        display: flex; 
+        flex-direction: column;
+        padding: 10px; 
+    }
     .chart-preview-box:hover { transform: scale(1.02); }
 
     /* --- МОДАЛЬНОЕ ОКНО --- */
@@ -118,6 +141,25 @@ const GLOBAL_STYLES = `
     /* Лоадер */
     .loading-text { font-style: italic; color: #666; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+    .markdown-body table { 
+        border-collapse: collapse; 
+        width: 100%; 
+        margin-bottom: 16px; 
+        font-size: 13px; 
+        display: block; 
+        overflow-x: auto; 
+        max-width: 100%; 
+    }
+    .markdown-body th, .markdown-body td { border: 1px solid #ddd; padding: 6px 12px; }
+    .markdown-body th { background-color: #f5f5f5; text-align: left; }
+    .markdown-body p { margin-bottom: 10px; }
+    .markdown-body p:last-child { margin-bottom: 0; }
+    .markdown-body h3 { margin-bottom: 10px; margin-top: 15px; font-size: 16px; }
+    .markdown-body ul { margin-left: 20px; margin-bottom: 10px; }
+    .markdown-body table::-webkit-scrollbar { height: 8px; }
+    .markdown-body table::-webkit-scrollbar-track { background: transparent; }
+    .markdown-body table::-webkit-scrollbar-thumb { background: #cccccc; border-radius: 4px; }
 `;
 
 function App() {
