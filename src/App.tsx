@@ -13,9 +13,9 @@ const GLOBAL_STYLES = `
     .app-layout { display: flex; height: 100vh; width: 100vw; }
 
     /* --- ЛЕВАЯ КОЛОНКА --- */
-    .col-left { flex: 1; background: #ffffff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; padding: 20px 15px; overflow-y: hidden; }
+    .col-left { flex: 1; background: linear-gradient(to left, #e0f0ff, #ffffff); border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; padding: 20px 15px; overflow-y: hidden; }
     .btn-upload { display: block; text-align: center; background: #f0f0f0; border: 1px solid #000; border-radius: 16px; padding: 12px; cursor: pointer; font-weight: 500; margin-bottom: 25px; transition: background 0.2s; }
-    .btn-upload:hover { background: #e8e8e8; }
+    .btn-upload:hover { background: #ffffff; }
     .chat-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
     .chat-item { padding: 12px 15px; border-radius: 16px; cursor: pointer; border: 1px solid transparent; background: transparent; transition: all 0.2s; }
     .chat-item.active { background: #ffffff; border: 1px solid #000000; }

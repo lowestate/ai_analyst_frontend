@@ -1,5 +1,5 @@
 import React from 'react';
-import { Message } from '../types';
+import { Message, ChartData } from '../types';
 import { SampleTable } from './SampleTable';
 
 interface ChatAreaProps {
@@ -14,6 +14,17 @@ interface ChatAreaProps {
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loading, loadingPhrase, input, setInput, onSendMessage, localDataPool }) => {
+    
+    // Функция для получения названия графика
+    const getChartTitle = (chart: ChartData) => {
+        if (chart.type === 'correlation') return 'Корреляционная матрица';
+        if (chart.type === 'column_stats') {
+            const catCols = Object.keys(chart.data?.categorical || {});
+            return catCols.length > 0 ? `Распределение: ${catCols[0]}` : 'Статистика';
+        }
+        return 'График';
+    };
+
     return (
         <div className="col-center">
             <div className="messages-wrapper">
@@ -23,11 +34,34 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loadin
 
                 {messages.map(msg => (
                     <div key={msg.id} className={`msg-row ${msg.sender}`}>
-                        <div className={`msg-bubble ${msg.sender} ${msg.isError ? 'error' : ''}`}>
-                            {msg.text.split('\n').map((line, i) => (
-                                <React.Fragment key={i}>{line}<br/></React.Fragment>
-                            ))}
-                        </div>
+                        
+                        {/* Если это агент и у него есть графики, оборачиваем в div с заголовком */}
+                        {msg.sender === 'agent' && msg.charts && msg.charts.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', width: '66.66%' }}>
+                                <div style={{ 
+                                    fontSize: '13px', 
+                                    fontStyle: 'italic', 
+                                    color: '#666', 
+                                    marginBottom: '6px', 
+                                    marginLeft: '15px' 
+                                }}>
+                                    {msg.charts.map(c => `Добавлен новый график: ${getChartTitle(c)}`).join(' | ')}
+                                </div>
+                                <div className={`msg-bubble ${msg.sender} ${msg.isError ? 'error' : ''}`} style={{ width: '100%' }}>
+                                    {msg.text.split('\n').map((line, i) => (
+                                        <React.Fragment key={i}>{line}<br/></React.Fragment>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            /* Обычный рендер для юзера или агента без графиков */
+                            <div className={`msg-bubble ${msg.sender} ${msg.isError ? 'error' : ''}`}>
+                                {msg.text.split('\n').map((line, i) => (
+                                    <React.Fragment key={i}>{line}<br/></React.Fragment>
+                                ))}
+                            </div>
+                        )}
+
                     </div>
                 ))}
 
@@ -49,7 +83,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loadin
                             onKeyDown={e => e.key === 'Enter' && onSendMessage()}
                             placeholder="Что исследуем?"
                         />
-                        <button onClick={onSendMessage}>→</button>
+                        <button onClick={onSendMessage}>❯</button>
                     </div>
                 </div>
             )}

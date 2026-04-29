@@ -10,7 +10,7 @@ interface SidebarProps {
 
 export const LeftSidebar: React.FC<SidebarProps> = ({ sessions, activeChat, onSelectChat, onFileUpload }) => {
     // Добавляем тестовый неактивный чат чисто для визуальной проверки стилей
-    const displaySessions = [...sessions, { id: 'dummy-1', datasetName: 'Анализ логов сервера', filename: 'server_logs.csv' }];
+    const displaySessions = [...[...sessions].reverse()]    ;
 
     return (
         <div className="col-left">
