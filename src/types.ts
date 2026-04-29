@@ -1,14 +1,14 @@
 export interface ChartData {
-    type: 'correlation' | 'column_stats' | 'category_count' | 'numeric_hist';
+    type: 'correlation' | 'column_stats' | 'category_count' | 'numeric_hist' | 'outliers' | 'cross_deps';
     data: any;
 }
 
 export interface Message {
-  id: string;
-  sender: 'user' | 'agent';
-  text: string;
-  charts?: ChartData[];
-  isError?: boolean;
+    id: string;
+    sender: 'user' | 'agent';
+    text: string;
+    charts?: ChartData[];
+    isError?: boolean;
 }
 
 export interface ChatSession {
