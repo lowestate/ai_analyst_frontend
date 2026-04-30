@@ -12,53 +12,126 @@ const COLORS = {
     black: '#000000',
     transparent: 'transparent',
 
-    // Серые оттенки
-    gray50: '#fafafa',
-    gray100: '#f5f5f5',
-    gray150: '#f0f0f0',
-    gray200: '#eeeeee',
-    gray300: '#e0e0e0',
-    gray400: '#dddddd',
-    gray500: '#cccccc',
-    gray600: '#a8a8a8',
-    gray700: '#888888',
-    gray800: '#666666',
-    gray900: '#333333',
+    // Фирменные цвета Taible
+    dark: '#343434',
+    accent: '#3399FF',
 
-    // Акценты и статусы
-    blueLight: '#f0f5fb',
-    errorBg: '#ffe6e6',
-    errorBorder: '#800000',
+    // Серые оттенки (современная шкала)
+    gray50: '#fafafa',
+    gray100: '#f4f4f5',
+    gray150: '#ececed',
+    gray200: '#e4e4e7',
+    gray300: '#d4d4d8',
+    gray400: '#a1a1aa',
+    gray500: '#71717a',
+    gray600: '#52525b',
+    gray700: '#3f3f46',
+    gray800: '#27272a',
+    gray900: '#18181b',
+
+    // Статусы
+    errorBg: '#fef2f2',
+    errorBorder: '#f87171',
 
     // Тени и наложения (RGBA)
-    shadowLight05: 'rgba(0,0,0,0.05)',
-    shadowLight08: 'rgba(0,0,0,0.08)',
-    shadowMedium10: 'rgba(0,0,0,0.1)',
-    shadowDark30: 'rgba(0,0,0,0.3)',
-    overlay50: 'rgba(0,0,0,0.5)'
+    shadowLight05: 'rgba(52, 52, 52, 0.05)',
+    shadowLight08: 'rgba(52, 52, 52, 0.08)',
+    shadowMedium10: 'rgba(52, 52, 52, 0.12)',
+    shadowDark30: 'rgba(0,0,0,0.4)',
+    overlay50: 'rgba(0,0,0,0.6)'
 };
 
 const COLUMN_DISIVISION_PARTS = {
-    left: 3,
-    middle: 14,
-    right: 3
+    left: 1,
+    middle: 5,
+    right: 1
 }
 
 const GLOBAL_STYLES = `
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { overflow: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { overflow: hidden; background-color: ${COLORS.gray50}; color: ${COLORS.dark}; }
 
-    .app-layout { display: flex; height: 100vh; width: 100vw; }
+    .app-root { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+    .app-layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* --- ХЭДЕР (ШАПКА) --- */
+    .app-header {
+        height: 50px;
+        background: ${COLORS.white};
+        border-bottom: 1px solid ${COLORS.gray200};
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        flex-shrink: 0;
+        z-index: 100;
+    }
+    .header-logo-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        user-select: none;
+        margin-left: 40px;
+    }
+
+    .header-title {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.6px;
+        color: ${COLORS.gray700};
+        display: flex;
+        align-items: center;
+        line-height: 1;
+        /* Убираем нижний отступ, центрируем через flex */
+        margin: 0;
+        transform: translateY(-2.5px); /* Финальная микро-коррекция по высоте */
+    }
+
+    .ai-highlight {
+        color: #328fec; /* Твой новый синий */
+        margin-left: 1px; /* Тот самый отступ в 1 пиксель от 't' */
+        display: inline-block;
+    }
+
+    .header-logo-container svg {
+        display: block; /* Убираем инлайновые отступы снизу */
+        flex-shrink: 0; /* Чтобы лого не сжималось */
+    }
 
     /* --- ЛЕВАЯ КОЛОНКА --- */
-    .col-left { flex: ${COLUMN_DISIVISION_PARTS.left}; background: linear-gradient(to left, ${COLORS.blueLight}, ${COLORS.white}); border-right: 1px solid ${COLORS.gray300}; display: flex; flex-direction: column; padding: 20px 15px; overflow-y: hidden; }
-    .btn-upload { display: block; text-align: center; background: ${COLORS.gray150}; border: 1px solid ${COLORS.black}; border-radius: 16px; padding: 12px; cursor: pointer; font-weight: 500; margin-bottom: 25px; transition: background 0.2s; }
-    .btn-upload:hover { background: ${COLORS.white}; }
-    .chat-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-    .chat-item { padding: 12px 15px; border-radius: 16px; cursor: pointer; border: 1px solid ${COLORS.transparent}; background: ${COLORS.transparent}; transition: all 0.2s; }
-    .chat-item.active { background: ${COLORS.white}; border: 1px solid ${COLORS.black}; }
-    .chat-item .dataset-desc { font-size: 15px; font-weight: 500; color: ${COLORS.gray900}; margin-bottom: 4px; }
-    .chat-item .dataset-name { font-size: 13px; font-style: italic; color: ${COLORS.gray800}; }
+    .col-left { 
+        flex: ${COLUMN_DISIVISION_PARTS.left}; 
+        background: ${COLORS.gray50}; 
+        border-right: 1px solid ${COLORS.gray200}; 
+        display: flex; 
+        flex-direction: column; 
+        padding: 24px 20px; 
+        overflow-y: hidden; 
+    }
+    .btn-upload { 
+        display: block; text-align: center; background: ${COLORS.white}; 
+        border: 1.5px solid ${COLORS.dark}; color: ${COLORS.dark};
+        border-radius: 12px; padding: 12px; cursor: pointer; font-weight: 600; 
+        font-size: 14px; margin-bottom: 24px; transition: all 0.2s ease;
+        box-shadow: 0 2px 0 ${COLORS.shadowLight05};
+    }
+    .btn-upload:hover { background: ${COLORS.dark}; color: ${COLORS.white}; }
+    .btn-upload:active { transform: translateY(2px); box-shadow: none; }
+    
+    .chat-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 4px; }
+    .chat-list::-webkit-scrollbar { width: 6px; }
+    .chat-list::-webkit-scrollbar-thumb { background: ${COLORS.gray300}; border-radius: 4px; }
+    
+    .chat-item { 
+        padding: 14px 16px; border-radius: 12px; cursor: pointer; 
+        border: 1px solid transparent; background: transparent; transition: all 0.2s ease; 
+    }
+    .chat-item:hover { background: ${COLORS.gray100}; }
+    .chat-item.active { 
+        background: ${COLORS.white}; border: 1px solid ${COLORS.gray200}; 
+        box-shadow: 0 2px 8px ${COLORS.shadowLight05};
+    }
+    .chat-item .dataset-desc { font-size: 14px; font-weight: 600; color: ${COLORS.dark}; margin-bottom: 4px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chat-item .dataset-name { font-size: 12px; color: ${COLORS.gray500}; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     /* --- ЦЕНТРАЛЬНАЯ КОЛОНКА --- */
     .col-center { flex: ${COLUMN_DISIVISION_PARTS.middle}; display: flex; flex-direction: column; background: ${COLORS.white}; position: relative; min-width: 0; }
@@ -66,138 +139,219 @@ const GLOBAL_STYLES = `
         flex: 1;
         display: flex;
         flex-direction: column;
-        background: linear-gradient(to bottom, ${COLORS.blueLight}, ${COLORS.white});
+        background: ${COLORS.white};
         overflow-y: auto;
-        padding: 20px;
-        /* Добавляем это: */
-        scrollbar-width: none; /* Для Firefox */
-        -ms-overflow-style: none;  /* Для IE и Edge */
+        padding: 0 40px 32px 40px; /* Убрали верхний паддинг, чтобы sticky прилипал к самому верху */
+        scrollbar-width: thin; /* Тонкий скроллбар для Firefox */
+        scrollbar-color: ${COLORS.gray300} transparent;
+        position: relative; /* Создаем контекст для позиционирования */
+    }
+    .messages-wrapper::-webkit-scrollbar {
+        width: 6px;
+        display: block; /* Скроллбар теперь виден */
+    }
+    .messages-wrapper::-webkit-scrollbar-thumb {
+        background-color: ${COLORS.gray200};
+        border-radius: 10px;
     }
 
-    /* И добавляем этот блок для Chrome, Safari и Opera: */
-    .messages-wrapper::-webkit-scrollbar {
-        display: none;
+    .messages-wrapper::-webkit-scrollbar-thumb:hover {
+        background-color: ${COLORS.gray300};
     }
 
     /* Сообщения */
-    .msg-row { display: flex; width: 100%; margin-bottom: 20px; }
-    .msg-bubble { position: relative; border-radius: 16px; padding: 16px; word-wrap: break-word; }
+    .msg-row { display: flex; width: 100%; margin-bottom: 24px; animation: slideUp 0.3s ease forwards; opacity: 0; transform: translateY(10px); }
+    .msg-bubble { position: relative; border-radius: 16px; padding: 16px 20px; word-wrap: break-word; font-size: 15px; line-height: 1.5; }
 
-    /* Агент: 2/3 ширины, слева, белый фон, без обводки, треугольник слева-снизу */
+    /* Агент */
     .msg-row.agent { justify-content: flex-start; }
-    .msg-bubble.agent { width: 70%; background: ${COLORS.white}; box-shadow: 0 2px 5px ${COLORS.shadowLight05}; }
+    .msg-bubble.agent { 
+        width: 73%; /* Явно задаем 70% вместо max-width */
+        background: ${COLORS.white}; 
+        border: 1px solid ${COLORS.gray200}; 
+        color: ${COLORS.dark}; 
+        box-shadow: 0 4px 12px ${COLORS.shadowLight05};
+        border-bottom-left-radius: 4px;
+    }
 
     /* Агент (Ошибка) */
-    .msg-bubble.agent.error { background: ${COLORS.errorBg}; border: 1px solid ${COLORS.errorBorder}; box-shadow: none; }
+    .msg-bubble.agent.error { background: ${COLORS.errorBg}; border: 1px solid ${COLORS.errorBorder}; color: ${COLORS.errorBorder}; box-shadow: none; }
 
-    /* Пользователь: 1/3 ширины, справа, белый фон, черная обводка, треугольник справа-снизу */
+    /* Пользователь */
     .msg-row.user { justify-content: flex-end; }
-    .msg-bubble.user { width: 30%; background: ${COLORS.white}; border: 1px solid ${COLORS.black}; }
+    .msg-bubble.user { 
+        max-width: 60%; background: ${COLORS.gray600}; color: ${COLORS.white}; 
+        border: none; border-bottom-right-radius: 4px;
+        box-shadow: 0 4px 12px ${COLORS.shadowLight08};
+    }
 
     /* Инпут */
-    .input-container { padding: 15px 0; display: flex; justify-content: center; background: ${COLORS.transparent}; }
-    .input-box { height: 45px; width: 95%; display: flex; background: ${COLORS.white}; border: 1px solid ${COLORS.black}; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 10px ${COLORS.shadowLight05}; }
-    .input-box input { flex: 1; border: none; padding: 16px 20px; outline: none; font-size: 15px; }
-    .input-box input::placeholder { font-style: italic; color: ${COLORS.gray700}; }
-    .input-box button { background: ${COLORS.transparent}; border: none; padding: 0 20px; font-size: 20px; cursor: pointer; color: ${COLORS.gray900}; }
+    .input-container { padding: 20px 40px; display: flex; justify-content: center; background: ${COLORS.white}; border-top: 1px solid ${COLORS.gray100}; }
+    .input-box { 
+        height: 52px; width: 100%; display: flex; background: ${COLORS.gray50}; 
+        border: 1.5px solid ${COLORS.gray200}; border-radius: 12px; overflow: hidden; 
+        transition: all 0.2s ease;
+    }
+    .input-box:focus-within { border-color: ${COLORS.accent}; background: ${COLORS.white}; box-shadow: 0 0 0 3px rgba(51, 153, 255, 0.15); }
+    .input-box input { flex: 1; border: none; padding: 0 20px; outline: none; font-size: 15px; background: transparent; color: ${COLORS.dark}; }
+    .input-box input::placeholder { color: ${COLORS.gray500}; }
+    .input-box button { background: ${COLORS.transparent}; border: none; padding: 0 20px; font-size: 20px; cursor: pointer; color: ${COLORS.accent}; transition: 0.2s; }
+    .input-box button:hover { transform: scale(1.1); color: #2080e0; }
 
     /* Таблица Семпла */
-    .sample-container { width: 100%; background: ${COLORS.white}; border: 1px solid ${COLORS.gray500}; border-radius: 12px; margin-bottom: 20px; transition: all 0.3s ease; z-index: 10; opacity: 1; }
-    .sample-container.pinned { position: sticky; top: 0; box-shadow: 0 5px 15px ${COLORS.shadowMedium10}; }
-    .sample-container.hidden-state { opacity: 0.8; }
-    .sample-controls { display: flex; gap: 10px; padding: 10px; border-bottom: 1px solid ${COLORS.gray200}; background: ${COLORS.gray50}; border-radius: 16px 8px 0 0; }
-    .sample-btn { padding: 6px 12px; border: 1px solid ${COLORS.gray500}; background: ${COLORS.white}; border-radius: 4px; cursor: pointer; font-size: 13px; transition: 0.2s; }
-    .sample-btn:hover { background: ${COLORS.gray200}; }
-    .sample-btn.active { background: ${COLORS.gray300}; font-weight: bold; }
-    .table-wrapper {
-        overflow-x: auto;
-        transition: max-height 0.4s ease, padding 0.4s ease;
-        max-height: 400px;
-        border-radius: 0 0 8px 8px; /* Убеждаемся, что углы контейнера скруглены */
+    .sample-container {
+        width: 100%;
         background: ${COLORS.white};
+        border: 1px solid ${COLORS.gray200};
+        border-radius: 12px 12px 12px 12px; /* Скругление снизу, так как сверху она прижата */
+        margin-bottom: 24px;
+        margin-top: 24px;
+        z-index: 10;
+        transition: all 0.3s ease;
     }
-
-    /* --- КАСТОМНЫЙ СКРОЛЛБАР ДЛЯ ТАБЛИЦЫ --- */
-    .table-wrapper::-webkit-scrollbar {
-        height: 12px; /* Делаем его компактным */
+    .sample-container.pinned {
+        position: sticky;
+        top: 0;
+        z-index: 50; /* Достаточно высокий, чтобы быть над сообщениями */
+        box-shadow: 0 4px 12px ${COLORS.shadowLight08};
+        border-top: none;
+        border-radius: 0; /* Убираем скругления при залипании для красоты */
     }
-
-    .table-wrapper::-webkit-scrollbar-track {
-        background: ${COLORS.transparent};
-        margin: 0 10px; /* Отступы по краям, чтобы ползунок вообще не касался углов контейнера */
+    .sample-container.hidden-state { opacity: 0.8; }
+    .sample-controls { display: flex; gap: 10px; padding: 12px 16px; border-bottom: 1px solid ${COLORS.gray200}; background: ${COLORS.gray50}; }
+    .sample-btn { padding: 6px 12px; border: 1px solid ${COLORS.gray300}; background: ${COLORS.white}; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: 0.2s; color: ${COLORS.dark}; }
+    .sample-btn:hover { background: ${COLORS.gray100}; }
+    .sample-btn.active { background: ${COLORS.dark}; color: ${COLORS.white}; border-color: ${COLORS.dark}; }
+    .table-wrapper { overflow-x: auto; transition: max-height 0.4s ease, padding 0.4s ease; max-height: 400px; background: ${COLORS.white}; }
+    
+    .table-wrapper {
+        overflow-x: auto; /* Включает горизонтальный скролл */
+        overflow-y: hidden; /* Вертикальный скролл не нужен, если ограничиваем высоту через контейнер */
+        transition: max-height 0.4s ease;
+        max-height: 350px; 
+        background: ${COLORS.white};
+        display: block; /* Гарантирует корректную работу overflow-x */
     }
-
-    .table-wrapper::-webkit-scrollbar-thumb {
-        background: ${COLORS.gray500};
-        border-radius: 6px; /* Полностью круглый ползунок */
-        border: 3px solid ${COLORS.white}; /* Имитация отступа от краев (эффект парящего скроллбара) */
-    }
-
-    .table-wrapper::-webkit-scrollbar-thumb:hover {
-        background: ${COLORS.gray600}; /* Чуть темнеет при наведении */
-    }
+    .table-wrapper::-webkit-scrollbar-track { background: ${COLORS.transparent}; margin: 0 10px; }
+    .table-wrapper::-webkit-scrollbar-thumb { background: ${COLORS.gray300}; border-radius: 6px; border: 2px solid ${COLORS.white}; }
+    .table-wrapper::-webkit-scrollbar-thumb:hover { background: ${COLORS.gray400}; }
     .table-wrapper.collapsed { max-height: 0; overflow: hidden; }
+    
     .sample-table { width: 100%; border-collapse: collapse; background: ${COLORS.white}; }
-    .sample-table th, .sample-table td { border: 1px solid ${COLORS.gray300}; padding: 8px 12px; text-align: left; font-size: 13px; }
-    .sample-table th { background: ${COLORS.gray100}; font-weight: 600; }
+    .sample-table th, .sample-table td { 
+        border-bottom: 1px solid ${COLORS.gray200}; 
+        padding: 6px 12px; /* Уменьшено с 12px/16px для экономии высоты */
+        text-align: left; 
+        font-size: 13px;
+        white-space: nowrap; /* Чтобы таблица растягивалась вширь и появлялся скролл */
+    }
+    .sample-table th { background: ${COLORS.gray50}; font-weight: 600; color: ${COLORS.gray600}; position: sticky; top: 0; }
+    .sample-table tr:hover td { background: ${COLORS.gray50}; }
 
     /* --- ПРАВАЯ КОЛОНКА --- */
     .col-right { 
         flex: ${COLUMN_DISIVISION_PARTS.right}; 
-        background: linear-gradient(to right, ${COLORS.blueLight}, ${COLORS.white}); 
-        border-left: 1px solid ${COLORS.gray300}; 
-        /* overflow-y: auto сам убирает скролл, если контент влезает */
+        background: ${COLORS.gray50}; 
+        border-left: 1px solid ${COLORS.gray200}; 
         overflow-y: auto; 
         display: flex; 
         flex-direction: column; 
         align-items: center; 
-        padding: 20px 0; 
-        gap: 25px; 
+        padding: 24px 0; 
+        gap: 20px; 
         min-width: 0; 
     }
+    .col-right::-webkit-scrollbar { width: 6px; }
+    .col-right::-webkit-scrollbar-thumb { background: ${COLORS.gray300}; border-radius: 4px; }
 
     .chart-preview-box { 
-        width: 90%; /* Немного уменьшили ширину для отступов */
+        width: 85%; aspect-ratio: 4/3;
         background: ${COLORS.white}; 
-        border-radius: 8px; 
-        box-shadow: 0 2px 8px ${COLORS.shadowLight08}; 
+        border: 1px solid ${COLORS.gray200};
+        border-radius: 12px; 
+        box-shadow: 0 2px 8px ${COLORS.shadowLight05}; 
         cursor: pointer; 
-        transition: transform 0.2s; 
+        transition: all 0.2s ease; 
         display: flex; 
         flex-direction: column;
-        padding: 10px; 
+        align-items: center;
+        justify-content: center;
+        padding: 16px; 
+        color: ${COLORS.gray600};
+        font-size: 13px;
+        font-weight: 500;
+        text-align: center;
     }
-    .chart-preview-box:hover { transform: scale(1.02); }
+    .chart-preview-box:hover { transform: translateY(-4px); box-shadow: 0 8px 16px ${COLORS.shadowLight08}; border-color: ${COLORS.accent}; color: ${COLORS.accent}; }
 
     /* --- МОДАЛЬНОЕ ОКНО --- */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: ${COLORS.overlay50}; z-index: 9999; display: flex; justify-content: center; align-items: center; opacity: 0; animation: fadeIn 0.3s forwards; }
-    .modal-content { background: ${COLORS.white}; padding: 20px; border-radius: 16px; max-width: 90vw; max-height: 90vh; overflow: auto; transform: scale(0.9); animation: scaleUp 0.3s forwards; box-shadow: 0 10px 30px ${COLORS.shadowDark30}; }
-
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: ${COLORS.overlay50}; backdrop-filter: blur(4px); z-index: 9999; display: flex; justify-content: center; align-items: center; opacity: 0; animation: fadeIn 0.2s forwards; }
+    .modal-content { 
+        background: ${COLORS.white}; 
+        padding: 30px; 
+        border-radius: 20px; 
+        width: 90vw; /* Увеличен до 90% ширины экрана */
+        max-width: 1400px; /* Ограничитель для очень больших мониторов */
+        max-height: 90vh; 
+        overflow: auto; 
+        transform: scale(0.95); 
+        animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+        box-shadow: 0 20px 40px ${COLORS.shadowDark30}; 
+        position: relative; 
+    }
+    /* --- АНИМАЦИИ --- */
     @keyframes fadeIn { to { opacity: 1; } }
     @keyframes scaleUp { to { transform: scale(1); } }
+    @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
 
     /* Лоадер */
-    .loading-text { font-style: italic; color: ${COLORS.gray800}; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+    .loading-text { font-size: 14px; font-weight: 500; color: ${COLORS.gray500}; animation: pulse 1.5s infinite ease-in-out; }
+    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
-    .markdown-body table { 
-        border-collapse: collapse; 
-        width: 100%; 
-        margin-bottom: 16px; 
-        font-size: 13px; 
-        display: block; 
-        overflow-x: auto; 
-        max-width: 100%; 
-    }
-    .markdown-body th, .markdown-body td { border: 1px solid ${COLORS.gray400}; padding: 6px 12px; }
-    .markdown-body th { background-color: ${COLORS.gray100}; text-align: left; }
-    .markdown-body p { margin-bottom: 10px; }
+    /* Markdown стили внутри сообщений */
+    .markdown-body table { border-collapse: collapse; width: 100%; margin-bottom: 16px; font-size: 14px; display: block; overflow-x: auto; max-width: 100%; border-radius: 8px; box-shadow: 0 0 0 1px ${COLORS.gray200}; }
+    .markdown-body th, .markdown-body td { border-bottom: 1px solid ${COLORS.gray200}; padding: 10px 14px; }
+    .markdown-body th { background-color: ${COLORS.gray50}; text-align: left; font-weight: 600; color: ${COLORS.gray700}; }
+    .markdown-body tr:last-child td { border-bottom: none; }
+    .markdown-body p { margin-bottom: 12px; }
     .markdown-body p:last-child { margin-bottom: 0; }
-    .markdown-body h3 { margin-bottom: 10px; margin-top: 15px; font-size: 16px; }
-    .markdown-body ul { margin-left: 20px; margin-bottom: 10px; }
+    .markdown-body h3 { margin-bottom: 12px; margin-top: 20px; font-size: 16px; color: ${COLORS.dark}; }
+    .markdown-body ul { margin-left: 24px; margin-bottom: 12px; }
     .markdown-body table::-webkit-scrollbar { height: 8px; }
-    .markdown-body table::-webkit-scrollbar-track { background: ${COLORS.transparent}; }
-    .markdown-body table::-webkit-scrollbar-thumb { background: ${COLORS.gray500}; border-radius: 4px; }
+    .markdown-body table::-webkit-scrollbar-track { background: ${COLORS.transparent}; margin: 0 4px; }
+    .markdown-body table::-webkit-scrollbar-thumb { background: ${COLORS.gray300}; border-radius: 4px; }
+
+    /* --- КАСТОМНЫЙ ПОЛЗУНОК --- */
+    .custom-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 8px;
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+    }
+
+    /* Ползунок (шарик) для Chrome/Safari/Edge */
+    .custom-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #328fec;
+        border: 2px solid #ffffff;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    /* Ползунок (шарик) для Firefox */
+    .custom-slider::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #328fec;
+        border: 2px solid #ffffff;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
 `;
 
 function App() {
@@ -329,38 +483,60 @@ function App() {
     return (
         <>
             <style>{GLOBAL_STYLES}</style>
-            <div className="app-layout">
-                <LeftSidebar
-                    sessions={sessions}
-                    activeChat={activeChat}
-                    onSelectChat={setActiveChat}
-                    onFileUpload={handleFileUpload}
-                />
+            <div className="app-root">
+                {/* ХЭДЕР С ЛОГОТИПОМ TAIBLE */}
+                <header className="app-header">
+                    <div className="header-logo-container">
+                        {/* Логотип: синий в нем можно тоже заменить на #328fec для идеального соответствия */}
+                        <svg width="34" height="26" viewBox="0 0 40 30" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
+                            <rect x="2" y="2" width="36" height="26" rx="6" fill="#ffffff" />
+                            {/* Я заменил здесь цвет на #328fec, чтобы всё было в одном тоне */}
+                            <path d="M 2 15 H 20 V 2 H 8 A 6 6 0 0 0 2 8 V 15 Z" fill="#328fec" />
+                            <path d="M 20 15 H 38 V 8 A 6 6 0 0 0 32 2 H 20 V 15 Z" fill="#328fec" />
+                            <rect x="2" y="2" width="36" height="26" rx="6" stroke="#343434" strokeWidth="3" fill="none" />
+                            <line x1="2" y1="15" x2="38" y2="15" stroke="#343434" strokeWidth="3"/>
+                            <line x1="20" y1="2" x2="20" y2="28" stroke="#343434" strokeWidth="3"/>
+                        </svg>
 
-                <ChatArea
-                    activeChat={activeChat}
-                    messages={messages}
-                    loading={loading}
-                    loadingPhrase={loadingPhrases[loadingIndex]}
-                    input={input}
-                    setInput={setInput}
-                    onSendMessage={sendMessage}
-                    localDataPool={localDataPool}
-                />
-
-                <RightSidebar
-                    charts={allCharts}
-                    onSelectChart={setSelectedChart}
-                    isDatasetLoaded={!!activeChat && activeChat !== "temp_loading"} 
-                />
-
-                {selectedChart && (
-                    <div className="modal-overlay" onClick={() => setSelectedChart(null)}>
-                        <div className="modal-content" onClick={e => e.stopPropagation()}>
-                            <DataCharts charts={[selectedChart]} preview={false} />
-                        </div>
+                        <span className="header-title">
+                            t<span className="ai-highlight">ai</span>ble
+                        </span>
                     </div>
-                )}
+                </header>
+
+                <div className="app-layout">
+                    <LeftSidebar
+                        sessions={sessions}
+                        activeChat={activeChat}
+                        onSelectChat={setActiveChat}
+                        onFileUpload={handleFileUpload}
+                    />
+
+                    <ChatArea
+                        activeChat={activeChat}
+                        messages={messages}
+                        loading={loading}
+                        loadingPhrase={loadingPhrases[loadingIndex]}
+                        input={input}
+                        setInput={setInput}
+                        onSendMessage={sendMessage}
+                        localDataPool={localDataPool}
+                    />
+
+                    <RightSidebar
+                        charts={uniqueCharts} /* БЫЛО: charts={allCharts} */
+                        onSelectChart={setSelectedChart}
+                        isDatasetLoaded={!!activeChat && activeChat !== "temp_loading"} 
+                    />
+
+                    {selectedChart && (
+                        <div className="modal-overlay" onClick={() => setSelectedChart(null)}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                <DataCharts charts={[selectedChart]} preview={false} />
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     );

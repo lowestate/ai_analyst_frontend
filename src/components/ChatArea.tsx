@@ -75,7 +75,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loadin
                     return (
                         <div key={msg.id} className={`msg-row ${msg.sender}`}>
                             {chartNotification ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', width: '66.66%' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', width: '73%' }}>
                                     <div style={{ fontSize: '13px', fontStyle: 'italic', color: '#666', marginBottom: '6px', marginLeft: '15px', width: '100%', whiteSpace: 'normal', wordWrap: 'break-word', lineHeight: '1.4' }}>
                                         {chartNotification}
                                     </div>

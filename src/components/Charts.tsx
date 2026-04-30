@@ -21,7 +21,7 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     
     if (chart.type === 'cross_deps') {
-        controls = [{ type: 'slider', id: 'threshold', label: 'Порог связи', min: 0, max: 1, step: 0.05, defaultValue: 0.4 }];
+        controls = [{ type: 'slider', id: 'threshold', label: 'Порог связи', min: 0, max: 1, step: 0.005, defaultValue: 0.4 }];
     }
     
     if (chart.type === 'trend_line') {
@@ -135,8 +135,9 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
         ];
         plotLayout = preview 
             ? { margin: { t: 10, b: 10, l: 10, r: 10 }, xaxis: { visible: false, range: [-1.2, 1.2], fixedrange: true }, yaxis: { visible: false, range: [-1.2, 1.2], fixedrange: true, scaleanchor: 'x', scaleratio: 1 }, showlegend: false, autosize: true }
-            : { xaxis: { visible: false, showgrid: false, zeroline: false }, yaxis: { visible: false, showgrid: false, zeroline: false, scaleanchor: 'x', scaleratio: 1 }, margin: { t: 30, r: 80, b: 50, l: 80 }, showlegend: false, hovermode: 'closest' };
-    }
+            // Добавили datarevision: currentThreshold
+            : { datarevision: currentThreshold, xaxis: { visible: false, showgrid: false, zeroline: false }, yaxis: { visible: false, showgrid: false, zeroline: false, scaleanchor: 'x', scaleratio: 1 }, margin: { t: 30, r: 80, b: 50, l: 80 }, showlegend: false, hovermode: 'closest' };
+        }
 
     if (chart.type === 'trend_line') {
         const numericCols = chart.data.numeric_cols;
@@ -165,7 +166,8 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
             type: 'scatter', mode: 'lines', name: col, line: { width: 2 }, hoverinfo: preview ? 'skip' : 'all'
         }));
         plotLayout = preview ? previewLayout : {
-            datarevision: activeCols.length, 
+            // Теперь график обновится, если изменится хоть одна колонка или любая из дат
+            datarevision: `${activeCols.join(',')}_${startDate}_${endDate}`, 
             xaxis: { automargin: true, type: 'date' }, yaxis: { automargin: true, title: { text: 'Значения метрик' } },
             margin: { t: 20, b: 80, l: 80, r: 50 }, showlegend: true, legend: { orientation: 'h', y: -0.2 } 
         };
@@ -222,22 +224,23 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
                 // Подписи для оси Y (слева, строго горизонтально)
                 annotations.push({
                     xref: 'paper', yref: 'paper',
-                    x: -0.04, y: (i + 0.5) / numDims, 
+                    // ФИКС: Вычитаем из 1, чтобы 0-й элемент был наверху, а не внизу
+                    x: -0.04, y: 1 - ((i + 0.5) / numDims), 
                     xanchor: 'right', yanchor: 'middle',
                     text: shortLabel, showarrow: false, font: { size: 12, color: '#333' }
                 });
 
-                // Подписи для оси X (снизу, под углом 30 градусов)
+                // Подписи для оси X (снизу, под углом 15 градусов) — остаются без изменений
                 annotations.push({
                     xref: 'paper', yref: 'paper',
-                    x: (i + 0.5) / numDims, y: -0.05    , // Опускаем текст под цифры на оси
+                    x: (i + 0.5) / numDims, y: -0.05, 
                     xanchor: 'right', yanchor: 'top',
-                    textangle: -15, // Отрицательный угол делает классический наклон слева-направо. Можно поставить 30.
+                    textangle: -15, 
                     text: shortLabel, showarrow: false, font: { size: 12, color: '#333' }
                 });
             });
         }
-
+        
         // 4. Формируем лэйаут
         let splomLayout: any = {
             datarevision: activeDims.length,
@@ -274,15 +277,61 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
                 marginBottom: '10px', width: '100%', boxSizing: 'border-box'
             }}>
                 {controls.map(ctrl => {
+                    // 1. ПОЛЗУНОК (Slider для кросс-зависимостей)
+                    if (ctrl.type === 'slider') {
+                        const val = Number(controlValues[ctrl.id]) || 0;
+                        
+                        // ВЫСЧИТЫВАЕМ ПРОЦЕНТ ЗАПОЛНЕНИЯ ПОЛЗУНКА
+                        const percentage = ((val - ctrl.min) / (ctrl.max - ctrl.min)) * 100;
+                        
+                        return (
+                            <div key={ctrl.id} style={{ display: 'flex', alignItems: 'center' }}>
+                                <label style={{ fontSize: '12px', fontWeight: 600, color: '#555', width: '120px' }}>
+                                    {ctrl.label}: {val.toFixed(2)}
+                                </label>
+                                
+                                <input 
+                                    type="range" 
+                                    className="custom-slider"
+                                    min={ctrl.min} max={ctrl.max} step={ctrl.step} 
+                                    value={val} 
+                                    onChange={e => handleControlChange(ctrl.id, parseFloat(e.target.value))} 
+                                    style={{ 
+                                        width: '130px', 
+                                        /* ДИНАМИЧЕСКИЙ ФОН: слева синий, справа бледно-серый (#e4e4e7) */
+                                        background: `linear-gradient(to right, #328fec 0%, #328fec ${percentage}%, #e4e4e7 ${percentage}%, #e4e4e7 100%)`
+                                    }} 
+                                />
+                            </div>
+                        );
+                    }
+
+                    // 2. ДЕЙТПИКЕР (Date для графиков тренда)
+                    if (ctrl.type === 'date') {
+                        return (
+                            <div key={ctrl.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <label style={{ fontSize: '12px', fontWeight: 600, color: '#555' }}>{ctrl.label}</label>
+                                <input 
+                                    type="date" 
+                                    min={ctrl.min} max={ctrl.max} 
+                                    value={controlValues[ctrl.id]} 
+                                    onChange={e => handleControlChange(ctrl.id, e.target.value)} 
+                                    style={{ padding: '4px 8px', border: '1px solid #e1e4e8', borderRadius: '6px', fontSize: '12px', color: '#333', background: '#fff', outline: 'none' }}
+                                />
+                            </div>
+                        );
+                    }
+
+                    // 3. ВЫПАДАЮЩИЙ СПИСОК (уже был в твоем коде)
                     if (ctrl.type === 'multiselect') {
                         const isOpen = openDropdown === ctrl.id;
-                        // Защита от ошибок: если массив не определен, берем пустой []
                         const selectedList = (controlValues[ctrl.id] as string[]) || []; 
-                        // Проверяем, выбраны ли абсолютно все элементы
                         const isAllSelected = selectedList.length === ctrl.options.length;
 
                         return (
                             <div key={ctrl.id} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }} onMouseLeave={() => setOpenDropdown(null)}>
+                                {/* ... ЗДЕСЬ ОСТАЕТСЯ ТВОЙ ОРИГИНАЛЬНЫЙ КОД ДЛЯ MULTISELECT ... */}
+                                {/* (Я его не пишу целиком, чтобы не засорять ответ, просто оставь его как есть) */}
                                 <label style={{ fontSize: '12px', fontWeight: 600, color: '#555' }}>{ctrl.label}</label>
                                 <div 
                                     onClick={() => setOpenDropdown(isOpen ? null : ctrl.id)}
@@ -295,12 +344,9 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
                                     <div style={{ position: 'absolute', top: '100%', right: '0', paddingTop: '6px', zIndex: 999 }}>
                                         <div style={{ background: '#fff', border: '1px solid #ddd', borderRadius: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', maxHeight: '250px', overflowY: 'auto', minWidth: '200px', padding: '5px 0' }}>
                                             
-                                            {/* НОВАЯ КНОПКА: ВЫБРАТЬ ВСЕ / СНЯТЬ ВСЕ */}
                                             <div 
                                                 onClick={(e) => { 
                                                     e.stopPropagation(); 
-                                                    // Если выбраны все - снимаем выделение (передаем пустой массив)
-                                                    // Если нет - выбираем все (передаем копию всех опций)
                                                     const next = isAllSelected ? [] : [...ctrl.options]; 
                                                     handleControlChange(ctrl.id, next); 
                                                 }} 
@@ -312,7 +358,6 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
                                                 <span style={{ fontSize: '12px', color: '#333', fontWeight: 600 }}>Все признаки</span>
                                             </div>
 
-                                            {/* СТАНДАРТНЫЕ ОПЦИИ */}
                                             {ctrl.options.map(opt => {
                                                 const isChecked = selectedList.includes(opt);
                                                 return (
@@ -334,7 +379,7 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
         );
     };
 
-    if (plotData.length === 0) return null;
+    if (plotData.length === 0 && chart.type !== 'trend_line') return null;
 
     return (
         <div style={containerStyle}>
