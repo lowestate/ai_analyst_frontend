@@ -65,7 +65,8 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
     else if (chart.type === 'category_count' || chart.type === 'numeric_hist') chartTitle = `Распределение: ${chart.data.column_name || 'Unknown'}`;
     else if (chart.type === 'outliers') chartTitle = `Разброс значений: ${chart.data.column_name || 'Unknown'}`;
     else if (chart.type === 'cross_deps') chartTitle = `Граф сильных связей (Score > ${(controlValues['threshold'] || 0.4).toFixed(2)})`;
-    else if (chart.type === 'trend_line') chartTitle = `Анализ трендов (Ось X: ${chart.data.date_col})`;
+    else if (chart.type === 'trend_line') chartTitle = `Анализ трендов (Ось X: ${chart.data.date_col})`
+    else if (chart.type === 'pairplot') chartTitle = `Матрица рассеяния`;
 
     const isCorrelation = chart.type === 'correlation';
     const previewLayout: any = {
