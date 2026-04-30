@@ -26,7 +26,7 @@ const COLORS = {
     gray900: '#333333',
 
     // Акценты и статусы
-    blueLight: '#e0f0ff',
+    blueLight: '#f0f5fb',
     errorBg: '#ffe6e6',
     errorBorder: '#800000',
 
