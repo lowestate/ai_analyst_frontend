@@ -111,7 +111,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loadin
                     gap: '10px', width: '100%', paddingBottom: '20px' 
                 }}>
                     
-                    <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         
                         {/* Отрисовка кнопок-подсказок */}
                         {CHAT_SUGGESTIONS.length > 0 && (
