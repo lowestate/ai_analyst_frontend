@@ -70,7 +70,7 @@ const GLOBAL_STYLES = `
     .header-logo-container {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
         user-select: none;
         margin-left: 40px;
     }
@@ -102,7 +102,7 @@ const GLOBAL_STYLES = `
     /* --- ЛЕВАЯ КОЛОНКА --- */
     .col-left { 
         flex: ${COLUMN_DISIVISION_PARTS.left}; 
-        background: ${COLORS.gray50}; 
+        background: ${COLORS.gray100}; 
         border-right: 1px solid ${COLORS.gray200}; 
         display: flex; 
         flex-direction: column; 
