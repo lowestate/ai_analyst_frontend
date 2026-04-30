@@ -277,6 +277,28 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
         if (!preview) chartTitle = `Матрица рассеяния (Выбрано признаков: ${activeDims.length})`;
     }
 
+    if (chart.type === 'feature_importances') {
+        plotData = [{ 
+            type: 'bar', 
+            orientation: 'h', // Делает бары горизонтальными
+            x: chart.data.importances, 
+            y: chart.data.features, 
+            marker: { 
+                color: '#328fec', // Твой фирменный цвет
+                opacity: 0.8
+            },
+            hoverinfo: preview ? 'skip' : 'x+y'
+        }];
+        
+        plotLayout = preview 
+            ? previewLayout 
+            : { 
+                margin: { t: 30, r: 50, b: 50, l: 150 }, // Левый отступ побольше для названий колонок
+                xaxis: { title: { text: 'Вес важности' }, automargin: true },
+                yaxis: { automargin: true }
+              };
+    }
+
     const renderControlPanel = () => {
         if (preview || controls.length === 0) return null;
         // ... (код панели остается прежним, его не трогаем)

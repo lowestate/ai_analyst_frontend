@@ -9,7 +9,7 @@ interface RightSidebarProps {
 }
 
 const FOLDERS = [
-    { id: 'relations', title: 'Связи в данных', types: ['correlation', 'cross_deps', 'dependency', 'pairplot'] },
+    { id: 'relations', title: 'Связи в данных', types: ['correlation', 'cross_deps', 'dependency', 'pairplot', 'feature_importances'] },
     { id: 'distributions', title: 'Распределения признаков', types: ['category_count', 'numeric_hist'] },
     { id: 'anomalies', title: 'Аномалии', types: ['outliers'] },
     { id: 'trends', title: 'Тренды', types: ['trend_line'] },
@@ -86,6 +86,13 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
             return { 
                 title: 'Зависимости признаков', 
                 subtitle: 'Pairplot' 
+            };
+        }
+        if (chart.type === 'feature_importances') {
+            return { 
+                title: 'Важность признаков для',
+                columnName: chart.data?.target || 'Unknown', // Используем target из данных бэкенда
+                subtitle: 'Горизонтальный барчарт' // Исправили подпись
             };
         }
         return { title: 'График', columnName: null, subtitle: null };

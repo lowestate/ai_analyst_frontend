@@ -8,7 +8,8 @@ export interface ChartData {
         | 'cross_deps'
         | 'trend_line'
         | 'dependency'
-        | 'pairplot';
+        | 'pairplot'
+        | 'feature_importances';
     data: any;
 }
 

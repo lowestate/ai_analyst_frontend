@@ -41,5 +41,9 @@ export const CHART_REGISTRY: Record<Exclude<ChartData['type'], 'column_stats'>, 
     pairplot: {
         chatTitle: () => 'Зависимости признаков',
         plotTitle: () => 'Матрица рассеяния',
-    }
+    },
+    feature_importances: {
+        chatTitle: (data) => `Важность признаков для: ${data.target}`,
+        plotTitle: (data) => `Топ влияющих факторов на ${data.target}`,
+    },
 };

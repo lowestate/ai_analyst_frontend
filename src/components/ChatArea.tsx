@@ -24,6 +24,7 @@ const CHAT_SUGGESTIONS = [
     { label: 'Аномалии', action: 'send', text: 'аномалии' },
     // { label: 'Кросс-зависимости', action: 'send', text: 'кросс-зависимости' },
     { label: 'Тренд', action: 'send', text: 'тренд' },
+    { label: 'Важность признаков для ...', action: 'fill', text: 'важность признаков для __впишите название столбца__' },
     /*{ 
         label: 'Зависимость признаков', 
         action: 'fill', 
