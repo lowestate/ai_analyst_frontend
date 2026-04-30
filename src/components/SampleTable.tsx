@@ -48,45 +48,56 @@ export const SampleTable: React.FC<{ dataPool: any[] }> = ({ dataPool }) => {
 
     return (
         <div className={`sample-container ${isPinned ? 'pinned' : ''} ${isHidden ? 'hidden-state' : ''}`}>
-            <div className="sample-controls">
-                {/* Иконка: Закрепить / Открепить (Булавка) */}
+            <div className="sample-controls" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {/* 1. ЗАКРЕПИТЬ (Старая иконка булавки, размер 14px) */}
                 <button 
                     onClick={() => setIsPinned(!isPinned)} 
                     className={`sample-btn ${isPinned ? 'active' : ''}`}
-                    title={isPinned ? 'Открепить' : 'Закрепить датасет'}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title={isPinned ? 'Открепить' : 'Закрепить сверху'}
+                    style={{ padding: '4px 6px', display: 'flex', alignItems: 'center' }}
                 >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill={isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill={isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="12" y1="17" x2="12" y2="22"></line>
                         <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 11.24V6a3 3 0 0 0-3-3h-0a3 3 0 0 0-3 3v5.24a2 2 0 0 1-1.11 1.31l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
                     </svg>
                 </button>
 
-                {/* Иконка: Скрыть / Показать (Слеш / Минус) */}
+                {/* 2. СКРЫТЬ (Иконка стрелочки, размер 14px) */}
                 <button 
                     onClick={() => setIsHidden(!isHidden)} 
                     className="sample-btn"
-                    title={isHidden ? 'Показать датасет' : 'Скрыть датасет'}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title={isHidden ? 'Развернуть' : 'Свернуть'}
+                    style={{ padding: '4px 6px', display: 'flex', alignItems: 'center' }}
                 >
-                    {isHidden ? (
-                        // Слеш (когда скрыто)
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="4" y1="20" x2="20" y2="4"></line>
-                        </svg>
-                    ) : (
-                        // Минус (когда раскрыто)
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                    )}
+                    <svg 
+                        style={{ transform: isHidden ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s' }} 
+                        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    >
+                        <polyline points="18 15 12 9 6 15"></polyline>
+                    </svg>
                 </button>
 
-                {/* Третья кнопка "Другой семпл" остается без изменений */}
+                {/* 3. ОБНОВИТЬ (Иконка рефреша, показываем только если таблица раскрыта) */}
                 {!isHidden && (
-                    <button onClick={refreshSample} className="sample-btn">
-                        Другой семпл
+                    <button 
+                        onClick={refreshSample} 
+                        className="sample-btn" 
+                        title="Другой семпл"
+                        style={{ padding: '4px 6px', display: 'flex', alignItems: 'center' }}
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
                     </button>
+                )}
+
+                {/* 4. НАДПИСЬ (Показываем только если таблица раскрыта) */}
+                {!isHidden && (
+                    <span style={{ fontSize: '13px', color: '#666', marginLeft: '4px', fontWeight: 500 }}>
+                        Случайные 5 записей:
+                    </span>
                 )}
             </div>
 

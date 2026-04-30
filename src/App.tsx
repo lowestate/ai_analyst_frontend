@@ -15,6 +15,7 @@ const COLORS = {
     // Фирменные цвета Taible
     dark: '#343434',
     accent: '#3399FF',
+    accent_brighter: '#0080ff',
 
     // Серые оттенки (современная шкала)
     gray50: '#fafafa',
@@ -218,7 +219,7 @@ const GLOBAL_STYLES = `
         border-radius: 0; /* Убираем скругления при залипании для красоты */
     }
     .sample-container.hidden-state { opacity: 0.8; }
-    .sample-controls { display: flex; gap: 10px; padding: 12px 16px; border-bottom: 1px solid ${COLORS.gray200}; background: ${COLORS.gray50}; }
+    .sample-controls { display: flex; gap: 10px; height: 40px; padding: 12px 16px; border-bottom: 1px solid ${COLORS.gray200}; background: ${COLORS.gray50}; }
     .sample-btn { padding: 6px 12px; border: 1px solid ${COLORS.gray300}; background: ${COLORS.white}; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: 0.2s; color: ${COLORS.dark}; }
     .sample-btn:hover { background: ${COLORS.gray100}; }
     .sample-btn.active { background: ${COLORS.dark}; color: ${COLORS.white}; border-color: ${COLORS.dark}; }
@@ -245,7 +246,7 @@ const GLOBAL_STYLES = `
         font-size: 13px;
         white-space: nowrap; /* Чтобы таблица растягивалась вширь и появлялся скролл */
     }
-    .sample-table th { background: ${COLORS.gray50}; font-weight: 600; color: ${COLORS.gray600}; position: sticky; top: 0; }
+    .sample-table th { background: ${COLORS.gray50}; font-weight: 600; color: ${COLORS.accent_brighter}; position: sticky; top: 0; }
     .sample-table tr:hover td { background: ${COLORS.gray50}; }
 
     /* --- ПРАВАЯ КОЛОНКА --- */
