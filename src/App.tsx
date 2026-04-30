@@ -209,34 +209,30 @@ function App() {
     const [selectedChart, setSelectedChart] = useState<ChartData | null>(null);
     const [localDataPool, setLocalDataPool] = useState<any[]>([]);
 
-    const allCharts = React.useMemo(() => {
-        const rawCharts = messages.flatMap(m => m.charts || []);
-        const seenKeys = new Set<string>();
-        const uniqueCharts: ChartData[] = [];
+    const allCharts = messages.flatMap(m => m.charts || []);
 
-        rawCharts.forEach(chart => {
-            // Воспроизводим логику формирования "полного названия" для ключа уникальности
-            let title = '';
-            let col = '';
+    const uniqueCharts: ChartData[] = []; // Заодно типизируем массив
+    const seenKeys = new Set<string>();
 
-            if (chart.type === 'correlation') title = 'Корреляционная матрица';
-            else if (chart.type === 'category_count') { title = 'Распределение:'; col = chart.data?.column_name || 'Unknown'; }
-            else if (chart.type === 'numeric_hist') { title = 'Распределение:'; col = chart.data?.column_name || 'Unknown'; }
-            else if (chart.type === 'outliers') { title = 'Аномалии:'; col = chart.data?.column_name || 'Unknown'; }
-            else if (chart.type === 'cross_deps') title = 'Кросс-зависимости';
-            else if (chart.type === 'trend_line') { title = 'Тренды во времени:'; col = chart.data?.date_col || 'Date'; }
+    allCharts.forEach(chart => {
+        // ЯВНО УКАЗЫВАЕМ TYPE STRING ЗДЕСЬ:
+        let key: string = chart.type; 
+        
+        // Формируем уникальный идентификатор в зависимости от типа графика
+        if (chart.type === 'dependency') {
+            key = `${chart.type}_${chart.data.col1}_${chart.data.col2}`;
+        } else if (chart.type === 'trend_line') {
+            key = `${chart.type}_${chart.data.date_col}`;
+        } else if (chart.data && chart.data.column_name) {
+            key = `${chart.type}_${chart.data.column_name}`;
+        }
 
-            // Создаем ключ, например: "Распределение: meantemp"
-            const fullKey = `${title} ${col}`.trim();
-
-            if (!seenKeys.has(fullKey)) {
-                seenKeys.add(fullKey);
-                uniqueCharts.push(chart);
-            }
-        });
-
-        return uniqueCharts;
-    }, [messages]);
+        // Если графика с таким ключом еще не было — добавляем в панель
+        if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            uniqueCharts.push(chart);
+        }
+    });
     const loadingPhrases = ['Анализирую...', 'Исследую...', 'Изучаю...', 'Отправляю датасет в пентагон...'];
     const [loadingIndex, setLoadingIndex] = useState(0);
 

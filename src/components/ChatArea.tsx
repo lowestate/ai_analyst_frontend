@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Message, ChartData } from '../types';
@@ -11,21 +11,26 @@ interface ChatAreaProps {
     loadingPhrase: string;
     input: string;
     setInput: (val: string) => void;
-    onSendMessage: (text?: string) => void; // Добавили (text?: string)
+    onSendMessage: (text?: string) => void;
     localDataPool: any[];
 }
 
-export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loading, loadingPhrase, input, setInput, onSendMessage, localDataPool }) => {
-    const [mockCommands, setMockCommands] = useState<string[]>([]);
+// Зашиваем красивые подсказки прямо на фронтенде
+const CHAT_SUGGESTIONS = [
+    { label: 'Корреляционная матрица', action: 'send', text: 'корреляционная матрица' },
+    { label: 'Анализ столбцов', action: 'send', text: 'анализ столбцов' },
+    { label: 'Аномалии', action: 'send', text: 'аномалии' },
+    { label: 'Кросс-зависимости', action: 'send', text: 'кросс-зависимости' },
+    { label: 'Тренд', action: 'send', text: 'тренд' },
+    { 
+        label: 'Зависимость признаков', 
+        action: 'fill', 
+        text: 'зависимость _впишите название столбца_ от _впишите название другого столбца_' 
+    },
+    { label: 'Матрица рассеяния', action: 'send', text: 'матрица рассеяния' },
+];
 
-    useEffect(() => {
-        if (activeChat && activeChat !== "temp_loading") {
-            fetch('http://localhost:8000/available_mock_commands') 
-                .then(res => res.json())
-                .then(data => data.commands && setMockCommands(data.commands))
-                .catch(err => console.error("Ошибка загрузки команд:", err));
-        }
-    }, [activeChat]);
+export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loading, loadingPhrase, input, setInput, onSendMessage, localDataPool }) => {
 
     const getChartTitle = (chart: ChartData) => {
         if (chart.type === 'correlation') return 'Корреляционная матрица';
@@ -35,8 +40,19 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loadin
         if (chart.type === 'outliers') {
             return `Аномалии: ${chart.data?.column_name || 'Unknown'}`;
         }
-        if (chart.type === 'cross_deps') return 'Кросс-зависимости'
+        if (chart.type === 'cross_deps') return 'Кросс-зависимости';
+        // Добавили красивый вывод для нового графика зависимостей
+        if (chart.type === 'dependency') return `Зависимость: ${chart.data?.col1} от ${chart.data?.col2}`;
         return 'График';
+    };
+
+    const handleSuggestionClick = (suggestion: typeof CHAT_SUGGESTIONS[0]) => {
+        if (suggestion.action === 'send') {
+            setInput(suggestion.text);      // Для визуала заполняем поле
+            onSendMessage(suggestion.text); // Сразу отправляем
+        } else if (suggestion.action === 'fill') {
+            setInput(suggestion.text);      // Просто вставляем шаблон в поле, не отправляя
+        }
     };
 
     return (
@@ -97,16 +113,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loadin
                     
                     <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         
-                        {mockCommands.length > 0 && (
+                        {/* Отрисовка кнопок-подсказок */}
+                        {CHAT_SUGGESTIONS.length > 0 && (
                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-start', padding: '0' }}>
-                                {mockCommands.map(cmd => (
+                                {CHAT_SUGGESTIONS.map((suggestion, index) => (
                                     <button
-                                        key={cmd}
+                                        key={index}
                                         disabled={loading} // Не даем кликать во время загрузки
-                                        onClick={() => {
-                                            setInput(cmd);      // Для красоты заполняем поле
-                                            onSendMessage(cmd); // Сразу отправляем значение команды
-                                        }}
+                                        onClick={() => handleSuggestionClick(suggestion)}
                                         style={{
                                             background: '#f0f4f8',
                                             border: '1px solid #dce4ec',
@@ -129,7 +143,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loadin
                                             e.currentTarget.style.borderColor = '#dce4ec';
                                         }}
                                     >
-                                        {cmd}
+                                        {suggestion.label}
                                     </button>
                                 ))}
                             </div>

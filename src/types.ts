@@ -1,5 +1,14 @@
 export interface ChartData {
-    type: 'correlation' | 'column_stats' | 'category_count' | 'numeric_hist' | 'outliers' | 'cross_deps' | 'trend_line';
+    type: 
+        'correlation'
+        | 'column_stats'
+        | 'category_count'
+        | 'numeric_hist'
+        | 'outliers'
+        | 'cross_deps'
+        | 'trend_line'
+        | 'dependency'
+        | 'pairplot';
     data: any;
 }
 

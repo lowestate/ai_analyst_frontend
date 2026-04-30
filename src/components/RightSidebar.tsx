@@ -9,7 +9,7 @@ interface RightSidebarProps {
 }
 
 const FOLDERS = [
-    { id: 'relations', title: 'Связи в данных', types: ['correlation', 'cross_deps'] },
+    { id: 'relations', title: 'Связи в данных', types: ['correlation', 'cross_deps', 'dependency', 'pairplot'] },
     { id: 'distributions', title: 'Распределения признаков', types: ['category_count', 'numeric_hist'] },
     { id: 'anomalies', title: 'Аномалии', types: ['outliers'] },
     { id: 'trends', title: 'Временные ряды', types: ['trend_line'] },
@@ -73,6 +73,21 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
         if (chart.type === 'outliers') return { title: 'Аномалии:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Boxplot (Выбросы)' };
         if (chart.type === 'cross_deps') return { title: 'Кросс-зависимости', columnName: null, subtitle: 'Пузырьковая матрица' };
         if (chart.type === 'trend_line') return { title: 'Тренды во времени:', columnName: chart.data?.date_col || 'Date', subtitle: 'Линейный график' };
+        if (chart.type === 'dependency') {
+            const sub = chart.data?.sub_type;
+            const subtitle = sub === 'scatter' ? 'График рассеяния' : sub === 'box' ? 'Ящик с усами' : 'Матрица сопряженности';
+            return { 
+                title: 'Зависимость:', 
+                columnName: `${chart.data?.col1} vs ${chart.data?.col2}`, 
+                subtitle 
+            };
+        };
+        if (chart.type === 'pairplot') {
+            return { 
+                title: 'Матрица рассеяния', 
+                subtitle: 'Pairplot' 
+            };
+        }
         return { title: 'График', columnName: null, subtitle: null };
     };
 
