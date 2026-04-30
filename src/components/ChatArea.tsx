@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Message, ChartData } from '../types';
 import { SampleTable } from './SampleTable';
+import { CHART_REGISTRY } from '../chartRegistry';
 
 interface ChatAreaProps {
     activeChat: string | null;
@@ -11,7 +12,7 @@ interface ChatAreaProps {
     loadingPhrase: string;
     input: string;
     setInput: (val: string) => void;
-    onSendMessage: (text?: string) => void;
+    onSendMessage: (text?: string, useAi?: boolean) => void;
     localDataPool: any[];
 }
 
@@ -30,29 +31,30 @@ const CHAT_SUGGESTIONS = [
     { label: 'Матрица рассеяния', action: 'send', text: 'матрица рассеяния' },
 ];
 
-export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loading, loadingPhrase, input, setInput, onSendMessage, localDataPool }) => {
+export const ChatArea: React.FC<ChatAreaProps> = ({
+    activeChat, messages, loading, loadingPhrase,
+    input, setInput, onSendMessage, localDataPool 
+}) => {
+    
+    // 1. ДОБАВЛЯЕМ СОСТОЯНИЕ ДЛЯ TOGGLE (по умолчанию включен)
+    const [useAi, setUseAi] = React.useState(false);
 
-    const getChartTitle = (chart: ChartData) => {
-        if (chart.type === 'correlation') return 'Корреляционная матрица';
-        if (chart.type === 'category_count' || chart.type === 'numeric_hist') {
-            return `Распределение: ${chart.data.column_name}`;
-        }
-        if (chart.type === 'outliers') {
-            return `Аномалии: ${chart.data?.column_name || 'Unknown'}`;
-        }
-        if (chart.type === 'cross_deps') return 'Кросс-зависимости';
-        // Добавили красивый вывод для нового графика зависимостей
-        if (chart.type === 'dependency') return `Зависимость: ${chart.data?.col1} от ${chart.data?.col2}`;
-        return 'График';
-    };
-
+    // 2. ОБНОВЛЯЕМ ВЫЗОВ В ПОДСКАЗКАХ
     const handleSuggestionClick = (suggestion: typeof CHAT_SUGGESTIONS[0]) => {
         if (suggestion.action === 'send') {
-            setInput(suggestion.text);      // Для визуала заполняем поле
-            onSendMessage(suggestion.text); // Сразу отправляем
+            setInput(suggestion.text);      
+            onSendMessage(suggestion.text, useAi);
         } else if (suggestion.action === 'fill') {
-            setInput(suggestion.text);      // Просто вставляем шаблон в поле, не отправляя
+            setInput(suggestion.text);      
         }
+    };
+
+    const getChartTitle = (chart: ChartData) => {
+    // Достаем конфиг для конкретного типа графика
+        const chartDef = CHART_REGISTRY[chart.type as keyof typeof CHART_REGISTRY];
+        
+        // Если конфиг найден, вызываем функцию для чата, иначе фоллбэк
+        return chartDef ? chartDef.chatTitle(chart.data) : 'График';
     };
 
     return (
@@ -111,7 +113,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loadin
                     gap: '10px', width: '100%', paddingBottom: '20px' 
                 }}>
                     
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '-10px' }}>
                         
                         {/* Отрисовка кнопок-подсказок */}
                         {CHAT_SUGGESTIONS.length > 0 && (
@@ -153,11 +155,29 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ activeChat, messages, loadin
                             <input
                                 value={input}
                                 onChange={e => setInput(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && onSendMessage()}
+                                // 3. ОБНОВЛЯЕМ ВЫЗОВ ПРИ НАЖАТИИ ENTER
+                                onKeyDown={e => e.key === 'Enter' && onSendMessage(undefined, useAi)}
                                 placeholder="Что исследуем?"
                                 disabled={loading}
                             />
-                            <button onClick={() => onSendMessage()} disabled={loading}>❯</button>
+                            {/* 4. ОБНОВЛЯЕМ ВЫЗОВ ПРИ КЛИКЕ НА КНОПКУ */}
+                            <button onClick={() => onSendMessage(undefined, useAi)} disabled={loading}>❯</button>
+                        </div>
+
+                        {/* 5. НОВЫЙ ЭЛЕМЕНТ: Переключатель AI */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '40px', marginTop: '8px', marginLeft: '8px' }}>
+                            <label className="ai-toggle-container" style={{ margin: 0 }}>
+                                <div className="toggle-switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={useAi} 
+                                        onChange={(e) => setUseAi(e.target.checked)}
+                                        disabled={loading}
+                                    />
+                                    <span className="toggle-slider"></span>
+                                </div>
+                                <span className="ai-toggle-label">ai</span>
+                            </label>
                         </div>
                     </div>
                 </div>

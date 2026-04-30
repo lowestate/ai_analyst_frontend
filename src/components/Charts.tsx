@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Plot from 'react-plotly.js';
 import { ChartData } from '../types';
+import { CHART_REGISTRY } from '../chartRegistry';
 
 // --- 1. ТИПИЗАЦИЯ ПАНЕЛИ УПРАВЛЕНИЯ ---
 type ControlType = 'slider' | 'checkbox' | 'select' | 'date' | 'multiselect';
@@ -60,13 +61,11 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
         setControlValues(prev => ({ ...prev, [id]: val }));
     };
 
-    let chartTitle = '';
-    if (chart.type === 'correlation') chartTitle = 'Корреляционная матрица';
-    else if (chart.type === 'category_count' || chart.type === 'numeric_hist') chartTitle = `Распределение: ${chart.data.column_name || 'Unknown'}`;
-    else if (chart.type === 'outliers') chartTitle = `Разброс значений: ${chart.data.column_name || 'Unknown'}`;
-    else if (chart.type === 'cross_deps') chartTitle = `Граф сильных связей (Score > ${(controlValues['threshold'] || 0.4).toFixed(2)})`;
-    else if (chart.type === 'trend_line') chartTitle = `Анализ трендов (Ось X: ${chart.data.date_col})`
-    else if (chart.type === 'pairplot') chartTitle = `Матрица рассеяния`;
+    const chartDef = CHART_REGISTRY[chart.type as keyof typeof CHART_REGISTRY];
+
+    let chartTitle = chartDef 
+        ? chartDef.plotTitle(chart.data, { threshold: controlValues['threshold'] }) 
+        : 'График';
 
     const isCorrelation = chart.type === 'correlation';
     const previewLayout: any = {
@@ -93,7 +92,19 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
     if (chart.type === 'correlation') {
         const cols = Object.keys(chart.data);
         const z_vals = cols.map(c1 => cols.map(c2 => Number(chart.data[c1][c2])));
-        plotData = [{ z: z_vals, x: !preview ? cols : [], y: !preview ? cols : [], type: 'heatmap', colorscale: 'Viridis', showscale: !preview, text: !preview ? z_vals.map(r => r.map(v => String(v))) : undefined, texttemplate: !preview ? "%{text}" : undefined, hoverinfo: preview ? 'skip' : 'all' }];
+        plotData = [{ 
+            z: z_vals, 
+            x: !preview ? cols : [], 
+            y: !preview ? cols : [], 
+            type: 'heatmap', 
+            colorscale: 'cmap', 
+            zmin: -1,
+            zmax: 1,
+            showscale: !preview, 
+            text: !preview ? z_vals.map(r => r.map(v => String(v))) : undefined, 
+            texttemplate: !preview ? "%{text}" : undefined, 
+            hoverinfo: preview ? 'skip' : 'all' 
+        }];
         plotLayout = preview ? previewLayout : { margin: { t: 30, r: 50, b: 80, l: 80 }, xaxis: { automargin: true, tickangle: -45 }, yaxis: { automargin: true } };
     }
 

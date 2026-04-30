@@ -105,7 +105,7 @@ const GLOBAL_STYLES = `
         border-right: 1px solid ${COLORS.gray200}; 
         display: flex; 
         flex-direction: column; 
-        padding: 24px 20px; 
+        padding: 18px 12px; 
         overflow-y: hidden; 
     }
     .btn-upload { 
@@ -181,15 +181,16 @@ const GLOBAL_STYLES = `
     /* Пользователь */
     .msg-row.user { justify-content: flex-end; }
     .msg-bubble.user { 
-        max-width: 60%; background: ${COLORS.gray600}; color: ${COLORS.white}; 
-        border: none; border-bottom-right-radius: 4px;
+        max-width: 60%; background: ${COLORS.gray150}; color: ${COLORS.dark}; 
+        border: 1px solid ${COLORS.accent_brighter}; border-bottom-right-radius: 4px;
         box-shadow: 0 4px 12px ${COLORS.shadowLight08};
+        font-weight: 450
     }
 
     /* Инпут */
     .input-container { padding: 20px 40px; display: flex; justify-content: center; background: ${COLORS.white}; border-top: 1px solid ${COLORS.gray100}; }
     .input-box { 
-        height: 52px; width: 100%; display: flex; background: ${COLORS.gray50}; 
+        height: 45px; width: 100%; display: flex; background: ${COLORS.gray50}; 
         border: 1.5px solid ${COLORS.gray200}; border-radius: 12px; overflow: hidden; 
         transition: all 0.2s ease;
     }
@@ -353,6 +354,61 @@ const GLOBAL_STYLES = `
         border: 2px solid #ffffff;
         box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
+
+    /* --- iOS Toggle для AI --- */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 25px;
+        flex-shrink: 0;
+    }
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #e4e4e7;
+        transition: .3s;
+        border-radius: 24px;
+    }
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3.5px;
+        bottom: 4px;
+        background-color: white;
+        transition: .3s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: #328fec; /* Твой фирменный синий */
+    }
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(16px);
+    }
+    .ai-toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: 8px;
+        align-self: flex-start;
+        cursor: pointer;
+    }
+    .ai-toggle-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #52525b;
+        user-select: none;
+        margin-bottom: 3px;
+    }
 `;
 
 function App() {
@@ -434,28 +490,25 @@ function App() {
         reader.readAsBinaryString(file);
     };
 
-    const sendMessage = async (overrideText?: string) => {
-        // Определяем, какой текст отправлять: тот, что пришел в аргументе, или тот, что в инпуте
+    const sendMessage = async (overrideText?: string, useAiFlag: boolean = false, useCleanData: boolean = true) => {
         const textToSend = overrideText || input;
 
-        // Проверки: текст не пустой, есть активный чат и мы не в состоянии загрузки
         if (!textToSend.trim() || !activeChat || activeChat === "temp_loading") return;
 
-        // Формируем сообщение пользователя для отображения в интерфейсе
         const userMsg = { id: Date.now().toString(), sender: 'user' as const, text: textToSend };
-
         setMessages(prev => [...prev, userMsg]);
-        setInput(''); // Очищаем инпут в любом случае
+        setInput(''); 
         setLoading(true);
 
         try {
             const res = await fetch('http://localhost:8000/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // В body отправляем именно textToSend
                 body: JSON.stringify({
                     chat_id: activeChat,
-                    message: textToSend
+                    message: textToSend,
+                    use_ai: useAiFlag,
+                    use_clean_data: useCleanData
                 })
             });
 
