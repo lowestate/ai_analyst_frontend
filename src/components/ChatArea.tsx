@@ -18,17 +18,18 @@ interface ChatAreaProps {
 
 // Зашиваем красивые подсказки прямо на фронтенде
 const CHAT_SUGGESTIONS = [
-    { label: 'Корреляционная матрица', action: 'send', text: 'корреляционная матрица' },
+    { label: 'Корреляционный анализ', action: 'send', text: 'Корреляционный анализ' },
+    // { label: 'Корреляционная матрица', action: 'send', text: 'корреляционная матрица' },
     { label: 'Анализ столбцов', action: 'send', text: 'анализ столбцов' },
     { label: 'Аномалии', action: 'send', text: 'аномалии' },
-    { label: 'Кросс-зависимости', action: 'send', text: 'кросс-зависимости' },
+    // { label: 'Кросс-зависимости', action: 'send', text: 'кросс-зависимости' },
     { label: 'Тренд', action: 'send', text: 'тренд' },
-    { 
+    /*{ 
         label: 'Зависимость признаков', 
         action: 'fill', 
         text: 'зависимость _впишите название столбца_ от _впишите название другого столбца_' 
-    },
-    { label: 'Матрица рассеяния', action: 'send', text: 'матрица рассеяния' },
+    },*/
+    // { label: 'Матрица рассеяния', action: 'send', text: 'матрица рассеяния' },
 ];
 
 export const ChatArea: React.FC<ChatAreaProps> = ({

@@ -12,7 +12,7 @@ const FOLDERS = [
     { id: 'relations', title: 'Связи в данных', types: ['correlation', 'cross_deps', 'dependency', 'pairplot'] },
     { id: 'distributions', title: 'Распределения признаков', types: ['category_count', 'numeric_hist'] },
     { id: 'anomalies', title: 'Аномалии', types: ['outliers'] },
-    { id: 'trends', title: 'Временные ряды', types: ['trend_line'] },
+    { id: 'trends', title: 'Тренды', types: ['trend_line'] },
 ];
 
 export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChart, isDatasetLoaded }) => {
@@ -84,7 +84,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
         };
         if (chart.type === 'pairplot') {
             return { 
-                title: 'Матрица рассеяния', 
+                title: 'Зависимости признаков', 
                 subtitle: 'Pairplot' 
             };
         }
@@ -98,7 +98,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
             .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         `}</style>
 
-        <div className="col-right hide-scroll" style={{ padding: '20px 15px', display: 'block', overflowY: 'auto' }}>
+        <div className="col-right hide-scroll" style={{ padding: '15px 15px', display: 'block', overflowY: 'auto' }}>
             {isDatasetLoaded ? (
                 FOLDERS.map(folder => {
                     const folderCharts = charts.filter(c => folder.types.includes(c.type));
@@ -162,7 +162,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
                                         ) : (
                                             [...folderCharts].reverse().map((c, i) => (
                                                 <div key={i} className="chart-preview-box" onClick={() => onSelectChart(c)} style={{ flexDirection: 'column', width: '92%' }}>
-                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#444', marginBottom: '10px', textAlign: 'left', width: '100%', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: '1.3' }}>
+                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#444', textAlign: 'left', width: '100%', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: '1.3', marginTop: '-10px' }}>
                                                         {getChartInfo(c).title} {getChartInfo(c).columnName?.split('_').join('\u200B_')}
                                                     </div>
                                                     <DataCharts charts={[c]} preview={true} />

@@ -67,7 +67,6 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
         ? chartDef.plotTitle(chart.data, { threshold: controlValues['threshold'] }) 
         : 'График';
 
-    const isCorrelation = chart.type === 'correlation';
     const previewLayout: any = {
         margin: { t: 5, b: 5, l: 5, r: 5 },
         xaxis: { visible: false, showgrid: false, zeroline: false }, yaxis: { visible: false, showgrid: false, zeroline: false },
@@ -81,7 +80,7 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
         maxWidth: '100%',
         position: 'relative', overflow: preview ? 'hidden' : 'visible',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        aspectRatio: preview ? (isCorrelation || chart.type === 'cross_deps' ? '1 / 1' : '2 / 1') : 'auto'
+        aspectRatio: preview ? ('3 / 2') : 'auto'
     };
 
     let plotData: any[] = [];
