@@ -181,7 +181,7 @@ const GLOBAL_STYLES = `
     /* Пользователь */
     .msg-row.user { justify-content: flex-end; }
     .msg-bubble.user { 
-        max-width: 60%; background: ${COLORS.gray150}; color: ${COLORS.dark}; 
+        max-width: 60%; background: ${COLORS.gray100}; color: ${COLORS.dark}; 
         border: 1px solid ${COLORS.accent_brighter}; border-bottom-right-radius: 4px;
         box-shadow: 0 4px 12px ${COLORS.shadowLight08};
         font-weight: 450
