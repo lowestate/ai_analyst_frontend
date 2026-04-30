@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChartData } from '../types';
 import { DataCharts } from './Charts';
 
@@ -20,12 +20,51 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
     const [expanded, setExpanded] = useState<Record<string, boolean>>({
         relations: true,
         distributions: true,
-        anomalies: true
+        anomalies: true,
+        trends: true
     });
 
     const toggleFolder = (id: string) => {
         setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
     };
+
+    // Состояние для хранения ID папок, которые сейчас "мигают"
+    const [highlightedFolders, setHighlightedFolders] = useState<Record<string, boolean>>({});
+    
+    // Реф для хранения предыдущего количества графиков в каждой папке
+    const prevCounts = useRef<Record<string, number>>({});
+
+    useEffect(() => {
+        const newCounts: Record<string, number> = {};
+        const flashes: Record<string, boolean> = {};
+        let hasNewCharts = false;
+
+        FOLDERS.forEach(folder => {
+            const count = charts.filter(c => folder.types.includes(c.type)).length;
+            newCounts[folder.id] = count;
+
+            // Если папка уже была инициализирована и в ней стало больше графиков
+            if (prevCounts.current[folder.id] !== undefined && count > prevCounts.current[folder.id]) {
+                flashes[folder.id] = true;
+                hasNewCharts = true;
+            }
+        });
+
+        // Сохраняем текущее состояние для следующего сравнения
+        prevCounts.current = newCounts;
+
+        if (hasNewCharts) {
+            // 1. Включаем черный бордер мгновенно
+            setHighlightedFolders(flashes);
+
+            // 2. Через короткую паузу выключаем, чтобы запустить CSS transition
+            const timer = setTimeout(() => {
+                setHighlightedFolders({});
+            }, 50);
+
+            return () => clearTimeout(timer);
+        }
+    }, [charts]);
 
     const getChartInfo = (chart: ChartData) => {
         if (chart.type === 'correlation') return { title: 'Корреляционная матрица', columnName: null, subtitle: null };
@@ -45,23 +84,25 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
         `}</style>
 
         <div className="col-right hide-scroll" style={{ padding: '20px 15px', display: 'block', overflowY: 'auto' }}>
-            
-            {/* ЕСЛИ ДАТАСЕТ ЗАГРУЖЕН — ПОКАЗЫВАЕМ ПАПКИ */}
             {isDatasetLoaded ? (
                 FOLDERS.map(folder => {
                     const folderCharts = charts.filter(c => folder.types.includes(c.type));
                     const isExpanded = expanded[folder.id];
+                    const isHighlighted = highlightedFolders[folder.id];
 
                     return (
                         <div key={folder.id} style={{ 
                             marginBottom: '15px', width: '100%',
                             background: '#ffffff', 
                             borderRadius: '10px', 
-                            border: '1px solid #e0e0e0',
+                            // Динамический бордер
+                            border: isHighlighted ? '1px solid #000000' : '1px solid #e0e0e0',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                            overflow: 'hidden'
+                            overflow: 'hidden',
+                            // Анимация: если подсвечено — мгновенно, если возвращается — 0.5с
+                            transition: isHighlighted ? 'none' : 'border-color 1.5s ease-out'
                         }}>
-                            {/* Заголовок папки и содержимое (твой текущий код) */}
+                            {/* Заголовок папки */}
                             <div 
                                 onClick={() => toggleFolder(folder.id)}
                                 style={{
@@ -92,6 +133,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
                                 </div>
                             </div>
 
+                            {/* Контент папки */}
                             <div style={{
                                 display: 'grid',
                                 gridTemplateRows: isExpanded ? '1fr' : '0fr',
@@ -105,7 +147,6 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
                                         ) : (
                                             [...folderCharts].reverse().map((c, i) => (
                                                 <div key={i} className="chart-preview-box" onClick={() => onSelectChart(c)} style={{ flexDirection: 'column', width: '92%' }}>
-                                                    {/* Рендер превью графика (твой текущий код) */}
                                                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#444', marginBottom: '10px', textAlign: 'left', width: '100%', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: '1.3' }}>
                                                         {getChartInfo(c).title} {getChartInfo(c).columnName?.split('_').join('\u200B_')}
                                                     </div>
@@ -120,19 +161,10 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
                     );
                 })
             ) : (
-                /* ЕСЛИ ДАТАСЕТ НЕ ЗАГРУЖЕН — ПОКАЗЫВАЕМ ЗАГЛУШКУ */
-                <div style={{
-                    color: '#888', 
-                    fontStyle: 'italic', 
-                    fontSize: '14px', 
-                    textAlign: 'center', 
-                    marginTop: '40px',
-                    lineHeight: '1.6'
-                }}>
+                <div style={{ color: '#888', fontStyle: 'italic', fontSize: '14px', textAlign: 'center', marginTop: '40px', lineHeight: '1.6' }}>
                     Здесь будут графики<br/>
                 </div>
             )}
-
         </div>
         </>
     );

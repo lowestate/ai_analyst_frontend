@@ -209,7 +209,34 @@ function App() {
     const [selectedChart, setSelectedChart] = useState<ChartData | null>(null);
     const [localDataPool, setLocalDataPool] = useState<any[]>([]);
 
-    const allCharts = messages.flatMap(m => m.charts || []);
+    const allCharts = React.useMemo(() => {
+        const rawCharts = messages.flatMap(m => m.charts || []);
+        const seenKeys = new Set<string>();
+        const uniqueCharts: ChartData[] = [];
+
+        rawCharts.forEach(chart => {
+            // Воспроизводим логику формирования "полного названия" для ключа уникальности
+            let title = '';
+            let col = '';
+
+            if (chart.type === 'correlation') title = 'Корреляционная матрица';
+            else if (chart.type === 'category_count') { title = 'Распределение:'; col = chart.data?.column_name || 'Unknown'; }
+            else if (chart.type === 'numeric_hist') { title = 'Распределение:'; col = chart.data?.column_name || 'Unknown'; }
+            else if (chart.type === 'outliers') { title = 'Аномалии:'; col = chart.data?.column_name || 'Unknown'; }
+            else if (chart.type === 'cross_deps') title = 'Кросс-зависимости';
+            else if (chart.type === 'trend_line') { title = 'Тренды во времени:'; col = chart.data?.date_col || 'Date'; }
+
+            // Создаем ключ, например: "Распределение: meantemp"
+            const fullKey = `${title} ${col}`.trim();
+
+            if (!seenKeys.has(fullKey)) {
+                seenKeys.add(fullKey);
+                uniqueCharts.push(chart);
+            }
+        });
+
+        return uniqueCharts;
+    }, [messages]);
     const loadingPhrases = ['Анализирую...', 'Исследую...', 'Изучаю...', 'Отправляю датасет в пентагон...'];
     const [loadingIndex, setLoadingIndex] = useState(0);
 
