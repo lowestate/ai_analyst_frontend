@@ -16,6 +16,7 @@ const COLORS = {
     dark: '#343434',
     accent: '#3399FF',
     accent_brighter: '#0080ff',
+    accent_ligher: '#5cadff',
 
     // Серые оттенки (современная шкала)
     gray50: '#fafafa',
@@ -88,7 +89,7 @@ const GLOBAL_STYLES = `
     }
 
     .ai-highlight {
-        color: #328fec; /* Твой новый синий */
+        color: ${COLORS.accent}; /* Твой новый синий */
         margin-left: 1px; /* Тот самый отступ в 1 пиксель от 't' */
         display: inline-block;
     }
@@ -545,8 +546,8 @@ function App() {
                         <svg width="34" height="26" viewBox="0 0 40 30" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
                             <rect x="2" y="2" width="36" height="26" rx="6" fill="#ffffff" />
                             {/* Я заменил здесь цвет на #328fec, чтобы всё было в одном тоне */}
-                            <path d="M 2 15 H 20 V 2 H 8 A 6 6 0 0 0 2 8 V 15 Z" fill="#328fec" />
-                            <path d="M 20 15 H 38 V 8 A 6 6 0 0 0 32 2 H 20 V 15 Z" fill="#328fec" />
+                            <path d="M 2 15 H 20 V 2 H 8 A 6 6 0 0 0 2 8 V 15 Z" fill={COLORS.accent_ligher} />
+                            <path d="M 20 15 H 38 V 8 A 6 6 0 0 0 32 2 H 20 V 15 Z" fill={COLORS.accent_ligher} />
                             <rect x="2" y="2" width="36" height="26" rx="6" stroke="#343434" strokeWidth="3" fill="none" />
                             <line x1="2" y1="15" x2="38" y2="15" stroke="#343434" strokeWidth="3"/>
                             <line x1="20" y1="2" x2="20" y2="28" stroke="#343434" strokeWidth="3"/>
