@@ -491,7 +491,7 @@ function App() {
         reader.readAsBinaryString(file);
     };
 
-    const sendMessage = async (overrideText?: string, useAiFlag: boolean = false, useCleanData: boolean = true) => {
+    const sendMessage = async (overrideText?: string, useAiFlag: boolean = false, colsToRemove: string[] = []) => {
         const textToSend = overrideText || input;
 
         if (!textToSend.trim() || !activeChat || activeChat === "temp_loading") return;
@@ -503,15 +503,15 @@ function App() {
 
         try {
             const res = await fetch('http://localhost:8000/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: activeChat,
-                    message: textToSend,
-                    use_ai: useAiFlag,
-                    use_clean_data: useCleanData
-                })
-            });
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: activeChat,
+                message: textToSend,
+                use_ai: useAiFlag,
+                cols_to_remove: colsToRemove // <--- ПЕРЕДАЕМ НА БЭК
+            })
+        });
 
             if (!res.ok) throw new Error(`HTTP Ошибка: ${res.status}`);
 
