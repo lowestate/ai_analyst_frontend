@@ -22,6 +22,7 @@ const CHAT_SUGGESTIONS = [
     { label: 'Аномалии', action: 'send', text: 'аномалии' },
     { label: 'Тренд', action: 'send', text: 'тренд' },
     { label: 'Важность признаков для ...', action: 'fill', text: 'важность признаков для __впишите название столбца__' },
+    { label: 'Дерево признаков', action: 'send', text: 'дерево признаков' },
 ];
 
 export const ChatArea: React.FC<ChatAreaProps> = ({

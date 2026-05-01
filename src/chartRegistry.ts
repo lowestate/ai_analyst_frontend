@@ -46,4 +46,8 @@ export const CHART_REGISTRY: Record<Exclude<ChartData['type'], 'column_stats'>, 
         chatTitle: (data) => `Важность признаков для: ${data.target}`,
         plotTitle: (data) => `Топ влияющих факторов на ${data.target}`,
     },
+    feature_tree: {
+        chatTitle: () => `Дендрограмма признаков`,
+        plotTitle: () => `Дендрограмма признаков (иерархическая кластеризация)`,
+    },
 };

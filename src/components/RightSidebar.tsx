@@ -9,10 +9,21 @@ interface RightSidebarProps {
 }
 
 const FOLDERS = [
-    { id: 'relations', title: 'Связи в данных', types: ['correlation', 'cross_deps', 'dependency', 'pairplot', 'feature_importances'] },
-    { id: 'distributions', title: 'Распределения признаков', types: ['category_count', 'numeric_hist'] },
-    { id: 'anomalies', title: 'Аномалии', types: ['outliers'] },
-    { id: 'trends', title: 'Тренды', types: ['trend_line'] },
+    { 
+        id: 'relations', title: 'Связи в данных',
+        types: ['correlation', 'dependency', 'pairplot', 'feature_importances', 'feature_tree']
+    },
+    { 
+        id: 'distributions', title: 'Распределения признаков',
+        types: ['category_count', 'numeric_hist'] },
+    { 
+        id: 'anomalies', title: 'Аномалии',
+        types: ['outliers']
+    },
+    { 
+        id: 'trends', title: 'Тренды',
+        types: ['trend_line']
+    },
 ];
 
 export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChart, isDatasetLoaded }) => {
@@ -71,7 +82,6 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
         if (chart.type === 'category_count') return { title: 'Распределение:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Категориальный столбец' };
         if (chart.type === 'numeric_hist') return { title: 'Распределение:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Числовой столбец' };
         if (chart.type === 'outliers') return { title: 'Аномалии:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Boxplot (Выбросы)' };
-        if (chart.type === 'cross_deps') return { title: 'Кросс-зависимости', columnName: null, subtitle: 'Пузырьковая матрица' };
         if (chart.type === 'trend_line') return { title: 'Тренды во времени:', columnName: chart.data?.date_col || 'Date', subtitle: 'Линейный график' };
         if (chart.type === 'dependency') {
             const sub = chart.data?.sub_type;
@@ -93,6 +103,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
                 title: 'Важность признаков для',
                 columnName: chart.data?.target || 'Unknown', // Используем target из данных бэкенда
                 subtitle: 'Горизонтальный барчарт' // Исправили подпись
+            };
+        }
+        if (chart.type === 'feature_tree') {
+            return { 
+                title: 'Дерево признаков',
             };
         }
         return { title: 'График', columnName: null, subtitle: null };

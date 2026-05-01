@@ -260,7 +260,7 @@ const GLOBAL_STYLES = `
         display: flex; 
         flex-direction: column; 
         align-items: center; 
-        padding: 24px 0; 
+        padding: 20px 0; 
         gap: 20px; 
         min-width: 0; 
     }
@@ -279,7 +279,7 @@ const GLOBAL_STYLES = `
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 16px; 
+        padding: 24px; 
         color: ${COLORS.gray600};
         font-size: 13px;
         font-weight: 500;
@@ -291,7 +291,7 @@ const GLOBAL_STYLES = `
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: ${COLORS.overlay50}; backdrop-filter: blur(4px); z-index: 9999; display: flex; justify-content: center; align-items: center; opacity: 0; animation: fadeIn 0.2s forwards; }
     .modal-content { 
         background: ${COLORS.white}; 
-        padding: 30px; 
+        padding: 20px; 
         border-radius: 20px; 
         width: 90vw; /* Увеличен до 90% ширины экрана */
         max-width: 1400px; /* Ограничитель для очень больших мониторов */

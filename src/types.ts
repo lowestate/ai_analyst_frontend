@@ -1,6 +1,5 @@
 export interface ChartData {
-    type: 
-        'correlation'
+    type: 'correlation'
         | 'column_stats'
         | 'category_count'
         | 'numeric_hist'
@@ -9,7 +8,8 @@ export interface ChartData {
         | 'trend_line'
         | 'dependency'
         | 'pairplot'
-        | 'feature_importances';
+        | 'feature_importances'
+        | 'feature_tree';
     data: any;
 }
 
