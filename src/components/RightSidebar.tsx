@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChartData } from '../types';
 import { DataCharts } from './Charts';
 
@@ -8,7 +9,18 @@ interface RightSidebarProps {
     isDatasetLoaded: boolean;
 }
 
-const FOLDERS = [
+export const COLORS = {
+    white: '#ffffff', black: '#000000', transparent: 'transparent',
+    dark: '#343434', accent: '#3399FF', accent_brighter: '#0080ff', accent_ligher: '#5cadff',
+    gray50: '#fafafa', gray100: '#f4f4f5', gray150: '#ececed', gray200: '#e4e4e7',
+    gray300: '#d4d4d8', gray400: '#a1a1aa', gray500: '#71717a', gray600: '#52525b',
+    gray700: '#3f3f46', gray800: '#27272a', gray900: '#18181b',
+    errorBg: '#fef2f2', errorBorder: '#f87171',
+    shadowLight05: 'rgba(52, 52, 52, 0.05)', shadowLight08: 'rgba(52, 52, 52, 0.08)',
+    shadowMedium10: 'rgba(52, 52, 52, 0.12)', shadowDark30: 'rgba(0,0,0,0.4)', overlay50: 'rgba(0,0,0,0.6)'
+};
+
+export const FOLDERS = [
     { 
         id: 'relations', title: 'Связи в данных',
         types: ['correlation', 'dependency', 'pairplot', 'feature_importances', 'feature_tree']
@@ -26,8 +38,45 @@ const FOLDERS = [
     },
 ];
 
+export const getChartInfo = (chart: ChartData) => {
+        if (chart.type === 'correlation') return { title: 'Корреляционная матрица', columnName: null, subtitle: null };
+        if (chart.type === 'category_count') return { title: 'Распределение:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Категориальный столбец' };
+        if (chart.type === 'numeric_hist') return { title: 'Распределение:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Числовой столбец' };
+        if (chart.type === 'outliers') return { title: 'Аномалии:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Boxplot (Выбросы)' };
+        if (chart.type === 'trend_line') return { title: 'Тренды во времени:', columnName: chart.data?.date_col || 'Date', subtitle: 'Линейный график' };
+        if (chart.type === 'dependency') {
+            const sub = chart.data?.sub_type;
+            const subtitle = sub === 'scatter' ? 'График рассеяния' : sub === 'box' ? 'Ящик с усами' : 'Матрица сопряженности';
+            return { 
+                title: 'Зависимость:', 
+                columnName: `${chart.data?.col1} vs ${chart.data?.col2}`, 
+                subtitle 
+            };
+        };
+        if (chart.type === 'pairplot') {
+            return { 
+                title: 'Зависимости признаков', 
+                subtitle: 'Pairplot' 
+            };
+        }
+        if (chart.type === 'feature_importances') {
+            return { 
+                title: 'Важность признаков для',
+                columnName: chart.data?.target || 'Unknown', // Используем target из данных бэкенда
+                subtitle: 'Горизонтальный барчарт' // Исправили подпись
+            };
+        }
+        if (chart.type === 'feature_tree') {
+            return { 
+                title: 'Дерево признаков',
+            };
+        }
+        return { title: 'График', columnName: null, subtitle: null };
+    };
+
 export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChart, isDatasetLoaded }) => {
-    
+    const navigate = useNavigate();
+
     const [expanded, setExpanded] = useState<Record<string, boolean>>({
         relations: true,
         distributions: true,
@@ -77,41 +126,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
         }
     }, [charts]);
 
-    const getChartInfo = (chart: ChartData) => {
-        if (chart.type === 'correlation') return { title: 'Корреляционная матрица', columnName: null, subtitle: null };
-        if (chart.type === 'category_count') return { title: 'Распределение:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Категориальный столбец' };
-        if (chart.type === 'numeric_hist') return { title: 'Распределение:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Числовой столбец' };
-        if (chart.type === 'outliers') return { title: 'Аномалии:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Boxplot (Выбросы)' };
-        if (chart.type === 'trend_line') return { title: 'Тренды во времени:', columnName: chart.data?.date_col || 'Date', subtitle: 'Линейный график' };
-        if (chart.type === 'dependency') {
-            const sub = chart.data?.sub_type;
-            const subtitle = sub === 'scatter' ? 'График рассеяния' : sub === 'box' ? 'Ящик с усами' : 'Матрица сопряженности';
-            return { 
-                title: 'Зависимость:', 
-                columnName: `${chart.data?.col1} vs ${chart.data?.col2}`, 
-                subtitle 
-            };
-        };
-        if (chart.type === 'pairplot') {
-            return { 
-                title: 'Зависимости признаков', 
-                subtitle: 'Pairplot' 
-            };
-        }
-        if (chart.type === 'feature_importances') {
-            return { 
-                title: 'Важность признаков для',
-                columnName: chart.data?.target || 'Unknown', // Используем target из данных бэкенда
-                subtitle: 'Горизонтальный барчарт' // Исправили подпись
-            };
-        }
-        if (chart.type === 'feature_tree') {
-            return { 
-                title: 'Дерево признаков',
-            };
-        }
-        return { title: 'График', columnName: null, subtitle: null };
-    };
+    const hasCharts = charts.length > 0;
 
     return (
         <>
@@ -121,6 +136,36 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
         `}</style>
 
         <div className="col-right hide-scroll" style={{ padding: '15px 15px', display: 'block', overflowY: 'auto' }}>
+            {/* КНОПКА ДАШБОРДА */}
+            {isDatasetLoaded && hasCharts && (
+                <button 
+                    onClick={() => navigate('/dashboard', { state: { charts, folders: FOLDERS } })}
+                    style={{
+                        width: '100%',
+                        marginBottom: '20px', padding: '10px 16px',
+                        backgroundColor: COLORS.white, 
+                        color: COLORS.accent,
+                        border: `1.5px solid ${COLORS.accent}`, 
+                        borderRadius: '12px', cursor: 'pointer',
+                        fontWeight: 600, fontSize: '14px',
+                        transition: 'all 0.2s ease',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                        boxShadow: `0 2px 0 ${COLORS.shadowLight05}`
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = COLORS.gray100}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = COLORS.white}
+                    onMouseDown={e => e.currentTarget.style.transform = 'translateY(2px)'}
+                    onMouseUp={e => e.currentTarget.style.transform = 'none'}
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="9" y1="21" x2="9" y2="9"></line>
+                    </svg>
+                    Создать дашборд
+                </button>
+            )}
+
             {isDatasetLoaded ? (
                 FOLDERS.map(folder => {
                     const folderCharts = charts.filter(c => folder.types.includes(c.type));

@@ -1,47 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Message, ChatSession, ChartData } from './types';
 import { LeftSidebar } from './components/LeftSidebar';
 import { ChatArea } from './components/ChatArea';
 import { RightSidebar } from './components/RightSidebar';
 import { DataCharts } from './components/Charts';
+import { Dashboard } from './components/dashboard/Dashboard';
+import { COLORS } from './colorPalette'
 import * as XLSX from 'xlsx';
-
-const COLORS = {
-    // Базовые
-    white: '#ffffff',
-    black: '#000000',
-    transparent: 'transparent',
-
-    // Фирменные цвета Taible
-    dark: '#343434',
-    accent: '#3399FF',
-    accent_brighter: '#0080ff',
-    accent_ligher: '#5cadff',
-
-    // Серые оттенки (современная шкала)
-    gray50: '#fafafa',
-    gray100: '#f4f4f5',
-    gray150: '#ececed',
-    gray200: '#e4e4e7',
-    gray300: '#d4d4d8',
-    gray400: '#a1a1aa',
-    gray500: '#71717a',
-    gray600: '#52525b',
-    gray700: '#3f3f46',
-    gray800: '#27272a',
-    gray900: '#18181b',
-
-    // Статусы
-    errorBg: '#fef2f2',
-    errorBorder: '#f87171',
-
-    // Тени и наложения (RGBA)
-    shadowLight05: 'rgba(52, 52, 52, 0.05)',
-    shadowLight08: 'rgba(52, 52, 52, 0.08)',
-    shadowMedium10: 'rgba(52, 52, 52, 0.12)',
-    shadowDark30: 'rgba(0,0,0,0.4)',
-    overlay50: 'rgba(0,0,0,0.6)'
-};
 
 const COLUMN_DISIVISION_PARTS = {
     left: 1,
@@ -412,7 +378,7 @@ const GLOBAL_STYLES = `
     }
 `;
 
-function App() {
+function MainLayout() {
     const [sessions, setSessions] = useState<ChatSession[]>([]);
     const [activeChat, setActiveChat] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -423,14 +389,12 @@ function App() {
 
     const allCharts = messages.flatMap(m => m.charts || []);
 
-    const uniqueCharts: ChartData[] = []; // Заодно типизируем массив
+    const uniqueCharts: ChartData[] = []; 
     const seenKeys = new Set<string>();
 
     allCharts.forEach(chart => {
-        // ЯВНО УКАЗЫВАЕМ TYPE STRING ЗДЕСЬ:
         let key: string = chart.type; 
         
-        // Формируем уникальный идентификатор в зависимости от типа графика
         if (chart.type === 'dependency') {
             key = `${chart.type}_${chart.data.col1}_${chart.data.col2}`;
         } else if (chart.type === 'trend_line') {
@@ -439,12 +403,12 @@ function App() {
             key = `${chart.type}_${chart.data.column_name}`;
         }
 
-        // Если графика с таким ключом еще не было — добавляем в панель
         if (!seenKeys.has(key)) {
             seenKeys.add(key);
             uniqueCharts.push(chart);
         }
     });
+
     const loadingPhrases = ['Анализирую...', 'Исследую...', 'Изучаю...', 'Отправляю датасет в пентагон...'];
     const [loadingIndex, setLoadingIndex] = useState(0);
 
@@ -509,7 +473,7 @@ function App() {
                 chat_id: activeChat,
                 message: textToSend,
                 use_ai: useAiFlag,
-                cols_to_remove: colsToRemove // <--- ПЕРЕДАЕМ НА БЭК
+                cols_to_remove: colsToRemove
             })
         });
 
@@ -518,7 +482,7 @@ function App() {
             const data = await res.json();
 
             setMessages(prev => [...prev, {
-                id: (Date.now() + 1).toString(), // +1 для уникальности ID, если ответ пришел мгновенно
+                id: (Date.now() + 1).toString(),
                 sender: 'agent',
                 text: data.reply,
                 charts: data.charts
@@ -539,13 +503,10 @@ function App() {
         <>
             <style>{GLOBAL_STYLES}</style>
             <div className="app-root">
-                {/* ХЭДЕР С ЛОГОТИПОМ TAIBLE */}
                 <header className="app-header">
                     <div className="header-logo-container">
-                        {/* Логотип: синий в нем можно тоже заменить на #328fec для идеального соответствия */}
                         <svg width="34" height="26" viewBox="0 0 40 30" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
                             <rect x="2" y="2" width="36" height="26" rx="6" fill="#ffffff" />
-                            {/* Я заменил здесь цвет на #328fec, чтобы всё было в одном тоне */}
                             <path d="M 2 15 H 20 V 2 H 8 A 6 6 0 0 0 2 8 V 15 Z" fill={COLORS.accent_ligher} />
                             <path d="M 20 15 H 38 V 8 A 6 6 0 0 0 32 2 H 20 V 15 Z" fill={COLORS.accent_ligher} />
                             <rect x="2" y="2" width="36" height="26" rx="6" stroke="#343434" strokeWidth="3" fill="none" />
@@ -579,7 +540,7 @@ function App() {
                     />
 
                     <RightSidebar
-                        charts={uniqueCharts} /* БЫЛО: charts={allCharts} */
+                        charts={uniqueCharts}
                         onSelectChart={setSelectedChart}
                         isDatasetLoaded={!!activeChat && activeChat !== "temp_loading"} 
                     />
@@ -594,6 +555,21 @@ function App() {
                 </div>
             </div>
         </>
+    );
+}
+
+// 2. ГЛАВНЫЙ КОМПОНЕНТ APP ТЕПЕРЬ ОТВЕЧАЕТ ЗА РОУТИНГ
+function App() {
+    return (
+        <Router>
+            <Routes>
+                {/* Главная страница с твоим старым интерфейсом */}
+                <Route path="/" element={<MainLayout />} />
+                
+                {/* Новая страница для формирования дашборда */}
+                <Route path="/dashboard" element={<Dashboard />} />
+            </Routes>
+        </Router>
     );
 }
 
