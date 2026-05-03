@@ -27,6 +27,9 @@ const getChartDescription = (type: string): string => {
         case 'outliers': return 'Диаграмма размаха (Boxplot) наглядно демонстрирует распределение данных: медиану, квартили и помогает быстро обнаружить статистические выбросы (аномалии).';
         case 'category_count':
         case 'numeric_hist': return 'Гистограмма визуализирует частоту распределения данных. Показывает, какие значения (или категории) встречаются чаще всего, а какие — являются редкостью.';
+        case 'cash_flow_chart': return 'График движения денежных средств (Cash Flow) показывает притоки и оттоки денег по периодам. Зеленые столбцы — это профицит, красные — дефицит (отток превышает приток). Помогает прогнозировать кассовые разрывы.';
+        case 'pnl_report': return 'Отчет о прибылях и убытках (P&L). Отражает общую выручку, понесенные расходы и итоговую чистую прибыль (или убыток). Каскадная диаграмма (Waterfall) наглядно показывает, как доходы «съедаются» расходами.';
+        case 'expense_pie_chart': return 'Структура расходов демонстрирует, на какие категории (статьи затрат) уходит основная часть бюджета компании.';
         default: return 'Визуализация данных для подробного анализа.';
     }
 };
@@ -481,6 +484,72 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
                     zeroline: false 
                 },
                 hovermode: 'closest'
+            };
+            break;
+        }
+        case 'cash_flow_chart': {
+            // Зеленый для плюса, красный для минуса
+            const colors = chart.data.values.map((v: number) => v >= 0 ? '#3cb44b' : '#e6194b');
+            
+            plotData = [{
+                x: chart.data.labels,
+                y: chart.data.values,
+                type: 'bar',
+                marker: { color: colors },
+                hoverinfo: preview ? 'skip' : 'x+y'
+            }];
+            plotLayout = preview ? previewLayout : {
+                margin: { t: 30, r: 50, b: 80, l: 80 },
+                xaxis: { automargin: true, type: 'category' },
+                yaxis: { automargin: true, title: { text: 'Сумма' } }
+            };
+            break;
+        }
+
+        case 'pnl_report': {
+            // Используем каскадную диаграмму (Waterfall) - идеально для P&L
+            plotData = [{
+                type: 'waterfall',
+                x: ['Доходы', 'Расходы', 'Чистая прибыль'],
+                y: [chart.data.total_income, -chart.data.total_expense, chart.data.net_profit],
+                measure: ['relative', 'relative', 'total'],
+                text: [chart.data.total_income, -chart.data.total_expense, chart.data.net_profit].map(v => String(v.toLocaleString())),
+                textposition: 'outside',
+                connector: { line: { color: "rgb(63, 63, 63)", width: 1, dash: "dot" } },
+                decreasing: { marker: { color: '#e6194b' } },
+                increasing: { marker: { color: '#3cb44b' } },
+                totals: { marker: { color: chart.data.net_profit >= 0 ? '#3cb44b' : '#e6194b' } },
+                hoverinfo: preview ? 'skip' : 'y'
+            }];
+            plotLayout = preview ? previewLayout : {
+                margin: { t: 30, r: 50, b: 50, l: 80 },
+                xaxis: { automargin: true },
+                yaxis: { automargin: true, title: { text: 'Сумма' } },
+                showlegend: false
+            };
+            break;
+        }
+
+        case 'expense_pie_chart': {
+            // Кольцевая диаграмма (Donut chart)
+            plotData = [{
+                labels: chart.data.categories,
+                values: chart.data.amounts,
+                type: 'pie',
+                hole: 0.45, // Делает дырку внутри (Donut)
+                textinfo: preview ? 'none' : 'percent',
+                hoverinfo: preview ? 'skip' : 'label+percent+value',
+                marker: {
+                    // Красивая цветовая палитра
+                    colors: ['#4a90e2', '#e6194b', '#3cb44b', '#ffe119', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe']
+                }
+            }];
+            
+            // Если это превью в сайдбаре, скрываем легенду, чтобы влезло
+            plotLayout = preview ? { ...previewLayout, showlegend: false, margin: { t: 5, b: 5, l: 5, r: 5 } } : {
+                margin: { t: 20, r: 20, b: 20, l: 20 },
+                showlegend: true,
+                legend: { orientation: 'v', x: 1.1, y: 0.5 }
             };
             break;
         }

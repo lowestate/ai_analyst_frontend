@@ -9,7 +9,10 @@ export interface ChartData {
         | 'dependency'
         | 'pairplot'
         | 'feature_importances'
-        | 'feature_tree';
+        | 'feature_tree'
+        | 'cash_flow_chart'
+        | 'pnl_report'
+        | 'expense_pie_chart';
     data: any;
 }
 

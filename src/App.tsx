@@ -424,21 +424,36 @@ function MainLayout() {
         const file = e.target.files[0];
 
         const reader = new FileReader();
+        
         reader.onload = async (event) => {
-            const binaryStr = event.target?.result;
-            const workbook = XLSX.read(binaryStr, { type: 'binary' });
-            const firstSheetName = workbook.SheetNames[0];
-            const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
-
-            setLocalDataPool(rawData);
-            setActiveChat("temp_loading");
-            setMessages([]);
-            setLoading(true);
-
-            const formData = new FormData();
-            formData.append('file', file);
-
             try {
+                let rawData: any[] = [];
+                const isCSV = file.name.toLowerCase().endsWith('.csv');
+                
+                // 1. РАЗДЕЛЯЕМ ЛОГИКУ ЧТЕНИЯ ДЛЯ CSV И EXCEL
+                if (isCSV) {
+                    // Читаем явно как строку UTF-8 (избавляет от кракозябр)
+                    const text = event.target?.result as string;
+                    const workbook = XLSX.read(text, { type: 'string' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    // raw: false заставляет библиотеку форматировать даты как текст, а не как числа 45946
+                    rawData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName], { raw: false });
+                } else {
+                    // Читаем как бинарный буфер (для .xlsx, .xls)
+                    const arrayBuffer = event.target?.result as ArrayBuffer;
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    rawData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName], { raw: false });
+                }
+
+                setLocalDataPool(rawData);
+                setActiveChat("temp_loading");
+                setMessages([]);
+                setLoading(true);
+
+                const formData = new FormData();
+                formData.append('file', file);
+
                 const res = await fetch('http://localhost:8000/upload', { method: 'POST', body: formData });
                 if (!res.ok) throw new Error(`HTTP Ошибка: ${res.status}`);
                 const data = await res.json();
@@ -452,7 +467,13 @@ function MainLayout() {
                 setLoading(false);
             }
         };
-        reader.readAsBinaryString(file);
+
+        // 2. ЗАПУСКАЕМ НУЖНЫЙ МЕТОД ЧТЕНИЯ
+        if (file.name.toLowerCase().endsWith('.csv')) {
+            reader.readAsText(file, 'UTF-8');
+        } else {
+            reader.readAsArrayBuffer(file);
+        }
     };
 
     const sendMessage = async (overrideText?: string, useAiFlag: boolean = false, colsToRemove: string[] = []) => {

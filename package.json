@@ -3,7 +3,6 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "@types/node": "^16.18.0",
         "@types/react": "^18.2.0",
         "@types/react-dom": "^18.2.0",
         "@types/react-plotly.js": "^2.6.0",
@@ -39,5 +38,8 @@
             "last 1 firefox version",
             "last 1 safari version"
         ]
+    },
+    "devDependencies": {
+        "@types/node": "^25.6.0"
     }
 }

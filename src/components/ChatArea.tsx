@@ -23,6 +23,10 @@ const CHAT_SUGGESTIONS = [
     { label: 'Тренд', action: 'send', text: 'тренд' },
     { label: 'Важность признаков для ...', action: 'fill', text: 'важность признаков для __впишите название столбца__' },
     { label: 'Дерево признаков', action: 'send', text: 'дерево признаков' },
+    { label: 'Cash Flow', action: 'fill', text: '[Ф] денежный поток __дата__ __сумма__' },
+    { label: 'P&L', action: 'fill', text: '[Ф] pnl __сумма__' },
+    { label: 'Структура расходов', action: 'fill', text: '[Ф] структура расходов __категория__ __сумма__' },
+
 ];
 
 export const ChatArea: React.FC<ChatAreaProps> = ({

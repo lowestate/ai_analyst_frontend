@@ -50,4 +50,16 @@ export const CHART_REGISTRY: Record<Exclude<ChartData['type'], 'column_stats'>, 
         chatTitle: () => `Дендрограмма признаков`,
         plotTitle: () => `Дендрограмма признаков (иерархическая кластеризация)`,
     },
+    cash_flow_chart: {
+        chatTitle: () => 'Движение денежных средств',
+        plotTitle: () => 'Движение денежных средств (Cash Flow)',
+    },
+    pnl_report: {
+        chatTitle: () => 'Отчет о прибылях и убытках',
+        plotTitle: () => 'Прибыли и убытки (P&L)',
+    },
+    expense_pie_chart: {
+        chatTitle: () => 'Структура расходов',
+        plotTitle: () => 'Структура расходов по категориям',
+    },
 };

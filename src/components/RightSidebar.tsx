@@ -21,6 +21,10 @@ export const COLORS = {
 };
 
 export const FOLDERS = [
+    {
+        id: 'finance', title: 'Финансовый анализ',
+        types: ['cash_flow_chart', 'pnl_report', 'expense_pie_chart']
+    },
     { 
         id: 'relations', title: 'Связи в данных',
         types: ['correlation', 'dependency', 'pairplot', 'feature_importances', 'feature_tree']
@@ -71,6 +75,9 @@ export const getChartInfo = (chart: ChartData) => {
                 title: 'Дерево признаков',
             };
         }
+        if (chart.type === 'cash_flow_chart') return { title: 'Cash Flow', subtitle: 'Гистограмма динамики' };
+        if (chart.type === 'pnl_report') return { title: 'P&L', subtitle: 'Каскадная диаграмма' };
+        if (chart.type === 'expense_pie_chart') return { title: 'Расходы', subtitle: 'Кольцевая диаграмма' };
         return { title: 'График', columnName: null, subtitle: null };
     };
 
@@ -78,6 +85,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
     const navigate = useNavigate();
 
     const [expanded, setExpanded] = useState<Record<string, boolean>>({
+        finance: true,
         relations: true,
         distributions: true,
         anomalies: true,
