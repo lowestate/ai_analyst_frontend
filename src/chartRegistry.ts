@@ -74,4 +74,8 @@ export const CHART_REGISTRY: Record<Exclude<ChartData['type'], 'column_stats'>, 
         chatTitle: () => 'Прогноз выручки',
         plotTitle: () => 'Исторический тренд и Прогноз',
     },
+    cohort_analysis: {
+        chatTitle: () => 'Когортный анализ',
+        plotTitle: () => 'Когортный анализ (Retention Rate)',
+    },
 };

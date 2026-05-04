@@ -33,6 +33,7 @@ const getChartDescription = (type: string): string => {
         case 'abc_analysis': return 'Классический закон Парето (80/20). Синие столбики — это ваша выручка по категориям. Красная линия показывает НАКОПЛЕННЫЙ процент. Как только красная линия пересекает отметку 80% — все товары слева от неё являются вашим ядром (группа А), которое приносит основные деньги.';
         case 'unit_economics': return 'Оценка эффективности каналов. Зеленый столбец (ARPU) — средняя выручка с клиента. Красный (CAC) — стоимость его привлечения. Оранжевая линия (ROMI) показывает окупаемость в процентах — ищите каналы с самым высоким ROMI.';
         case 'revenue_forecast': return 'Прогноз выручки на основе исторического тренда. Закрашенная зона (конус неопределенности) показывает возможный разброс доходов: от пессимистичного до оптимистичного сценария.';
+        case 'cohort_analysis': return 'Тепловая карта жизненного цикла клиентов (Retention). Показывает "здоровье" базы: строки — это когорты (пользователи, пришедшие в один месяц). Столбцы — месяцы с момента первой покупки. Темные ячейки означают высокую лояльность, белые пустоты — отток.';
         default: return 'Визуализация данных для подробного анализа.';
     }
 };
@@ -622,6 +623,34 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
                 xaxis: { automargin: true, type: 'date' },
                 yaxis: { title: 'Выручка' },
                 showlegend: true, legend: { orientation: 'h', y: -0.2 }
+            };
+            break;
+        }
+
+        case 'cohort_analysis': {
+            plotData = [{
+                z: chart.data.z,
+                x: chart.data.periods,
+                y: chart.data.cohorts,
+                text: chart.data.text,
+                type: 'heatmap',
+                colorscale: 'Blues',
+                showscale: !preview, // Прячем цветовую шкалу на превью
+                texttemplate: preview ? undefined : "%{text}", // Показываем % в ячейках
+                hoverinfo: preview ? 'skip' : 'x+y+text'
+            }];
+            plotLayout = preview ? previewLayout : {
+                margin: { t: 30, r: 50, b: 50, l: 80 },
+                xaxis: { 
+                    title: 'Месяц жизни клиента (0 = первый заказ)', 
+                    automargin: true, 
+                    dtick: 1 // Заставляем показывать каждую цифру месяца
+                },
+                yaxis: { 
+                    title: 'Когорта (Месяц)', 
+                    automargin: true, 
+                    autorange: 'reversed' // Важно: старые когорты (январь) должны быть наверху!
+                }
             };
             break;
         }

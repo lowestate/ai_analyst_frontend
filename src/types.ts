@@ -15,7 +15,8 @@ export interface ChartData {
         | 'expense_pie_chart'
         | 'abc_analysis'
         | 'unit_economics'
-        | 'revenue_forecast';
+        | 'revenue_forecast'
+        | 'cohort_analysis';
     data: any;
 }
 

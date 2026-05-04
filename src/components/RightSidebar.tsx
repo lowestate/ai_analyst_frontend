@@ -23,7 +23,8 @@ export const COLORS = {
 export const FOLDERS = [
     {
         id: 'finance', title: 'Финансовый анализ',
-        types: ['cash_flow_chart', 'pnl_report', 'expense_pie_chart', 'abc_analysis', 'unit_economics', 'revenue_forecast']
+        types: ['cash_flow_chart', 'pnl_report', 'expense_pie_chart',
+            'abc_analysis', 'unit_economics', 'revenue_forecast', 'cohort_analysis']
     },
     { 
         id: 'relations', title: 'Связи в данных',
@@ -81,6 +82,7 @@ export const getChartInfo = (chart: ChartData) => {
     if (chart.type === 'abc_analysis') return { title: 'ABC-анализ', subtitle: 'Диаграмма Парето' };
     if (chart.type === 'unit_economics') return { title: 'Юнит-экономика', subtitle: 'ARPU vs CAC' };
     if (chart.type === 'revenue_forecast') return { title: 'Прогноз', subtitle: 'Тренд выручки' };
+    if (chart.type === 'cohort_analysis') return { title: 'Retention', subtitle: 'Тепловая карта когорт' };
     return { title: 'График', columnName: null, subtitle: null };
 };
 
