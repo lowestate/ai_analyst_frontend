@@ -62,4 +62,16 @@ export const CHART_REGISTRY: Record<Exclude<ChartData['type'], 'column_stats'>, 
         chatTitle: () => 'Структура расходов',
         plotTitle: () => 'Структура расходов по категориям',
     },
+    abc_analysis: {
+        chatTitle: () => 'ABC-анализ (Парето)',
+        plotTitle: () => 'ABC-анализ (Кумулятивная выручка)',
+    },
+    unit_economics: {
+        chatTitle: () => 'Юнит-экономика',
+        plotTitle: () => 'ARPU vs CAC по источникам',
+    },
+    revenue_forecast: {
+        chatTitle: () => 'Прогноз выручки',
+        plotTitle: () => 'Исторический тренд и Прогноз',
+    },
 };

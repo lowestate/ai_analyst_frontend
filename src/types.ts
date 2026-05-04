@@ -12,7 +12,10 @@ export interface ChartData {
         | 'feature_tree'
         | 'cash_flow_chart'
         | 'pnl_report'
-        | 'expense_pie_chart';
+        | 'expense_pie_chart'
+        | 'abc_analysis'
+        | 'unit_economics'
+        | 'revenue_forecast';
     data: any;
 }
 

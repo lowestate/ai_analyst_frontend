@@ -23,11 +23,34 @@ const CHAT_SUGGESTIONS = [
     { label: 'Тренд', action: 'send', text: 'тренд' },
     { label: 'Важность признаков для ...', action: 'fill', text: 'важность признаков для __впишите название столбца__' },
     { label: 'Дерево признаков', action: 'send', text: 'дерево признаков' },
-    { label: 'Cash Flow', action: 'fill', text: '[Ф] денежный поток __дата__ __сумма__' },
-    { label: 'P&L', action: 'fill', text: '[Ф] pnl __сумма__' },
-    { label: 'Структура расходов', action: 'fill', text: '[Ф] структура расходов __категория__ __сумма__' },
-
+    { label: 'Cash Flow', action: 'fill', text: '[Ф] денежный поток Дата Сумма' },
+    { label: 'P&L', action: 'fill', text: '[Ф] pnl Сумма' },
+    { label: 'Структура расходов', action: 'fill', text: '[Ф] структура расходов Категория Сумма' },
+    { label: 'ABC-анализ', action: 'fill', text: '[Ф] abc-анализ Категория Сумма' },
+    { label: 'Юнит-экономика', action: 'fill', text: '[Ф] юнит-экономика Источник_трафика Сумма CAC_Стоимость_привлечения' },
+    { label: 'Прогноз выручки', action: 'fill', text: '[Ф] прогноз выручки Дата Сумма' },
 ];
+
+// Компонент иконки-уголка (как на скриншоте)
+const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
+    <svg 
+        width="14" 
+        height="14" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+        style={{
+            transition: 'transform 0.3s ease',
+            transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', // Поворот при скрытии
+            color: '#666'
+        }}
+    >
+        <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+);
 
 export const ChatArea: React.FC<ChatAreaProps> = ({
     activeChat, messages, loading, loadingPhrase,
@@ -39,6 +62,9 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+
+    const [isDataOpen, setIsDataOpen] = useState(true);
+    const [isFinOpen, setIsFinOpen] = useState(true);
 
     const menuRef = useRef<HTMLDivElement>(null);
     
@@ -59,7 +85,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
-        };
+        }
     }, [isMenuOpen]);
 
     const allColumns = useMemo(() => {
@@ -98,6 +124,42 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         const chartDef = CHART_REGISTRY[chart.type as keyof typeof CHART_REGISTRY];
         return chartDef ? chartDef.chatTitle(chart.data) : 'График';
     };
+
+    const dataAnalysisSuggestions = CHAT_SUGGESTIONS.filter(s => !s.text.includes('[Ф]'));
+    const financialAnalysisSuggestions = CHAT_SUGGESTIONS.filter(s => s.text.includes('[Ф]'));
+
+    const renderSuggestionButton = (suggestion: typeof CHAT_SUGGESTIONS[0], index: number) => (
+        <button
+            key={index}
+            disabled={loading}
+            onClick={() => handleSuggestionClick(suggestion)}
+            style={{
+                background: '#f0f4f8',
+                border: '1px solid #dce4ec',
+                borderRadius: '14px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                color: '#4a90e2',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap',
+                flexShrink: 0 // Запрещаем сжиматься при горизонтальном схлопывании
+            }}
+            onMouseEnter={e => {
+                if (!loading) {
+                    e.currentTarget.style.background = '#e0f0ff';
+                    e.currentTarget.style.borderColor = '#b3d8ff';
+                }
+            }}
+            onMouseLeave={e => {
+                e.currentTarget.style.background = '#f0f4f8';
+                e.currentTarget.style.borderColor = '#dce4ec';
+            }}
+        >
+            {suggestion.label}
+        </button>
+    );
 
     return (
         <div className="col-center">
@@ -158,41 +220,106 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '-10px' }}>
                         
                         {CHAT_SUGGESTIONS.length > 0 && (
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-start', padding: '0' }}>
-                                {CHAT_SUGGESTIONS.map((suggestion, index) => (
-                                    <button
-                                        key={index}
-                                        disabled={loading}
-                                        onClick={() => handleSuggestionClick(suggestion)}
-                                        style={{
-                                            background: '#f0f4f8',
-                                            border: '1px solid #dce4ec',
-                                            borderRadius: '14px',
-                                            padding: '6px 12px',
-                                            fontSize: '12px',
-                                            color: '#4a90e2',
-                                            cursor: loading ? 'not-allowed' : 'pointer',
-                                            opacity: loading ? 0.6 : 1,
-                                            transition: 'all 0.2s ease'
-                                        }}
-                                        onMouseEnter={e => {
-                                            if(!loading) {
-                                                e.currentTarget.style.background = '#e0f0ff';
-                                                e.currentTarget.style.borderColor = '#b3d8ff';
-                                            }
-                                        }}
-                                        onMouseLeave={e => {
-                                            e.currentTarget.style.background = '#f0f4f8';
-                                            e.currentTarget.style.borderColor = '#dce4ec';
-                                        }}
-                                    >
-                                        {suggestion.label}
-                                    </button>
-                                ))}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', padding: '0' }}>
+                                
+                                {/* Строка 1: Анализ данных */}
+                                {dataAnalysisSuggestions.length > 0 && (
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        width: '100%',
+                                        height: isDataOpen ? '32px' : '10px',
+                                        transition: 'height 0.4s ease-in-out',
+                                        overflow: 'hidden'
+                                    }}>
+                                        {/* Кликабельный заголовок */}
+                                        <div 
+                                            onClick={() => setIsDataOpen(!isDataOpen)}
+                                            style={{ 
+                                                display: 'flex', alignItems: 'center', cursor: 'pointer', 
+                                                userSelect: 'none', marginRight: '10px', flexShrink: 0 
+                                            }}
+                                        >
+                                            <span style={{ display: 'flex', alignItems: 'center', marginRight: '6px' }}>
+                                                <ChevronIcon isOpen={isDataOpen} />
+                                            </span>
+                                            <span style={{ fontSize: '12px', color: '#999', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                                                Анализ данных
+                                            </span>
+                                        </div>
+                                        
+                                        {/* Скрываемый блок с кнопками */}
+                                        <div style={{
+                                            display: 'flex',
+                                            gap: '8px',
+                                            alignItems: 'center',
+                                            overflow: 'hidden',
+                                            // Плавная горизонтальная анимация ширины
+                                            maxWidth: isDataOpen ? '2000px' : '0px', 
+                                            opacity: isDataOpen ? 1 : 0,
+                                            transition: 'max-width 0.4s ease-in-out, opacity 0.3s ease-in-out',
+                                            whiteSpace: 'nowrap',
+                                            flexWrap: 'nowrap', // Строго в один ряд
+                                            padding: isDataOpen ? '2px 0' : '0' // Отступ для тени кнопок, чтобы не обрезалась
+                                        }}>
+                                            {dataAnalysisSuggestions.map((suggestion, index) => renderSuggestionButton(suggestion, index))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Серая горизонтальная разграничительная линия */}
+                                {dataAnalysisSuggestions.length > 0 && financialAnalysisSuggestions.length > 0 && (
+                                    <hr style={{ border: 'none', borderTop: '1px solid #e2e8ee', margin: '2px 0', width: '100%' }} />
+                                )}
+
+                                {/* Строка 2: Финансовый анализ */}
+                                {financialAnalysisSuggestions.length > 0 && (
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        width: '100%',
+                                        height: isFinOpen ? '32px' : '10px', // <-- Управляем высотой
+                                        transition: 'height 0.4s ease-in-out',
+                                        overflow: 'hidden'
+                                    }}>
+                                        {/* Кликабельный заголовок */}
+                                        <div 
+                                            onClick={() => setIsFinOpen(!isFinOpen)}
+                                            style={{ 
+                                                display: 'flex', alignItems: 'center', cursor: 'pointer', 
+                                                userSelect: 'none', marginRight: '10px', flexShrink: 0 
+                                            }}
+                                        >
+                                            <span style={{ display: 'flex', alignItems: 'center', marginRight: '6px' }}>
+                                                <ChevronIcon isOpen={isFinOpen} />
+                                            </span>
+                                            <span style={{ fontSize: '12px', color: '#999', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                                                Финансовый анализ
+                                            </span>
+                                        </div>
+                                        
+                                        {/* Скрываемый блок с кнопками */}
+                                        <div style={{
+                                            display: 'flex',
+                                            gap: '8px',
+                                            alignItems: 'center',
+                                            overflow: 'hidden',
+                                            // Плавная горизонтальная анимация ширины
+                                            maxWidth: isFinOpen ? '2000px' : '0px', 
+                                            opacity: isFinOpen ? 1 : 0,
+                                            transition: 'max-width 0.4s ease-in-out, opacity 0.3s ease-in-out',
+                                            whiteSpace: 'nowrap',
+                                            flexWrap: 'nowrap', // Строго в один ряд
+                                            padding: isFinOpen ? '2px 0' : '0'
+                                        }}>
+                                            {financialAnalysisSuggestions.map((suggestion, index) => renderSuggestionButton(suggestion, index))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
-                        <div className="input-box" style={{ width: '100%', margin: '0' }}>
+                        <div className="input-box" style={{ width: '100%', margin: '0', marginTop: '4px' }}>
                             <input
                                 value={input}
                                 onChange={e => setInput(e.target.value)}
@@ -203,10 +330,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                             <button onClick={() => onSendMessage(undefined, useAi, removedCols)} disabled={loading}>❯</button>
                         </div>
 
-                        {/* ИСПРАВЛЕНИЕ 1: flex-start удерживает верхний край контейнера неподвижным */}
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', marginTop: '2px'}}>
                             
-                            {/* ИСПРАВЛЕНИЕ 2: Зафиксировали высоту тумблера, чтобы он идеально стоял по центру */}
                             <label className="ai-toggle-container" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', height: '28px' }}>
                                 <div className="toggle-switch" style={{ margin: 0 }}>
                                     <input 
@@ -229,11 +354,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                         disabled={loading}
                                         style={{
                                             display: 'flex',
-                                            alignItems: 'flex-start', // ИСПРАВЛЕНИЕ 3: текст "Убрать столбцы" не будет уезжать вниз
+                                            alignItems: 'flex-start',
                                             background: isHovered ? '#ffffff' : '#fff3f3', 
                                             border: '1px solid #cd5c5c', 
                                             borderRadius: '20px',
-                                            padding: '3px 6px 3px 12px', // Выверенные отступы для 28px
+                                            padding: '3px 6px 3px 12px',
                                             cursor: loading ? 'not-allowed' : 'pointer',
                                             opacity: loading ? 0.6 : 1,
                                             color: '#000',
@@ -247,15 +372,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                         <span style={{ 
                                             fontWeight: 600, 
                                             whiteSpace: 'nowrap', 
-                                            height: '20px', // Четко заданная высота строки
+                                            height: '20px',
                                             display: 'flex', 
                                             alignItems: 'center', 
-                                            marginTop: '1px' // Идеальное центрирование относительно бейджа
+                                            marginTop: '1px'
                                         }}>
                                             Убрать столбцы
                                         </span>
                                         
-                                        {/* ИСПРАВЛЕНИЕ 4: Анимация высоты и ширины с плавным перетеканием текста */}
                                         <div style={{
                                             borderRadius: isHovered && removedCols.length > 0 ? '10px' : '50%',
                                             minWidth: '20px',
@@ -270,7 +394,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                             color: '#000',
                                             transition: 'all 0.6s ease',
                                             overflow: 'hidden', 
-                                            whiteSpace: 'normal', // Сразу нормальный перенос (убирает микропрыжки при hover)
+                                            whiteSpace: 'normal',
                                             wordBreak: 'break-word',
                                             textAlign: 'left',
                                             lineHeight: '1.2',
@@ -296,9 +420,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                             flexDirection: 'column',
                                             gap: '8px',
                                             zIndex: 100,
-                                            minWidth: '260px' // Сделали чуть шире для инпута
+                                            minWidth: '260px'
                                         }}>
-                                            {/* ЗАФИКСИРОВАННАЯ ШАПКА С ПОИСКОМ */}
                                             <div style={{ 
                                                 display: 'flex', 
                                                 alignItems: 'center', 
@@ -328,14 +451,13 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                                 />
                                             </div>
 
-                                            {/* СКРОЛЛИРУЕМЫЙ СПИСОК СТОЛБЦОВ */}
                                             <div style={{
                                                 maxHeight: '180px',
                                                 overflowY: 'auto',
                                                 display: 'flex',
                                                 flexDirection: 'column',
                                                 gap: '8px',
-                                                paddingRight: '4px' // Небольшой отступ для скроллбара
+                                                paddingRight: '4px'
                                             }}>
                                                 {filteredColumns.length > 0 ? (
                                                     filteredColumns.map(col => (

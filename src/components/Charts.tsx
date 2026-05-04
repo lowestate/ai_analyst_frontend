@@ -30,6 +30,9 @@ const getChartDescription = (type: string): string => {
         case 'cash_flow_chart': return 'График движения денежных средств (Cash Flow) показывает притоки и оттоки денег по периодам. Зеленые столбцы — это профицит, красные — дефицит (отток превышает приток). Помогает прогнозировать кассовые разрывы.';
         case 'pnl_report': return 'Отчет о прибылях и убытках (P&L). Отражает общую выручку, понесенные расходы и итоговую чистую прибыль (или убыток). Каскадная диаграмма (Waterfall) наглядно показывает, как доходы «съедаются» расходами.';
         case 'expense_pie_chart': return 'Структура расходов демонстрирует, на какие категории (статьи затрат) уходит основная часть бюджета компании.';
+        case 'abc_analysis': return 'Классический закон Парето (80/20). Синие столбики — это ваша выручка по категориям. Красная линия показывает НАКОПЛЕННЫЙ процент. Как только красная линия пересекает отметку 80% — все товары слева от неё являются вашим ядром (группа А), которое приносит основные деньги.';
+        case 'unit_economics': return 'Оценка эффективности каналов. Зеленый столбец (ARPU) — средняя выручка с клиента. Красный (CAC) — стоимость его привлечения. Оранжевая линия (ROMI) показывает окупаемость в процентах — ищите каналы с самым высоким ROMI.';
+        case 'revenue_forecast': return 'Прогноз выручки на основе исторического тренда. Закрашенная зона (конус неопределенности) показывает возможный разброс доходов: от пессимистичного до оптимистичного сценария.';
         default: return 'Визуализация данных для подробного анализа.';
     }
 };
@@ -550,6 +553,75 @@ const InteractiveChart: React.FC<{ chart: ChartData, preview?: boolean }> = ({ c
                 margin: { t: 20, r: 20, b: 20, l: 20 },
                 showlegend: true,
                 legend: { orientation: 'v', x: 1.1, y: 0.5 }
+            };
+            break;
+        }
+
+        case 'abc_analysis': {
+            plotData = [
+                { x: chart.data.categories, y: chart.data.amounts, type: 'bar', name: 'Выручка', marker: { color: '#4a90e2' } },
+                { x: chart.data.categories, y: chart.data.cum_percent, type: 'scatter', mode: 'lines+markers', yaxis: 'y2', name: '% нарастающим итогом', line: { color: '#e6194b', width: 3 } }
+            ];
+            plotLayout = preview ? previewLayout : {
+                margin: { t: 30, r: 50, b: 80, l: 80 },
+                xaxis: { automargin: true },
+                yaxis: { title: 'Сумма выручки' },
+                yaxis2: { title: 'Накопленный %', overlaying: 'y', side: 'right', range: [0, 105], showgrid: false },
+                showlegend: true, legend: { orientation: 'h', y: -0.2 }
+            };
+            break;
+        }
+
+        case 'unit_economics': {
+            plotData = [
+                { x: chart.data.sources, y: chart.data.arpu, type: 'bar', name: 'ARPU (Ср. чек)', marker: { color: '#3cb44b' } },
+                { x: chart.data.sources, y: chart.data.cac, type: 'bar', name: 'CAC (Затраты)', marker: { color: '#e6194b' } },
+                { 
+                    x: chart.data.sources, 
+                    y: chart.data.romi, 
+                    type: 'scatter', 
+                    // Если превью — рисуем только линию и точки. Если раскрыто — добавляем текст
+                    mode: preview ? 'lines+markers' : 'lines+markers+text', 
+                    name: 'ROMI (%)', 
+                    text: chart.data.romi.map((r: any) => r + '%'), 
+                    textposition: 'top center', 
+                    yaxis: 'y2', 
+                    line: { color: '#f58231', width: 2 }, 
+                    marker: { size: 8 },
+                    // Изменили цвет текста на черный (#000000)
+                    textfont: { size: 11, color: '#000000', weight: 'bold' }
+                }
+            ];
+            plotLayout = preview ? previewLayout : {
+                barmode: 'group',
+                margin: { t: 30, r: 50, b: 80, l: 80 },
+                xaxis: { automargin: true },
+                yaxis: { title: 'Сумма' },
+                yaxis2: { title: 'Окупаемость (ROMI %)', overlaying: 'y', side: 'right', showgrid: false },
+                showlegend: true, legend: { orientation: 'h', y: -0.2 }
+            };
+            break;
+        }
+
+        case 'revenue_forecast': {
+            plotData = [
+                // 1. Исторический факт
+                { x: chart.data.hist_dates, y: chart.data.hist_values, type: 'scatter', mode: 'lines+markers', name: 'Исторический факт', line: { color: '#4a90e2', width: 3 } },
+                
+                // 2. Верхняя граница конуса (прозрачная линия, нужна как "потолок" для заливки)
+                { x: chart.data.forecast_dates, y: chart.data.forecast_upper, type: 'scatter', mode: 'lines', line: { width: 0 }, showlegend: false, hoverinfo: 'skip' },
+                
+                // 3. Нижняя граница конуса (заливает пространство от себя до верхней границы)
+                { x: chart.data.forecast_dates, y: chart.data.forecast_lower, type: 'scatter', mode: 'lines', fill: 'tonexty', fillcolor: 'rgba(245, 130, 49, 0.15)', line: { width: 0 }, name: 'Возможный диапазон (Конус)', hoverinfo: 'skip' },
+                
+                // 4. Средний прогноз (пунктир) — рисуем поверх заливки
+                { x: chart.data.forecast_dates, y: chart.data.forecast_values, type: 'scatter', mode: 'lines+markers', name: 'Прогноз (Средний)', line: { color: '#f58231', width: 3, dash: 'dash' } }
+            ];
+            plotLayout = preview ? previewLayout : {
+                margin: { t: 30, r: 20, b: 80, l: 80 },
+                xaxis: { automargin: true, type: 'date' },
+                yaxis: { title: 'Выручка' },
+                showlegend: true, legend: { orientation: 'h', y: -0.2 }
             };
             break;
         }

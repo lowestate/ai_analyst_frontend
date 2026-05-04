@@ -23,7 +23,7 @@ export const COLORS = {
 export const FOLDERS = [
     {
         id: 'finance', title: 'Финансовый анализ',
-        types: ['cash_flow_chart', 'pnl_report', 'expense_pie_chart']
+        types: ['cash_flow_chart', 'pnl_report', 'expense_pie_chart', 'abc_analysis', 'unit_economics', 'revenue_forecast']
     },
     { 
         id: 'relations', title: 'Связи в данных',
@@ -43,43 +43,46 @@ export const FOLDERS = [
 ];
 
 export const getChartInfo = (chart: ChartData) => {
-        if (chart.type === 'correlation') return { title: 'Корреляционная матрица', columnName: null, subtitle: null };
-        if (chart.type === 'category_count') return { title: 'Распределение:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Категориальный столбец' };
-        if (chart.type === 'numeric_hist') return { title: 'Распределение:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Числовой столбец' };
-        if (chart.type === 'outliers') return { title: 'Аномалии:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Boxplot (Выбросы)' };
-        if (chart.type === 'trend_line') return { title: 'Тренды во времени:', columnName: chart.data?.date_col || 'Date', subtitle: 'Линейный график' };
-        if (chart.type === 'dependency') {
-            const sub = chart.data?.sub_type;
-            const subtitle = sub === 'scatter' ? 'График рассеяния' : sub === 'box' ? 'Ящик с усами' : 'Матрица сопряженности';
-            return { 
-                title: 'Зависимость:', 
-                columnName: `${chart.data?.col1} vs ${chart.data?.col2}`, 
-                subtitle 
-            };
+    if (chart.type === 'correlation') return { title: 'Корреляционная матрица', columnName: null, subtitle: null };
+    if (chart.type === 'category_count') return { title: 'Распределение:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Категориальный столбец' };
+    if (chart.type === 'numeric_hist') return { title: 'Распределение:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Числовой столбец' };
+    if (chart.type === 'outliers') return { title: 'Аномалии:', columnName: chart.data?.column_name || 'Unknown', subtitle: 'Boxplot (Выбросы)' };
+    if (chart.type === 'trend_line') return { title: 'Тренды во времени:', columnName: chart.data?.date_col || 'Date', subtitle: 'Линейный график' };
+    if (chart.type === 'dependency') {
+        const sub = chart.data?.sub_type;
+        const subtitle = sub === 'scatter' ? 'График рассеяния' : sub === 'box' ? 'Ящик с усами' : 'Матрица сопряженности';
+        return { 
+            title: 'Зависимость:', 
+            columnName: `${chart.data?.col1} vs ${chart.data?.col2}`, 
+            subtitle 
         };
-        if (chart.type === 'pairplot') {
-            return { 
-                title: 'Зависимости признаков', 
-                subtitle: 'Pairplot' 
-            };
-        }
-        if (chart.type === 'feature_importances') {
-            return { 
-                title: 'Важность признаков для',
-                columnName: chart.data?.target || 'Unknown', // Используем target из данных бэкенда
-                subtitle: 'Горизонтальный барчарт' // Исправили подпись
-            };
-        }
-        if (chart.type === 'feature_tree') {
-            return { 
-                title: 'Дерево признаков',
-            };
-        }
-        if (chart.type === 'cash_flow_chart') return { title: 'Cash Flow', subtitle: 'Гистограмма динамики' };
-        if (chart.type === 'pnl_report') return { title: 'P&L', subtitle: 'Каскадная диаграмма' };
-        if (chart.type === 'expense_pie_chart') return { title: 'Расходы', subtitle: 'Кольцевая диаграмма' };
-        return { title: 'График', columnName: null, subtitle: null };
     };
+    if (chart.type === 'pairplot') {
+        return { 
+            title: 'Зависимости признаков', 
+            subtitle: 'Pairplot' 
+        };
+    }
+    if (chart.type === 'feature_importances') {
+        return { 
+            title: 'Важность признаков для',
+            columnName: chart.data?.target || 'Unknown', // Используем target из данных бэкенда
+            subtitle: 'Горизонтальный барчарт' // Исправили подпись
+        };
+    }
+    if (chart.type === 'feature_tree') {
+        return { 
+            title: 'Дерево признаков',
+        };
+    }
+    if (chart.type === 'cash_flow_chart') return { title: 'Cash Flow', subtitle: 'Гистограмма динамики' };
+    if (chart.type === 'pnl_report') return { title: 'P&L', subtitle: 'Каскадная диаграмма' };
+    if (chart.type === 'expense_pie_chart') return { title: 'Расходы', subtitle: 'Кольцевая диаграмма' };
+    if (chart.type === 'abc_analysis') return { title: 'ABC-анализ', subtitle: 'Диаграмма Парето' };
+    if (chart.type === 'unit_economics') return { title: 'Юнит-экономика', subtitle: 'ARPU vs CAC' };
+    if (chart.type === 'revenue_forecast') return { title: 'Прогноз', subtitle: 'Тренд выручки' };
+    return { title: 'График', columnName: null, subtitle: null };
+};
 
 export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChart, isDatasetLoaded }) => {
     const navigate = useNavigate();

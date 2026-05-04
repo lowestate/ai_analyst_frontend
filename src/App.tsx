@@ -24,7 +24,7 @@ const GLOBAL_STYLES = `
 
     /* --- ХЭДЕР (ШАПКА) --- */
     .app-header {
-        height: 50px;
+        height: 40px;
         background: ${COLORS.white};
         border-bottom: 1px solid ${COLORS.gray200};
         display: flex;
