@@ -22,7 +22,7 @@ export const COLORS = {
 
 export const FOLDERS = [
     {
-        id: 'finance', title: 'Финансовый анализ',
+        id: 'finance', title: 'Бизнес и финансы',
         types: ['cash_flow_chart', 'pnl_report', 'expense_pie_chart',
             'abc_analysis', 'unit_economics', 'revenue_forecast', 'cohort_analysis']
     },
@@ -212,7 +212,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
                                 <div style={{
                                     transition: 'transform 0.3s ease',
                                     transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-                                    marginRight: '12px', display: 'flex', alignItems: 'center', color: '#666'
+                                    marginRight: '6px', display: 'flex', alignItems: 'center', color: '#666'
                                 }}>
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                         <polyline points="9 18 15 12 9 6"></polyline>

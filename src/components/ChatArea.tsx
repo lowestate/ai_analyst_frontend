@@ -17,17 +17,17 @@ interface ChatAreaProps {
 }
 
 const CHAT_SUGGESTIONS = [
-    { label: 'Корреляционный анализ', action: 'send', text: 'Корреляционный анализ' },
-    { label: 'Анализ столбцов', action: 'send', text: 'анализ столбцов' },
-    { label: 'Аномалии', action: 'send', text: 'аномалии' },
-    { label: 'Тренд', action: 'send', text: 'тренд' },
-    { label: 'Важность признаков для ...', action: 'fill', text: 'важность признаков для __впишите название столбца__' },
-    { label: 'Дерево признаков', action: 'send', text: 'дерево признаков' },
+    { label: 'Корреляционный анализ', action: 'send', text: '[А] Корреляционный анализ' },
+    { label: 'Анализ столбцов', action: 'send', text: '[А] анализ столбцов' },
+    { label: 'Аномалии', action: 'send', text: '[А] аномалии' },
+    { label: 'Тренд', action: 'send', text: '[А] тренд' },
+    { label: 'Важность признаков для ...', action: 'fill', text: '[А] важность признаков для __впишите название столбца__' },
+    { label: 'Дерево признаков', action: 'send', text: '[А] дерево признаков' },
     { label: 'Cash Flow', action: 'fill', text: '[Ф] денежный поток Дата Сумма' },
     { label: 'P&L', action: 'fill', text: '[Ф] pnl Сумма' },
     { label: 'Структура расходов', action: 'fill', text: '[Ф] структура расходов Категория Сумма' },
     { label: 'ABC-анализ', action: 'fill', text: '[Ф] abc-анализ Категория Сумма' },
-    { label: 'Юнит-экономика', action: 'fill', text: '[Ф] юнит-экономика Источник_трафика Сумма CAC_Стоимость_привлечения' },
+    { label: 'Юнит-экономика', action: 'fill', text: '[Ф] юнит-экономика Источник_трафика Сумма CAC_Стоимость_привлечения Пользователь_ID' },
     { label: 'Прогноз выручки', action: 'fill', text: '[Ф] прогноз выручки Дата Сумма' },
     { label: 'Когортный анализ', action: 'fill', text: '[Ф] когортный анализ Дата Пользователь_ID' },
 ];
@@ -63,7 +63,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-
+    const [isFinTag, setIsFinTag] = useState(false);
+    const [isDataTag, setIsDataTag] = useState(false);
     const [isDataOpen, setIsDataOpen] = useState(true);
     const [isFinOpen, setIsFinOpen] = useState(true);
 
@@ -113,11 +114,19 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     };
 
     const handleSuggestionClick = (suggestion: typeof CHAT_SUGGESTIONS[0]) => {
+        const hasFinTag = suggestion.text.includes('[Ф]');
+        const hasDataTag = suggestion.text.includes('[А]');
+        
+        // Регулярное выражение \[[ФА]\] ищет любой из символов внутри скобок (работает для обеих русских букв)
+        const cleanText = suggestion.text.replace(/\[[ФА]\]\s*/g, ''); 
+
         if (suggestion.action === 'send') {
-            setInput(suggestion.text);      
-            onSendMessage(suggestion.text, useAi, removedCols);
+            setInput(''); 
+            onSendMessage(suggestion.text, useAi, removedCols); 
         } else if (suggestion.action === 'fill') {
-            setInput(suggestion.text);      
+            setInput(cleanText); 
+            setIsFinTag(hasFinTag); 
+            setIsDataTag(hasDataTag); // Запоминаем, что нужно приклеить [А]
         }
     };
 
@@ -162,6 +171,19 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         </button>
     );
 
+    const handleInputSend = () => {
+        if (!input.trim()) return;
+        
+        let textToSend = input;
+        if (isFinTag) textToSend = `[Ф] ${input}`;
+        else if (isDataTag) textToSend = `[А] ${input}`; // Подставляем тег [А]
+        
+        onSendMessage(textToSend, useAi, removedCols);
+        setInput('');
+        setIsFinTag(false);
+        setIsDataTag(false); // Сбрасываем оба флага
+    };
+
     return (
         <div className="col-center">
             <div className="messages-wrapper">
@@ -188,14 +210,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                     </div>
                                     <div className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''}`} style={{ width: '100%' }}>
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                            {msg.text}
+                                            {msg.text.replace(/\[[ФА]\]\s*/g, '')}
                                         </ReactMarkdown>
                                     </div>
                                 </div>
                             ) : (
                                 <div className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''}`}>
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                        {msg.text}
+                                        {msg.text.replace(/\[[ФА]\]\s*/g, '')}
                                     </ReactMarkdown>
                                 </div>
                             )}
@@ -295,7 +317,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                                 <ChevronIcon isOpen={isFinOpen} />
                                             </span>
                                             <span style={{ fontSize: '12px', color: '#999', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
-                                                Финансовый анализ
+                                                Бизнес и финансы
                                             </span>
                                         </div>
                                         
@@ -319,16 +341,20 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                 )}
                             </div>
                         )}
-
                         <div className="input-box" style={{ width: '100%', margin: '0', marginTop: '4px' }}>
                             <input
                                 value={input}
-                                onChange={e => setInput(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && onSendMessage(undefined, useAi, removedCols)}
+                                onChange={e => {
+                                    setInput(e.target.value);
+                                    if (e.target.value === '') {
+                                        setIsFinTag(false);
+                                        setIsDataTag(false);
+                                    }
+                                }}
+                                onKeyDown={e => e.key === 'Enter' && handleInputSend()}
                                 placeholder="Что исследуем?"
                                 disabled={loading}
                             />
-                            <button onClick={() => onSendMessage(undefined, useAi, removedCols)} disabled={loading}>❯</button>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', marginTop: '2px'}}>
