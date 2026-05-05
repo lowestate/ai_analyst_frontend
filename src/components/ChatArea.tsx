@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { Message, ChartData } from '../types';
 import { SampleTable } from './SampleTable';
 import { CHART_REGISTRY } from '../chartRegistry';
+import { ERDDiagram, DBTable, DBRelation } from './ERDDiagram';
 
 interface ChatAreaProps {
     activeChat: string | null;
@@ -14,6 +15,7 @@ interface ChatAreaProps {
     setInput: (val: string) => void;
     onSendMessage: (text?: string, useAi?: boolean, colsToRemove?: string[]) => void;
     localDataPool: any[];
+    dbSchema?: { tables: DBTable[], relations: DBRelation[] } | null;
 }
 
 const CHAT_SUGGESTIONS = [
@@ -55,7 +57,8 @@ const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
 
 export const ChatArea: React.FC<ChatAreaProps> = ({
     activeChat, messages, loading, loadingPhrase,
-    input, setInput, onSendMessage, localDataPool 
+    input, setInput, onSendMessage, localDataPool,
+    dbSchema 
 }) => {
     
     const [useAi, setUseAi] = useState(false);
@@ -187,8 +190,12 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     return (
         <div className="col-center">
             <div className="messages-wrapper">
-                {activeChat && activeChat !== "temp_loading" && localDataPool.length > 0 && (
-                    <SampleTable dataPool={localDataPool} />
+                {activeChat && activeChat !== "temp_loading" && (
+                    dbSchema ? (
+                        <ERDDiagram tables={dbSchema.tables} relations={dbSchema.relations} />
+                    ) : localDataPool.length > 0 ? (
+                        <SampleTable dataPool={localDataPool} />
+                    ) : null
                 )}
 
                 {messages.map(msg => {

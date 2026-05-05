@@ -5,10 +5,10 @@ interface SidebarProps {
     sessions: ChatSession[];
     activeChat: string | null;
     onSelectChat: (id: string) => void;
-    onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onOpenUploadModal: () => void;
 }
 
-export const LeftSidebar: React.FC<SidebarProps> = ({ sessions, activeChat, onSelectChat, onFileUpload }) => {
+export const LeftSidebar: React.FC<SidebarProps> = ({ sessions, activeChat, onSelectChat, onOpenUploadModal }) => {
     // Добавляем тестовый неактивный чат чисто для визуальной проверки стилей
     const displaySessions = [...[...sessions].reverse()]    ;
 
@@ -22,10 +22,9 @@ export const LeftSidebar: React.FC<SidebarProps> = ({ sessions, activeChat, onSe
 
     return (
         <div className="col-left">
-            <label className="btn-upload">
-                Загрузить данные
-                <input type="file" accept=".csv,.xlsx,.xls" hidden onChange={onFileUpload} />
-            </label>
+            <button className="btn-upload" onClick={onOpenUploadModal}>
+                Новый анализ
+            </button>
             <div className="chat-list">
                 {displaySessions.map(s => (
                     <div 

@@ -93,12 +93,9 @@ export const SampleTable: React.FC<{ dataPool: any[] }> = ({ dataPool }) => {
                     </button>
                 )}
 
-                {/* 4. НАДПИСЬ (Показываем только если таблица раскрыта) */}
-                {!isHidden && (
-                    <span style={{ fontSize: '13px', color: '#666', marginLeft: '4px', fontWeight: 500 }}>
-                        Случайные 5 записей:
-                    </span>
-                )}
+                <span style={{ fontSize: '13px', color: '#666', marginLeft: '4px', fontWeight: 500 }}>
+                    Случайные 5 записей
+                </span>
             </div>
 
             <div className={`table-wrapper ${isHidden ? 'collapsed' : ''}`}>
