@@ -505,35 +505,49 @@ function MainLayout() {
         (uploadTab === 'file' && !selectedFile) || 
         (uploadTab === 'db' && (!dbCreds.host || !dbCreds.database || !dbCreds.user || !dbCreds.password));
 
-    const sendMessage = async (overrideText?: string, useAiFlag: boolean = false, colsToRemove: string[] = []) => {
-        const textToSend = overrideText || input;
-        if (!textToSend.trim() || !activeChat || activeChat === "temp_loading") return;
+    const sendMessage = async (overrideText?: string, useAiFlag: boolean = false, colsToRemove: string[] = [], sqlAction?: 'approve' | 'reject', sqlFeedback?: string, sqlQuery?: string) => {
+        const textToSend = overrideText || input || (sqlAction === 'approve' ? "Запрос подтвержден." : "Запрос отклонен.");
+        if (!textToSend.trim() && !sqlAction || !activeChat || activeChat === "temp_loading") return;
 
-        const userMsg = { id: Date.now().toString(), sender: 'user' as const, text: textToSend };
-        setMessages(prev => [...prev, userMsg]);
+        if (!sqlAction) {
+            const userMsg: Message = { id: Date.now().toString(), sender: 'user', text: textToSend };
+            setMessages(prev => [...prev, userMsg]);
+        }
+        
         setInput(''); 
         setLoading(true);
 
         try {
             const res = await fetch('http://localhost:8000/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: activeChat,
-                message: textToSend,
-                use_ai: useAiFlag,
-                cols_to_remove: colsToRemove
-            })
-        });
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: activeChat,
+                    message: textToSend,
+                    use_ai: useAiFlag,
+                    cols_to_remove: colsToRemove,
+                    sql_action: sqlAction,      
+                    sql_feedback: sqlFeedback,   
+                    sql_query: sqlQuery // <-- Отправляем на бэкенд
+                })
+            });
 
             if (!res.ok) throw new Error(`HTTP Ошибка: ${res.status}`);
             const data = await res.json();
 
+            // Если бэкенд просит аппрув SQL, доклеиваем sql_query к тексту сообщения, 
+            // чтобы ReactMarkdown его распарсил
+            let textToDisplay = data.reply;
+            if (data.is_waiting_for_sql && data.sql_query) {
+                textToDisplay += `\n\n\`\`\`sql\n${data.sql_query}\n\`\`\``;
+            }
+
             setMessages(prev => [...prev, {
                 id: (Date.now() + 1).toString(),
                 sender: 'agent',
-                text: data.reply,
-                charts: data.charts
+                text: textToDisplay,
+                charts: data.charts,
+                isSqlWaiting: data.is_waiting_for_sql // Устанавливаем специальный флаг
             }]);
         } catch (err: any) {
             setMessages(prev => [...prev, {

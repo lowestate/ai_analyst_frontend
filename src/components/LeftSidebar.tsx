@@ -9,8 +9,8 @@ interface SidebarProps {
 }
 
 export const LeftSidebar: React.FC<SidebarProps> = ({ sessions, activeChat, onSelectChat, onOpenUploadModal }) => {
-    // Добавляем тестовый неактивный чат чисто для визуальной проверки стилей
-    const displaySessions = [...[...sessions].reverse()]    ;
+    // Делаем копию и переворачиваем, чтобы новые сессии были сверху
+    const displaySessions = [...sessions].reverse();
 
     const formatLongText = (text: string) => {
         if (!text) return '';
@@ -26,16 +26,26 @@ export const LeftSidebar: React.FC<SidebarProps> = ({ sessions, activeChat, onSe
                 Новый анализ
             </button>
             <div className="chat-list">
-                {displaySessions.map(s => (
-                    <div 
-                        key={s.id} 
-                        className={`chat-item ${s.id === activeChat ? 'active' : ''}`} 
-                        onClick={() => s.id !== 'dummy-1' && onSelectChat(s.id)}
-                    >
-                        <div className="dataset-desc">{formatLongText(s.datasetName)}</div>
-                        <div className="dataset-name">{formatLongText(s.filename)}</div>
-                    </div>
-                ))}
+                {displaySessions.map(s => {
+                    const isActive = s.id === activeChat;
+                    
+                    return (
+                        <div 
+                            key={s.id} 
+                            className={`chat-item ${isActive ? 'active' : ''}`} 
+                            onClick={() => onSelectChat(s.id)}
+                            style={{
+                                // Применяем белый фон только если чат активен, иначе убираем фон
+                                backgroundColor: isActive ? '#ffffff' : 'transparent',
+                                transition: 'background-color 0.2s ease',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <div className="dataset-desc">{formatLongText(s.datasetName)}</div>
+                            <div className="dataset-name">{formatLongText(s.filename)}</div>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

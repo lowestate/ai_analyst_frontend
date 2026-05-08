@@ -5,6 +5,7 @@ import { Message, ChartData } from '../types';
 import { SampleTable } from './SampleTable';
 import { CHART_REGISTRY } from '../chartRegistry';
 import { ERDDiagram, DBTable, DBRelation } from './ERDDiagram';
+import { SqlValidationBlock } from '../components/SQLValidation';
 
 interface ChatAreaProps {
     activeChat: string | null;
@@ -13,7 +14,7 @@ interface ChatAreaProps {
     loadingPhrase: string;
     input: string;
     setInput: (val: string) => void;
-    onSendMessage: (text?: string, useAi?: boolean, colsToRemove?: string[]) => void;
+    onSendMessage: (text?: string, useAi?: boolean, colsToRemove?: string[], sqlAction?: 'approve' | 'reject', sqlFeedback?: string, sqlQuery?: string) => void;
     localDataPool: any[];
     dbSchema?: { tables: DBTable[], relations: DBRelation[] } | null;
 }
@@ -34,23 +35,9 @@ const CHAT_SUGGESTIONS = [
     { label: 'Когортный анализ', action: 'fill', text: '[Ф] когортный анализ Дата Пользователь_ID' },
 ];
 
-// Компонент иконки-уголка (как на скриншоте)
 const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
-    <svg 
-        width="14" 
-        height="14" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round"
-        style={{
-            transition: 'transform 0.3s ease',
-            transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', // Поворот при скрытии
-            color: '#666'
-        }}
-    >
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        style={{ transition: 'transform 0.3s ease', transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', color: '#666' }}>
         <polyline points="6 9 12 15 18 9"></polyline>
     </svg>
 );
@@ -94,9 +81,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     }, [isMenuOpen]);
 
     const allColumns = useMemo(() => {
+        if (dbSchema) return dbSchema.tables.flatMap(t => t.columns.map(c => c.name));
         if (!localDataPool || localDataPool.length === 0) return [];
         return Object.keys(localDataPool[0]);
-    }, [localDataPool]);
+    }, [localDataPool, dbSchema]);
 
     const filteredColumns = useMemo(() => {
         if (!searchQuery.trim()) return allColumns;
@@ -120,7 +108,6 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         const hasFinTag = suggestion.text.includes('[Ф]');
         const hasDataTag = suggestion.text.includes('[А]');
         
-        // Регулярное выражение \[[ФА]\] ищет любой из символов внутри скобок (работает для обеих русских букв)
         const cleanText = suggestion.text.replace(/\[[ФА]\]\s*/g, ''); 
 
         if (suggestion.action === 'send') {
@@ -129,7 +116,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         } else if (suggestion.action === 'fill') {
             setInput(cleanText); 
             setIsFinTag(hasFinTag); 
-            setIsDataTag(hasDataTag); // Запоминаем, что нужно приклеить [А]
+            setIsDataTag(hasDataTag); 
         }
     };
 
@@ -157,7 +144,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 opacity: loading ? 0.6 : 1,
                 transition: 'all 0.2s ease',
                 whiteSpace: 'nowrap',
-                flexShrink: 0 // Запрещаем сжиматься при горизонтальном схлопывании
+                flexShrink: 0 
             }}
             onMouseEnter={e => {
                 if (!loading) {
@@ -179,12 +166,12 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         
         let textToSend = input;
         if (isFinTag) textToSend = `[Ф] ${input}`;
-        else if (isDataTag) textToSend = `[А] ${input}`; // Подставляем тег [А]
+        else if (isDataTag) textToSend = `[А] ${input}`; 
         
         onSendMessage(textToSend, useAi, removedCols);
         setInput('');
         setIsFinTag(false);
-        setIsDataTag(false); // Сбрасываем оба флага
+        setIsDataTag(false); 
     };
 
     return (
@@ -199,23 +186,55 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 )}
 
                 {messages.map(msg => {
+                    const isSqlValidation = msg.isSqlWaiting || (msg.sender === 'agent' && msg.text.includes("```sql") && msg.text.includes("нужно выполнить SQL запрос:"));
                     let chartNotification = null;
+
                     if (msg.sender === 'agent' && msg.charts && msg.charts.length > 0) {
                         const chartNames = msg.charts.map(c => getChartTitle(c)).join(', ');
                         const isMultiple = msg.charts.length > 1;
-                        chartNotification = isMultiple 
-                            ? `Добавлены новые графики: ${chartNames}` 
-                            : `Добавлен новый график: ${chartNames}`;
+                        chartNotification = isMultiple ? `Добавлены новые графики: ${chartNames}` : `Добавлен новый график: ${chartNames}`;
                     }
 
                     return (
                         <div key={msg.id} className={`msg-row ${msg.sender}`}>
-                            {chartNotification ? (
+                            {isSqlValidation ? (
+                                <div
+                                    className={`msg-bubble ${msg.sender}`}
+                                    style={{
+                                        width: '73%', padding: '16px 20px', background: '#ffffff',
+                                        border: '1px solid #e5e7eb', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                                    }}
+                                >
+                                    <SqlValidationBlock 
+                                        text={msg.text} 
+                                        onAction={(action: 'approve' | 'reject', feedbackText?: string, editedQuery?: string) => {
+                                            // Вызываем onSendMessage с пустым текстом, но передаем флаги SQL действий
+                                            onSendMessage('', useAi, removedCols, action, feedbackText, editedQuery);
+                                        }}
+                                    />
+                                </div>
+                            ) : chartNotification ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', width: '73%' }}>
-                                    <div style={{ fontSize: '13px', fontStyle: 'italic', color: '#666', marginBottom: '6px', marginLeft: '15px', width: '100%', whiteSpace: 'normal', wordWrap: 'break-word', lineHeight: '1.4' }}>
+                                    <div
+                                        style={{
+                                            fontSize: '13px',
+                                            fontStyle: 'italic',
+                                            color: '#666',
+                                            marginBottom: '6px',
+                                            marginLeft: '15px',
+                                            width: '100%',
+                                            whiteSpace: 'normal',
+                                            wordWrap: 'break-word',
+                                            lineHeight: '1.4'
+                                        }}
+                                    >
                                         {chartNotification}
                                     </div>
-                                    <div className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''}`} style={{ width: '100%' }}>
+
+                                    <div
+                                        className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''}`}
+                                        style={{ width: '100%' }}
+                                    >
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                             {msg.text.replace(/\[[ФА]\]\s*/g, '')}
                                         </ReactMarkdown>
@@ -262,7 +281,6 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                         transition: 'height 0.4s ease-in-out',
                                         overflow: 'hidden'
                                     }}>
-                                        {/* Кликабельный заголовок */}
                                         <div 
                                             onClick={() => setIsDataOpen(!isDataOpen)}
                                             style={{ 
@@ -271,26 +289,24 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                             }}
                                         >
                                             <span style={{ display: 'flex', alignItems: 'center', marginRight: '6px' }}>
-                                                <ChevronIcon isOpen={isDataOpen} />
+                                                <ChevronIcon isOpen={isDataOpen}/>
                                             </span>
                                             <span style={{ fontSize: '12px', color: '#999', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
                                                 Анализ данных
                                             </span>
                                         </div>
                                         
-                                        {/* Скрываемый блок с кнопками */}
                                         <div style={{
                                             display: 'flex',
                                             gap: '8px',
                                             alignItems: 'center',
                                             overflow: 'hidden',
-                                            // Плавная горизонтальная анимация ширины
                                             maxWidth: isDataOpen ? '2000px' : '0px', 
                                             opacity: isDataOpen ? 1 : 0,
                                             transition: 'max-width 0.4s ease-in-out, opacity 0.3s ease-in-out',
                                             whiteSpace: 'nowrap',
-                                            flexWrap: 'nowrap', // Строго в один ряд
-                                            padding: isDataOpen ? '2px 0' : '0' // Отступ для тени кнопок, чтобы не обрезалась
+                                            flexWrap: 'nowrap', 
+                                            padding: isDataOpen ? '2px 0' : '0' 
                                         }}>
                                             {dataAnalysisSuggestions.map((suggestion, index) => renderSuggestionButton(suggestion, index))}
                                         </div>
@@ -308,11 +324,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                         display: 'flex', 
                                         alignItems: 'center', 
                                         width: '100%',
-                                        height: isFinOpen ? '32px' : '10px', // <-- Управляем высотой
+                                        height: isFinOpen ? '32px' : '10px', 
                                         transition: 'height 0.4s ease-in-out',
                                         overflow: 'hidden'
                                     }}>
-                                        {/* Кликабельный заголовок */}
                                         <div 
                                             onClick={() => setIsFinOpen(!isFinOpen)}
                                             style={{ 
@@ -321,25 +336,23 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                             }}
                                         >
                                             <span style={{ display: 'flex', alignItems: 'center', marginRight: '6px' }}>
-                                                <ChevronIcon isOpen={isFinOpen} />
+                                                <ChevronIcon isOpen={isFinOpen}/>
                                             </span>
                                             <span style={{ fontSize: '12px', color: '#999', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
                                                 Бизнес и финансы
                                             </span>
                                         </div>
                                         
-                                        {/* Скрываемый блок с кнопками */}
                                         <div style={{
                                             display: 'flex',
                                             gap: '8px',
                                             alignItems: 'center',
                                             overflow: 'hidden',
-                                            // Плавная горизонтальная анимация ширины
                                             maxWidth: isFinOpen ? '2000px' : '0px', 
                                             opacity: isFinOpen ? 1 : 0,
                                             transition: 'max-width 0.4s ease-in-out, opacity 0.3s ease-in-out',
                                             whiteSpace: 'nowrap',
-                                            flexWrap: 'nowrap', // Строго в один ряд
+                                            flexWrap: 'nowrap', 
                                             padding: isFinOpen ? '2px 0' : '0'
                                         }}>
                                             {financialAnalysisSuggestions.map((suggestion, index) => renderSuggestionButton(suggestion, index))}
