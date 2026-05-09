@@ -501,6 +501,25 @@ function MainLayout() {
         setDbCreds(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
+    const handleRefreshSchema = async () => {
+        if (!activeChat || activeChat === "temp_loading") return null;
+        try {
+            const res = await fetch('http://localhost:8000/refresh_schema', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: activeChat })
+            });
+            if (!res.ok) throw new Error('Ошибка обновления схемы');
+            
+            const newSchema = await res.json();
+            setDbSchema(newSchema); // Обновляем глобальный стейт
+            return newSchema;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    };
+
     const isSubmitDisabled = 
         (uploadTab === 'file' && !selectedFile) || 
         (uploadTab === 'db' && (!dbCreds.host || !dbCreds.database || !dbCreds.user || !dbCreds.password));
@@ -599,6 +618,7 @@ function MainLayout() {
                         onSendMessage={sendMessage}
                         localDataPool={localDataPool}
                         dbSchema={dbSchema}
+                        onRefreshSchema={handleRefreshSchema}
                     />
 
                     <RightSidebar

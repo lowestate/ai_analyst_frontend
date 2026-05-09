@@ -17,6 +17,7 @@ interface ChatAreaProps {
     onSendMessage: (text?: string, useAi?: boolean, colsToRemove?: string[], sqlAction?: 'approve' | 'reject', sqlFeedback?: string, sqlQuery?: string) => void;
     localDataPool: any[];
     dbSchema?: { tables: DBTable[], relations: DBRelation[] } | null;
+    onRefreshSchema?: () => Promise<any>;
 }
 
 const CHAT_SUGGESTIONS = [
@@ -45,7 +46,7 @@ const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
 export const ChatArea: React.FC<ChatAreaProps> = ({
     activeChat, messages, loading, loadingPhrase,
     input, setInput, onSendMessage, localDataPool,
-    dbSchema 
+    dbSchema, onRefreshSchema
 }) => {
     
     const [useAi, setUseAi] = useState(false);
@@ -179,7 +180,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             <div className="messages-wrapper">
                 {activeChat && activeChat !== "temp_loading" && (
                     dbSchema ? (
-                        <ERDDiagram tables={dbSchema.tables} relations={dbSchema.relations} />
+                        <ERDDiagram
+                            tables={dbSchema.tables} 
+                            relations={dbSchema.relations} 
+                            onRefresh={onRefreshSchema}
+                        />
                     ) : localDataPool.length > 0 ? (
                         <SampleTable dataPool={localDataPool} />
                     ) : null
