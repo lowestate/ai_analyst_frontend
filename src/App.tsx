@@ -34,10 +34,10 @@ const GLOBAL_STYLES = `
     .btn-upload { display: block; text-align: center; background: ${COLORS.white}; border: 1.5px solid ${COLORS.dark}; color: ${COLORS.dark}; border-radius: 12px; padding: 12px; cursor: pointer; font-weight: 600; font-size: 14px; margin-bottom: 24px; transition: all 0.2s ease; box-shadow: 0 2px 0 ${COLORS.shadowLight05}; }
     .btn-upload:hover { background: ${COLORS.dark}; color: ${COLORS.white}; }
     .btn-upload:active { transform: translateY(2px); box-shadow: none; }
-    .chat-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 4px; }
+    .chat-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 2px; }
     .chat-list::-webkit-scrollbar { width: 6px; }
     .chat-list::-webkit-scrollbar-thumb { background: ${COLORS.gray300}; border-radius: 4px; }
-    .chat-item { padding: 14px 16px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; background: transparent; transition: all 0.2s ease; }
+    .chat-item { padding: 12px 12px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; background: transparent; transition: all 0.2s ease; }
     .chat-item:hover { background: ${COLORS.gray100}; }
     .chat-item.active { background: ${COLORS.white}; border: 1px solid ${COLORS.gray200}; box-shadow: 0 2px 8px ${COLORS.shadowLight05}; }
     .chat-item .dataset-desc { font-size: 14px; font-weight: 600; color: ${COLORS.dark}; margin-bottom: 4px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -392,7 +392,7 @@ function MainLayout() {
     const [selectedChart, setSelectedChart] = useState<ChartData | null>(null);
     const [localDataPool, setLocalDataPool] = useState<any[]>([]);
     const [dbSchema, setDbSchema] = useState<any | null>(null);
-
+    const [chartsPayload, setChartsPayload] = useState<any[]>([]);
     // --- СОСТОЯНИЯ МОДАЛЬНОГО ОКНА ЗАГРУЗКИ ---
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [uploadTab, setUploadTab] = useState<'file' | 'db'>('file');
@@ -430,6 +430,77 @@ function MainLayout() {
         else setLoadingIndex(0);
         return () => clearInterval(interval);
     }, [loading]);
+
+    useEffect(() => {
+        const fetchSessions = async () => {
+            try {
+                const res = await fetch('http://localhost:8000/sessions');
+                if (res.ok) {
+                    const data = await res.json();
+                    setSessions(data);
+                }
+            } catch (err) {
+                console.error("Ошибка загрузки истории", err);
+            }
+        };
+        fetchSessions();
+    }, []);
+
+    const handleSelectChat = async (id: string) => {
+        if (id === activeChat) return;
+        setActiveChat("temp_loading");
+        setMessages([]);
+        setLoading(true);
+
+        try {
+            const res = await fetch(`http://localhost:8000/chat/${id}`);
+            if (!res.ok) throw new Error("Ошибка загрузки чата");
+            const data = await res.json();
+
+            setDbSchema(data.db_schema || null);
+            
+            // --- ВОТ ОНО - РЕШЕНИЕ ПРОБЛЕМЫ ---
+            // Привязываем графики к последнему ответу ИИ, чтобы RightSidebar смог их найти
+            if (data.charts_payload && data.charts_payload.length > 0 && data.messages.length > 0) {
+                // Идем с конца массива и ищем последнее сообщение от 'agent'
+                for (let i = data.messages.length - 1; i >= 0; i--) {
+                    if (data.messages[i].sender === 'agent') {
+                        data.messages[i].charts = data.charts_payload;
+                        break;
+                    }
+                }
+            }
+            // ----------------------------------
+
+            setMessages(data.messages);
+            setChartsPayload(data.charts_payload || []);
+            setActiveChat(id);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteChat = async (chatId: string) => {
+        try {
+            const res = await fetch(`http://localhost:8000/chat/${chatId}`, { method: 'DELETE' });
+            if (res.ok) {
+                // Убираем чат из списка
+                setSessions(prev => prev.filter(s => s.id !== chatId));
+                
+                // Если мы удалили чат, в котором сейчас находимся - очищаем экран
+                if (activeChat === chatId) {
+                    setActiveChat(null);
+                    setMessages([]);
+                    setDbSchema(null);
+                    setChartsPayload([]); // Сбрасываем графики
+                }
+            }
+        } catch (err) {
+            console.error("Ошибка при удалении чата", err);
+        }
+    };
 
     // Единый метод для отправки на бэк (и файла, и БД) по кнопке "Загрузить"
     const handleDataSubmit = async () => {
@@ -604,8 +675,9 @@ function MainLayout() {
                     <LeftSidebar
                         sessions={sessions}
                         activeChat={activeChat}
-                        onSelectChat={setActiveChat}
-                        onOpenUploadModal={() => setIsUploadModalOpen(true)} 
+                        onSelectChat={handleSelectChat}
+                        onOpenUploadModal={() => setIsUploadModalOpen(true)}
+                        onDeleteChat={handleDeleteChat}
                     />
 
                     <ChatArea
@@ -619,6 +691,7 @@ function MainLayout() {
                         localDataPool={localDataPool}
                         dbSchema={dbSchema}
                         onRefreshSchema={handleRefreshSchema}
+                        initialCharts={chartsPayload}
                     />
 
                     <RightSidebar

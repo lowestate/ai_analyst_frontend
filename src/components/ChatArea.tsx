@@ -18,6 +18,7 @@ interface ChatAreaProps {
     localDataPool: any[];
     dbSchema?: { tables: DBTable[], relations: DBRelation[] } | null;
     onRefreshSchema?: () => Promise<any>;
+    initialCharts?: any[];
 }
 
 const CHAT_SUGGESTIONS = [
@@ -46,9 +47,8 @@ const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
 export const ChatArea: React.FC<ChatAreaProps> = ({
     activeChat, messages, loading, loadingPhrase,
     input, setInput, onSendMessage, localDataPool,
-    dbSchema, onRefreshSchema
+    dbSchema, onRefreshSchema, initialCharts = []
 }) => {
-    
     const [useAi, setUseAi] = useState(false);
     const [removedCols, setRemovedCols] = useState<string[]>([]);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -58,9 +58,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const [isDataTag, setIsDataTag] = useState(false);
     const [isDataOpen, setIsDataOpen] = useState(true);
     const [isFinOpen, setIsFinOpen] = useState(true);
+    const [chartsPayload, setChartsPayload] = useState<any[]>(initialCharts);
 
     const menuRef = useRef<HTMLDivElement>(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
     
+    useEffect(() => {
+        setChartsPayload(initialCharts);
+    }, [initialCharts]);
+
     useEffect(() => {
         if (!isMenuOpen) setSearchQuery('');
     }, [isMenuOpen]);
@@ -80,6 +86,20 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             document.removeEventListener('mousedown', handleClickOutside);
         }
     }, [isMenuOpen]);
+
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            const container = messagesEndRef.current.parentElement;
+            if (container) {
+                const distance = container.scrollHeight - container.scrollTop - container.clientHeight;
+                
+                if (distance > 0) {
+                    // Браузерный smooth scroll отрабатывает в среднем за 0.5-1 сек, что идеально укладывается в твои "максимум 2 секунды".
+                    messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+                }
+            }
+        }
+    }, [messages, activeChat]); // Срабатывает при смене чата или новом сообщении
 
     const allColumns = useMemo(() => {
         if (dbSchema) return dbSchema.tables.flatMap(t => t.columns.map(c => c.name));
@@ -176,7 +196,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     };
 
     return (
-        <div className="col-center">
+        <div className="col-center" style={{ overflowY: 'auto' }}>
             <div className="messages-wrapper">
                 {activeChat && activeChat !== "temp_loading" && (
                     dbSchema ? (
@@ -263,6 +283,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                         </div>
                     </div>
                 )}
+                <div ref={messagesEndRef} style={{ float:"left", clear: "both" }} />
             </div>
 
             {activeChat && activeChat !== "temp_loading" && (
