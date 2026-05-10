@@ -7,7 +7,7 @@ import { ChartData } from '../../types';
 import { DataCharts } from '../Charts';
 import { DashboardWidgetPlot } from './WidgetPlot'
 import { FOLDERS, getChartInfo } from '../RightSidebar';
-import { COLORS } from '../../colorPalette'
+import { COLORS } from '../../globasStyles'
 
 const GRID_SIZE = 10; 
 const snapToGrid = (val: number) => Math.round(val / GRID_SIZE) * GRID_SIZE;

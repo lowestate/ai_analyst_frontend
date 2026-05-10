@@ -27,6 +27,14 @@ export interface Message {
     charts?: ChartData[];
     isError?: boolean;
     isSqlWaiting?: boolean;
+    retryData?: {
+        overrideText?: string;
+        useAiFlag: boolean;
+        colsToRemove: string[];
+        sqlAction?: 'approve' | 'reject';
+        sqlFeedback?: string;
+        sqlQuery?: string;
+    };
 }
 
 export interface ChatSession {

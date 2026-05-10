@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Message, ChartData } from '../types';
-import { SampleTable } from './SampleTable';
-import { CHART_REGISTRY } from '../chartRegistry';
-import { ERDDiagram, DBTable, DBRelation } from './ERDDiagram';
-import { SqlValidationBlock } from '../components/SQLValidation';
+import { Message, ChartData } from '../../types';
+import { SampleTable } from './data_preview/SampleTable';
+import { CHART_REGISTRY } from '../../chartRegistry';
+import { ERDDiagram, DBTable, DBRelation } from './data_preview/ERDDiagram';
+import { SqlValidationBlock } from './SQLValidation';
 
 interface ChatAreaProps {
     activeChat: string | null;
@@ -19,6 +19,7 @@ interface ChatAreaProps {
     dbSchema?: { tables: DBTable[], relations: DBRelation[] } | null;
     onRefreshSchema?: () => Promise<any>;
     initialCharts?: any[];
+    onRetry: (msgId: string, retryData: any) => void;
 }
 
 const CHAT_SUGGESTIONS = [
@@ -47,7 +48,7 @@ const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
 export const ChatArea: React.FC<ChatAreaProps> = ({
     activeChat, messages, loading, loadingPhrase,
     input, setInput, onSendMessage, localDataPool,
-    dbSchema, onRefreshSchema, initialCharts = []
+    dbSchema, onRefreshSchema, initialCharts = [], onRetry
 }) => {
     const [useAi, setUseAi] = useState(false);
     const [removedCols, setRemovedCols] = useState<string[]>([]);
@@ -59,10 +60,38 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const [isDataOpen, setIsDataOpen] = useState(true);
     const [isFinOpen, setIsFinOpen] = useState(true);
     const [chartsPayload, setChartsPayload] = useState<any[]>(initialCharts);
-
+    
     const menuRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     
+    // Вычисляем, работаем ли мы сейчас с БД
+    const isDbMode = !!dbSchema; 
+    
+    // Стейт для показа ошибки и анимации
+    // Добавь эти два стейта в начале компонента ChatArea (или там, где у тебя переключатель)
+    const [showAiWarning, setShowAiWarning] = useState(false);
+    const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
+
+    // Умный обработчик клика по тумблеру
+    const handleAiToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (isDbMode) {
+            setShowAiWarning(true);
+            
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            
+            // Ставим таймер ровно на 5100 мс (5.1 секунды)
+            const newTimeout = setTimeout(() => {
+                setShowAiWarning(false);
+            }, 5100); 
+            
+            setTimeoutId(newTimeout);
+            return;
+        }
+        setUseAi(e.target.checked);
+    };
+
     useEffect(() => {
         setChartsPayload(initialCharts);
     }, [initialCharts]);
@@ -133,7 +162,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
         if (suggestion.action === 'send') {
             setInput(''); 
-            onSendMessage(suggestion.text, useAi, removedCols); 
+            // ИСПРАВЛЕНО: передаем isDbMode || useAi
+            onSendMessage(suggestion.text, isDbMode || useAi, removedCols); 
         } else if (suggestion.action === 'fill') {
             setInput(cleanText); 
             setIsFinTag(hasFinTag); 
@@ -155,11 +185,18 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             disabled={loading}
             onClick={() => handleSuggestionClick(suggestion)}
             style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '20px', // Высота кнопки
+                boxSizing: 'border-box',
+                margin: '0',
                 background: '#f0f4f8',
                 border: '1px solid #dce4ec',
-                borderRadius: '14px',
-                padding: '6px 12px',
+                borderRadius: '10px',
+                padding: '0 8px',
                 fontSize: '12px',
+                lineHeight: '1', 
                 color: '#4a90e2',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.6 : 1,
@@ -189,11 +226,30 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         if (isFinTag) textToSend = `[Ф] ${input}`;
         else if (isDataTag) textToSend = `[А] ${input}`; 
         
-        onSendMessage(textToSend, useAi, removedCols);
+        // ИСПРАВЛЕНО: передаем isDbMode || useAi
+        onSendMessage(textToSend, isDbMode || useAi, removedCols);
         setInput('');
         setIsFinTag(false);
         setIsDataTag(false); 
     };
+
+    // Собираем категории подсказок в массив, чтобы отрендерить их циклом
+    const suggestionRows = [
+        {
+            id: 'data',
+            title: 'Анализ данных',
+            items: dataAnalysisSuggestions,
+            isOpen: isDataOpen,
+            toggle: () => setIsDataOpen(!isDataOpen)
+        },
+        {
+            id: 'fin',
+            title: 'Бизнес и финансы',
+            items: financialAnalysisSuggestions,
+            isOpen: isFinOpen,
+            toggle: () => setIsFinOpen(!isFinOpen)
+        }
+    ].filter(row => row.items.length > 0); // Оставляем только те, где есть подсказки
 
     return (
         <div className="col-center" style={{ overflowY: 'auto' }}>
@@ -233,8 +289,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                     <SqlValidationBlock 
                                         text={msg.text} 
                                         onAction={(action: 'approve' | 'reject', feedbackText?: string, editedQuery?: string) => {
-                                            // Вызываем onSendMessage с пустым текстом, но передаем флаги SQL действий
-                                            onSendMessage('', useAi, removedCols, action, feedbackText, editedQuery);
+                                            // ИСПРАВЛЕНО: передаем isDbMode || useAi
+                                            onSendMessage('', isDbMode || useAi, removedCols, action, feedbackText, editedQuery);
                                         }}
                                     />
                                 </div>
@@ -270,6 +326,42 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                         {msg.text.replace(/\[[ФА]\]\s*/g, '')}
                                     </ReactMarkdown>
+                                    
+                                    {/* КНОПКА ПОВТОРА ПРИ ОШИБКЕ */}
+                                    {msg.isError && msg.retryData && (
+                                        <button 
+                                            onClick={() => onRetry(msg.id, msg.retryData!)}
+                                            style={{
+                                                marginTop: '12px',
+                                                padding: '6px 14px',
+                                                background: 'transparent',
+                                                border: '1px solid #d93025', // Твой COLORS.errorBorder
+                                                color: '#d93025',
+                                                borderRadius: '6px',
+                                                fontSize: '13px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                fontWeight: 600,
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                            onMouseEnter={e => {
+                                                e.currentTarget.style.background = '#d93025';
+                                                e.currentTarget.style.color = '#fff';
+                                            }}
+                                            onMouseLeave={e => {
+                                                e.currentTarget.style.background = 'transparent';
+                                                e.currentTarget.style.color = '#d93025';
+                                            }}
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                                <path d="M3 3v5h5"></path>
+                                            </svg>
+                                            Перезапустить запрос
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -287,38 +379,37 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             </div>
 
             {activeChat && activeChat !== "temp_loading" && (
-                <div className="input-container" style={{ 
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', 
-                    gap: '10px', width: '100%', paddingBottom: '20px' 
-                }}>
+            <div className="input-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
                     
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '-10px' }}>
-                        
-                        {CHAT_SUGGESTIONS.length > 0 && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', padding: '0' }}>
-                                
-                                {/* Строка 1: Анализ данных */}
-                                {dataAnalysisSuggestions.length > 0 && (
+                    {suggestionRows.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center' }}>
+                            {suggestionRows.map((row, index) => (
+                                <React.Fragment key={row.id}>
+                                    {/* СТРОКА С ПОДСКАЗКАМИ: строго 16px */}
                                     <div style={{ 
                                         display: 'flex', 
                                         alignItems: 'center', 
                                         width: '100%',
-                                        height: isDataOpen ? '32px' : '10px',
-                                        transition: 'height 0.4s ease-in-out',
-                                        overflow: 'hidden'
+                                        height: row.isOpen? '32px' : '22px',
                                     }}>
                                         <div 
-                                            onClick={() => setIsDataOpen(!isDataOpen)}
+                                            onClick={row.toggle}
                                             style={{ 
                                                 display: 'flex', alignItems: 'center', cursor: 'pointer', 
-                                                userSelect: 'none', marginRight: '10px', flexShrink: 0 
+                                                userSelect: 'none', marginRight: '10px', flexShrink: 0
                                             }}
                                         >
-                                            <span style={{ display: 'flex', alignItems: 'center', marginRight: '6px' }}>
-                                                <ChevronIcon isOpen={isDataOpen}/>
+                                            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '4px', height: '20px' }}>
+                                                <ChevronIcon isOpen={row.isOpen}/>
                                             </span>
-                                            <span style={{ fontSize: '12px', color: '#999', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
-                                                Анализ данных
+                                            <span style={{ 
+                                                display: 'flex', alignItems: 'center',
+                                                height: '16px', fontSize: '12px',
+                                                color: '#999', fontStyle: 'italic', whiteSpace: 'nowrap', 
+                                                lineHeight: '1', 
+                                            }}>
+                                                {row.title}
                                             </span>
                                         </div>
                                         
@@ -326,92 +417,64 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                             display: 'flex',
                                             gap: '8px',
                                             alignItems: 'center',
-                                            overflow: 'hidden',
-                                            maxWidth: isDataOpen ? '2000px' : '0px', 
-                                            opacity: isDataOpen ? 1 : 0,
+                                            overflow: 'hidden', 
+                                            maxWidth: row.isOpen ? '2000px' : '0px', 
+                                            opacity: row.isOpen ? 1 : 0,
                                             transition: 'max-width 0.4s ease-in-out, opacity 0.3s ease-in-out',
                                             whiteSpace: 'nowrap',
-                                            flexWrap: 'nowrap', 
-                                            padding: isDataOpen ? '2px 0' : '0' 
+                                            flexWrap: 'nowrap'
                                         }}>
-                                            {dataAnalysisSuggestions.map((suggestion, index) => renderSuggestionButton(suggestion, index))}
+                                            {row.items.map((suggestion, idx) => renderSuggestionButton(suggestion, idx))}
                                         </div>
                                     </div>
-                                )}
 
-                                {/* Серая горизонтальная разграничительная линия */}
-                                {dataAnalysisSuggestions.length > 0 && financialAnalysisSuggestions.length > 0 && (
-                                    <hr style={{ border: 'none', borderTop: '1px solid #e2e8ee', margin: '2px 0', width: '100%' }} />
-                                )}
-
-                                {/* Строка 2: Финансовый анализ */}
-                                {financialAnalysisSuggestions.length > 0 && (
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        width: '100%',
-                                        height: isFinOpen ? '32px' : '10px', 
-                                        transition: 'height 0.4s ease-in-out',
-                                        overflow: 'hidden'
-                                    }}>
-                                        <div 
-                                            onClick={() => setIsFinOpen(!isFinOpen)}
-                                            style={{ 
-                                                display: 'flex', alignItems: 'center', cursor: 'pointer', 
-                                                userSelect: 'none', marginRight: '10px', flexShrink: 0 
-                                            }}
-                                        >
-                                            <span style={{ display: 'flex', alignItems: 'center', marginRight: '6px' }}>
-                                                <ChevronIcon isOpen={isFinOpen}/>
-                                            </span>
-                                            <span style={{ fontSize: '12px', color: '#999', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
-                                                Бизнес и финансы
-                                            </span>
-                                        </div>
-                                        
-                                        <div style={{
-                                            display: 'flex',
-                                            gap: '8px',
-                                            alignItems: 'center',
-                                            overflow: 'hidden',
-                                            maxWidth: isFinOpen ? '2000px' : '0px', 
-                                            opacity: isFinOpen ? 1 : 0,
-                                            transition: 'max-width 0.4s ease-in-out, opacity 0.3s ease-in-out',
-                                            whiteSpace: 'nowrap',
-                                            flexWrap: 'nowrap', 
-                                            padding: isFinOpen ? '2px 0' : '0'
-                                        }}>
-                                            {financialAnalysisSuggestions.map((suggestion, index) => renderSuggestionButton(suggestion, index))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <div className="input-box" style={{ width: '100%', margin: '0', marginTop: '4px' }}>
-                            <input
-                                value={input}
-                                onChange={e => {
-                                    setInput(e.target.value);
-                                    if (e.target.value === '') {
-                                        setIsFinTag(false);
-                                        setIsDataTag(false);
-                                    }
-                                }}
-                                onKeyDown={e => e.key === 'Enter' && handleInputSend()}
-                                placeholder="Что исследуем?"
-                                disabled={loading}
-                            />
+                                    {/* РАЗДЕЛИТЕЛЬ: отступы по 6px для симметрии */}
+                                    {index < suggestionRows.length - 1 && (
+                                        <div style={{ 
+                                            width: '100%', height: '1px', 
+                                            background: '#e2e8ee'
+                                        }} />
+                                    )}
+                                </React.Fragment>
+                            ))}
                         </div>
+                    )}
+                    
+                    {/* Поле ввода с верхним отступом 6px, чтобы соответствовать логике разделителей */}
+                    <div className="input-box" style={{ width: '100%', marginBottom: '10px' }}>
+                        <input
+                            value={input}
+                            onChange={e => setInput(e.target.value)}
+                            placeholder="Что исследуем?"
+                        />
+                    </div>
 
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', marginTop: '2px'}}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', marginBottom: '10px'}}>
                             
-                            <label className="ai-toggle-container" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', height: '28px' }}>
-                                <div className="toggle-switch" style={{ margin: 0 }}>
+                            <label 
+                                className="ai-toggle-container" // Убрали анимацию отсюда
+                                style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', height: '28px', position: 'relative' }}
+                            >
+                                {/* Всплывающая подсказка */}
+                                {showAiWarning && (
+                                    <div 
+                                        key={timeoutId ? timeoutId.toString() : 'tooltip'} 
+                                        className="ai-db-tooltip"
+                                    >
+                                        С БД нельзя работать без AI, так как агент будет составлять SQL запросы
+                                    </div>
+                                )}
+
+                                {/* Добавили класс анимации именно сюда, к самому переключателю */}
+                                <div className={`toggle-switch ${showAiWarning ? 'shake-animation' : ''}`} style={{ margin: 0 }}>
                                     <input 
                                         type="checkbox" 
-                                        checked={useAi} 
-                                        onChange={(e) => setUseAi(e.target.checked)}
-                                        disabled={loading}
+                                        // Если мы в режиме БД, тумблер ВСЕГДА включен визуально
+                                        checked={isDbMode || useAi} 
+                                        onChange={handleAiToggle}
+                                        // Обрати внимание: мы НЕ блокируем кнопку через disabled={isDbMode}, 
+                                        // иначе пользователь не сможет по ней кликнуть и увидеть тултип.
+                                        disabled={loading} 
                                     />
                                     <span className="toggle-slider"></span>
                                 </div>
@@ -438,7 +501,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                             fontSize: '12px',
                                             fontFamily: 'sans-serif',
                                             userSelect: 'none',
-                                            minHeight: '28px', 
+                                            height: '28px', 
                                             transition: 'all 0.4s ease'
                                         }}
                                     >
@@ -457,7 +520,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                             borderRadius: isHovered && removedCols.length > 0 ? '10px' : '50%',
                                             minWidth: '20px',
                                             maxWidth: isHovered && removedCols.length > 0 ? '400px' : '20px',
-                                            minHeight: '20px',
+                                            height: '20px',
                                             maxHeight: isHovered && removedCols.length > 0 ? '20px' : '20px',
                                             padding: isHovered && removedCols.length > 0 ? '4px 10px' : '0px',
                                             display: 'flex',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { COLORS } from '../colorPalette'
+import { COLORS } from '../../globasStyles'
 
 const formatSql = (sql: string) => {
     if (!sql) return '';
