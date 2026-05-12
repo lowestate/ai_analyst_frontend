@@ -267,7 +267,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 )}
 
                 {messages.map(msg => {
-                    const isSqlValidation = msg.isSqlWaiting || (msg.sender === 'agent' && msg.text.includes("```sql") && msg.text.includes("нужно выполнить SQL запрос:"));
+                    // ИСПРАВЛЕНИЕ: Расширяем логику, чтобы фронт распознавал исторические SQL-блоки 
+                    // (и подтвержденные агентом, и отклоненные юзером)
+                    const isSqlValidation = msg.isSqlWaiting || 
+                        (msg.text.includes("```sql") && (
+                            msg.text.includes("нужно выполнить SQL запрос:") || 
+                            msg.text.includes("[STATUS: approve]") || 
+                            msg.text.includes("[STATUS: reject]")
+                        ));
+
                     let chartNotification = null;
 
                     if (msg.sender === 'agent' && msg.charts && msg.charts.length > 0) {
@@ -323,45 +331,55 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                 </div>
                             ) : (
                                 <div className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''}`}>
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                        {msg.text.replace(/\[[ФА]\]\s*/g, '')}
-                                    </ReactMarkdown>
-                                    
-                                    {/* КНОПКА ПОВТОРА ПРИ ОШИБКЕ */}
-                                    {msg.isError && msg.retryData && (
-                                        <button 
-                                            onClick={() => onRetry(msg.id, msg.retryData!)}
-                                            style={{
-                                                marginTop: '12px',
-                                                padding: '6px 14px',
-                                                background: 'transparent',
-                                                border: '1px solid #d93025', // Твой COLORS.errorBorder
-                                                color: '#d93025',
-                                                borderRadius: '6px',
-                                                fontSize: '13px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '6px',
-                                                fontWeight: 600,
-                                                transition: 'all 0.2s ease'
-                                            }}
-                                            onMouseEnter={e => {
-                                                e.currentTarget.style.background = '#d93025';
-                                                e.currentTarget.style.color = '#fff';
-                                            }}
-                                            onMouseLeave={e => {
-                                                e.currentTarget.style.background = 'transparent';
-                                                e.currentTarget.style.color = '#d93025';
-                                            }}
-                                        >
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-                                                <path d="M3 3v5h5"></path>
-                                            </svg>
-                                            Перезапустить запрос
-                                        </button>
-                                    )}
+    
+                                    <div className="msg-bubble-inline">
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                            {msg.text.replace(/\[[ФА]\]\s*/g, '')}
+                                        </ReactMarkdown>
+
+                                        {msg.isError && msg.retryData && (
+                                            <button
+                                                onClick={() => onRetry(msg.id, msg.retryData!)}
+                                                style={{
+                                                    flexShrink: 0,
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    background: 'transparent',
+                                                    border: '1px solid #d93025',
+                                                    color: '#d93025',
+                                                    borderRadius: '6px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    transition: 'all 0.2s ease',
+                                                    marginTop: '-10px'
+                                                }}
+                                                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                                    e.currentTarget.style.background = '#d93025';
+                                                    e.currentTarget.style.color = '#fff';
+                                                }}
+                                                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                                    e.currentTarget.style.background = 'transparent';
+                                                    e.currentTarget.style.color = '#d93025';
+                                                }}
+                                            >
+                                                <svg
+                                                    width="16"
+                                                    height="16"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2.5"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                                    <path d="M3 3v5h5"></path>
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -444,7 +462,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                     <div className="input-box" style={{ width: '100%', marginBottom: '10px' }}>
                         <input
                             value={input}
-                            onChange={e => setInput(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                setInput(e.target.value);
+                            }}
+                            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleInputSend();
+                                }
+                            }}
                             placeholder="Что исследуем?"
                         />
                     </div>

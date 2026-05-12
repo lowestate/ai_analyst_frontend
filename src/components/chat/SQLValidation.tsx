@@ -117,36 +117,61 @@ const formatSql = (sql: string) => {
 };
 
 export const SqlValidationBlock = ({ text, onAction }: { text: string, onAction: (action: 'approve' | 'reject', feedback?: string, editedQuery?: string) => void }) => {
-    const sqlMatch = text.match(/```sql\n([\s\S]*?)\n```/i);
-    const originalQuery = sqlMatch ? sqlMatch[1] : '';
     
-    // ПРИМЕНЯЕМ ФОРМАТИРОВАНИЕ ПРИ ИНИЦИАЛИЗАЦИИ
-    const [query, setQuery] = useState(formatSql(originalQuery));
-    const [status, setStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
+    // --- 1. ОПРЕДЕЛЯЕМ СТАТУС И ОЧИЩАЕМ ТЕКСТ ---
+    const isHistoricallyApproved = text.includes('[STATUS: approve]');
+    const isHistoricallyRejected = text.includes('[STATUS: reject]');
     
-    useEffect(() => {
-        if (status === 'pending') {
-            setQuery(formatSql(originalQuery));
-        }
-    }, [originalQuery]);
+    // Убираем технические теги из текста
+    const cleanText = text.replace(/\[STATUS:\s*(approve|reject)\]/g, '');
 
-    // Состояния для взаимодействия
+    // --- 2. НАДЕЖНЫЙ ПАРСИНГ ЧЕРЕЗ SPLIT (вместо Match) ---
+    // Разделяем текст по открывающему тегу ```sql (регистронезависимо)
+    const blocks = cleanText.split(/```sql/i);
+    const beforeSql = blocks[0] || "";
+    
+    // Если есть вторая часть, значит там запрос и всё что после него
+    const rest = blocks[1] || "";
+    const contentBlocks = rest.split(/```/);
+    
+    // Сам SQL запрос (убираем лишние пробелы по краям)
+    const originalQuery = contentBlocks[0] ? contentBlocks[0].trim() : "";
+    // Текст после блока кода
+    const afterSql = contentBlocks[1] || "";
+
+    // --- 3. СОСТОЯНИЕ КОМПОНЕНТА ---
+    // Форматируем только если есть текст запроса
+    const [query, setQuery] = useState(originalQuery);
+    
+    const [status, setStatus] = useState<'pending' | 'approved' | 'rejected'>(
+        isHistoricallyApproved ? 'approved' : isHistoricallyRejected ? 'rejected' : 'pending'
+    );
+    
+    // Синхронизируем стейт при смене пропса text (важно для истории)
+    useEffect(() => {
+        const currentStatus = isHistoricallyApproved ? 'approved' : isHistoricallyRejected ? 'rejected' : 'pending';
+        setStatus(currentStatus);
+        
+        // Используем formatSql если он доступен
+        const finalQuery = (typeof formatSql !== 'undefined' && originalQuery) 
+            ? formatSql(originalQuery) 
+            : originalQuery;
+            
+        setQuery(finalQuery);
+    }, [originalQuery, isHistoricallyApproved, isHistoricallyRejected]);
+
     const [isRejecting, setIsRejecting] = useState(false);
     const [rejectReason, setRejectReason] = useState('');
     const [isEditing, setIsEditing] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
     const [isPulsing, setIsPulsing] = useState(false);
 
-    const beforeSqlMatch = text.match(/([\s\S]*?)```sql/i);
-    const beforeSql = beforeSqlMatch ? beforeSqlMatch[1] : text.split('```sql')[0] || '';
-
-    const afterSqlMatch = text.match(/```sql\n[\s\S]*?\n```([\s\S]*)/i);
-    const afterSql = afterSqlMatch ? afterSqlMatch[1] : '';
-
     const highlightSql = (sql: string) => {
+        if (!sql) return null;
         const keywords = /(\b(?:SELECT|FROM|WHERE|JOIN|ON|GROUP BY|ORDER BY|LIMIT|AND|OR|AS|LEFT|RIGHT|INNER|OUTER|HAVING|COUNT|SUM|AVG|MIN|MAX|DESC|ASC|IN|NOT|IS|NULL|CAST|COALESCE)\b)/gi;
         const parts = sql.split(keywords);
-        const keywordColor = COLORS.accent || '#4a90e2'; 
+        
+        const keywordColor = (typeof COLORS !== 'undefined' && COLORS.accent) ? COLORS.accent : '#4a90e2'; 
 
         return parts.map((part, i) => {
             if (i % 2 === 1) { 
@@ -159,8 +184,6 @@ export const SqlValidationBlock = ({ text, onAction }: { text: string, onAction:
     const handleApprove = () => {
         setStatus('approved');
         setIsEditing(false);
-        // Заменяем переносы строк на пробелы обратно перед отправкой на бэк, если база так лучше съедает (опционально)
-        // Но PostgreSQL отлично ест запросы с переносами, так что отправляем как есть!
         onAction('approve', undefined, query);
     };
 
@@ -179,15 +202,12 @@ export const SqlValidationBlock = ({ text, onAction }: { text: string, onAction:
     const handleCopy = () => {
         navigator.clipboard.writeText(query);
         setIsCopied(true);
-        setIsPulsing(true); // Включаем черный цвет
-        
-        // Буквально через 50мс выключаем, чтобы запустить линейное затухание
+        setIsPulsing(true); 
         setTimeout(() => setIsPulsing(false), 50); 
-        
-        setTimeout(() => setIsCopied(false), 2000); // Текст подсказки висит 2 секунды
+        setTimeout(() => setIsCopied(false), 2000); 
     };
 
-    // --- Стилизация под классический блок кода ---
+    // --- СТИЛИ ---
     let wrapperStyle: React.CSSProperties = {
         borderRadius: '8px',
         overflow: 'hidden',
@@ -212,7 +232,6 @@ export const SqlValidationBlock = ({ text, onAction }: { text: string, onAction:
         margin: 0
     };
 
-    // Меняем цвета в зависимости от статуса
     if (status === 'approved') {
         wrapperStyle.border = '1px solid #11d511';
         headerStyle.background = '#e6f4ea';
@@ -233,14 +252,18 @@ export const SqlValidationBlock = ({ text, onAction }: { text: string, onAction:
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-            <div className="markdown-body">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{beforeSql}</ReactMarkdown>
-            </div>
+            {/* Текст ДО запроса */}
+            {beforeSql.trim() && (
+                <div className="markdown-body">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{beforeSql}</ReactMarkdown>
+                </div>
+            )}
 
             <div style={wrapperStyle}>
-                
                 <div style={headerStyle}>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#5f6368' }}>SQL</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#5f6368' }}>SQL</span>
+                    </div>
                     
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         <button 
@@ -248,11 +271,9 @@ export const SqlValidationBlock = ({ text, onAction }: { text: string, onAction:
                             title={isCopied ? "Скопировано!" : "Копировать"} 
                             style={{
                                 ...iconStyle,
-                                color: isPulsing ? '#000000' : '#5f6368', // Теперь цвет зависит от импульса
+                                color: isPulsing ? '#000000' : '#5f6368', 
                                 transition: isPulsing ? 'none' : 'background 0.2s, color 0.3s linear'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'none'}
                         >
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -263,31 +284,16 @@ export const SqlValidationBlock = ({ text, onAction }: { text: string, onAction:
                         {status === 'pending' && !isRejecting && (
                             <>
                                 <button 
-                                    onClick={() => setIsEditing(!isEditing)} title={isEditing ? "Отменить редактирование" : "Изменить код"} 
+                                    onClick={() => setIsEditing(!isEditing)} title={isEditing ? "Отменить" : "Изменить"} 
                                     style={{...iconStyle, background: isEditing ? 'rgba(0,0,0,0.08)' : 'none'}}
-                                    onMouseEnter={e => !isEditing && (e.currentTarget.style.background = 'rgba(0,0,0,0.05)')}
-                                    onMouseLeave={e => !isEditing && (e.currentTarget.style.background = 'none')}
                                 >
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                
                                 <div style={{ width: '1px', height: '14px', background: '#d1d5db', margin: '0 4px' }}></div>
-                                
-                                <button 
-                                    onClick={handleApprove} title="Подтвердить и выполнить" 
-                                    style={{...iconStyle, color: '#11d511'}}
-                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(17,213,17,0.1)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                                >
+                                <button onClick={handleApprove} title="Выполнить" style={{...iconStyle, color: '#11d511'}}>
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 </button>
-                                
-                                <button 
-                                    onClick={handleRejectClick} title="Отклонить и исправить" 
-                                    style={{...iconStyle, color: '#ff0000'}}
-                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,0,0,0.1)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                                >
+                                <button onClick={handleRejectClick} title="Отклонить" style={{...iconStyle, color: '#ff0000'}}>
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 </button>
                             </>
@@ -295,26 +301,23 @@ export const SqlValidationBlock = ({ text, onAction }: { text: string, onAction:
                     </div>
                 </div>
 
-                
                 <div style={bodyStyle}>
-                    
                     {isRejecting && status === 'pending' && (
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px dashed #dce4ec' }}>
                             <input 
                                 autoFocus type="text" value={rejectReason} 
                                 onChange={e => setRejectReason(e.target.value)} 
                                 onKeyDown={e => e.key === 'Enter' && submitReject()}
-                                placeholder="Напиши, что нужно исправить в запросе..." 
+                                placeholder="Что исправить?" 
                                 style={{ flexGrow: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid #dce4ec', fontSize: '13px', outline: 'none' }} 
                             />
-                            <button onClick={submitReject} style={{ background: COLORS.accent || '#4a90e2', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}>
+                            <button onClick={submitReject} style={{ background: (typeof COLORS !== 'undefined' && COLORS.accent) ? COLORS.accent : '#4a90e2', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}>
                                 Отправить
                             </button>
                             <button onClick={() => setIsRejecting(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: '20px' }}>&times;</button>
                         </div>
                     )}
 
-                    
                     {isEditing && status === 'pending' ? (
                         <textarea 
                             value={query} 
@@ -323,18 +326,15 @@ export const SqlValidationBlock = ({ text, onAction }: { text: string, onAction:
                                 width: '100%', minHeight: '120px', background: '#ffffff', 
                                 border: '1px solid #dce4ec', borderRadius: '6px', 
                                 color: '#000', padding: '12px', 
-                                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace', 
-                                fontSize: '13px', outline: 'none', resize: 'vertical',
-                                whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                                boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)'
+                                fontFamily: 'ui-monospace, monospace', 
+                                fontSize: '13px', outline: 'none', resize: 'vertical'
                             }} 
                         />
                     ) : (
                         <div style={{ 
                             color: '#24292e', 
-                            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace', 
-                            fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.5',
-                            overflowX: 'auto'
+                            fontFamily: 'ui-monospace, monospace', 
+                            fontSize: '13px', whiteSpace: 'pre-wrap', lineHeight: '1.5'
                         }}>
                             {highlightSql(query)}
                         </div>
@@ -342,6 +342,7 @@ export const SqlValidationBlock = ({ text, onAction }: { text: string, onAction:
                 </div>
             </div>
 
+            {/* Текст ПОСЛЕ запроса */}
             {afterSql.trim() && (
                 <div className="markdown-body">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{afterSql}</ReactMarkdown>

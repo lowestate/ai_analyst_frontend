@@ -57,7 +57,7 @@ export const GLOBAL_STYLES = `
     .header-logo-container { display: flex; align-items: center; gap: 8px; user-select: none; }
     .header-title { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: ${COLORS.gray700}; display: flex; align-items: center; line-height: 1; margin: 0; transform: translateY(-2.5px); }
     .ai-highlight { color: ${COLORS.accent}; margin-left: 1px; display: inline-block; }
-    .header-logo-container svg { display: block; flex-shrink: 0; }
+    .header-logo-container svg { display: block; flex-shrink: 0; margin-left: 40px }
     .btn-login-header {
         background: ${COLORS.accent}; color: ${COLORS.white}; border: none;
         padding: 6px 16px; border-radius: 6px; font-weight: 600; font-size: 14px;
@@ -87,10 +87,17 @@ export const GLOBAL_STYLES = `
     .messages-wrapper::-webkit-scrollbar-thumb:hover { background-color: ${COLORS.gray300}; }
 
     .msg-row { display: flex; width: 100%; margin-bottom: 24px; animation: slideUp 0.3s ease forwards; opacity: 0; transform: translateY(10px); }
-    .msg-bubble { position: relative; border-radius: 16px; padding: 16px 20px; word-wrap: break-word; font-size: 15px; line-height: 1.5; }
+    .msg-bubble {
+        position: relative;
+        border-radius: 16px;
+        padding: 16px 20px;
+        word-wrap: break-word;
+        font-size: 15px;
+        line-height: 1.5;
+    }
     .msg-row.agent { justify-content: flex-start; }
     .msg-bubble.agent { width: 73%; background: ${COLORS.white}; border: 1px solid ${COLORS.gray200}; color: ${COLORS.dark}; box-shadow: 0 4px 12px ${COLORS.shadowLight05}; border-bottom-left-radius: 4px; }
-    .msg-bubble.agent.error { background: ${COLORS.errorBg}; border: 1px solid ${COLORS.errorBorder}; color: ${COLORS.errorBorder}; box-shadow: none; }
+    .msg-bubble.agent.error { background: ${COLORS.errorBg}; height: 55px; border: 1px solid ${COLORS.errorBorder}; color: ${COLORS.errorBorder}; box-shadow: none; }
     .msg-row.user { justify-content: flex-end; }
     .msg-bubble.user { max-width: 60%; background: ${COLORS.gray100}; color: ${COLORS.dark}; border: 1px solid ${COLORS.accent_brighter}; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px ${COLORS.shadowLight08}; font-weight: 450; }
 
@@ -174,6 +181,24 @@ export const GLOBAL_STYLES = `
     .markdown-body table::-webkit-scrollbar { height: 8px; }
     .markdown-body table::-webkit-scrollbar-track { background: ${COLORS.transparent}; margin: 0 4px; }
     .markdown-body table::-webkit-scrollbar-thumb { background: ${COLORS.gray300}; border-radius: 4px; }
+    /* Возвращаем отступы для нумерованных и маркированных списков в Markdown */
+    .markdown-body ol,
+    .markdown-body ul {
+        padding-left: 24px; /* Отодвигаем список вправо, чтобы влезли цифры/маркеры */
+        margin-top: 8px;
+        margin-bottom: 8px;
+    }
+
+    /* Делаем списки чуть более воздушными для удобства чтения */
+    .markdown-body li {
+        margin-bottom: 6px;
+        line-height: 1.5;
+    }
+
+    /* Убираем отступ у последнего элемента, чтобы не ломать нижний край пузыря */
+    .markdown-body li:last-child {
+        margin-bottom: 0;
+    }
 
     /* --- КАСТОМНЫЙ ПОЛЗУНОК --- */
     .custom-slider { -webkit-appearance: none; appearance: none; height: 8px; border-radius: 4px; outline: none; cursor: pointer; }
@@ -310,7 +335,7 @@ export const GLOBAL_STYLES = `
     }
     .auth-modal {
         background: ${COLORS.white}; border-radius: 16px;
-        width: 50vw; height: 50vh; min-height: 420px; /* Защита от сильного сжатия по высоте */
+        width: 33vw; height: 50vh; min-height: 420px; /* Защита от сильного сжатия по высоте */
         padding: 10px; box-sizing: border-box;
         /* ИСПРАВЛЕНО: flex-direction вместо flexDirection */
         display: flex; flex-direction: column; align-items: center; justify-content: center;

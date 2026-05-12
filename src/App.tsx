@@ -239,8 +239,18 @@ function MainLayout() {
         (uploadTab === 'db' && (!dbCreds.host || !dbCreds.database || !dbCreds.user || !dbCreds.password));
 
     const sendMessage = async (overrideText?: string, useAiFlag: boolean = false, colsToRemove: string[] = [], sqlAction?: 'approve' | 'reject', sqlFeedback?: string, sqlQuery?: string, isRetry: boolean = false) => {
-        const textToSend = overrideText || input || (sqlAction === 'approve' ? "Запрос подтвержден." : "Запрос отклонен.");
-        if (!textToSend.trim() && !sqlAction || !activeChat || activeChat === "temp_loading") return;
+        
+        // ИСПРАВЛЕНИЕ: Формируем текст так, чтобы отклоненный запрос остался в истории чата
+        let textToSend = overrideText || input;
+        
+        if (sqlAction === 'approve') {
+            textToSend = "Запрос подтвержден.";
+        } else if (sqlAction === 'reject') {
+            // Вшиваем отклоненный SQL и тег, чтобы компонент SqlValidation смог это распарсить из истории
+            textToSend = `Запрос отклонен.\n\n[STATUS: reject]\n\`\`\`sql\n${sqlQuery}\n\`\`\`\n**Причина отклонения:** ${sqlFeedback || "Не указана"}`;
+        }
+
+        if (!textToSend?.trim() && !sqlAction || !activeChat || activeChat === "temp_loading") return;
 
         // Если это не ретрай и не скрытый SQL-экшен, рисуем пузырь юзера
         if (!sqlAction && !isRetry) {
