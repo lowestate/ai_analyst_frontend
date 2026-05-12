@@ -4,9 +4,11 @@ import { COLORS } from '../globasStyles';
 interface HeaderProps {
     currentUser: { username: string; id: number } | null;
     onOpenAuth: () => void;
+    onLogout: () => void;
+    onOpenProfile: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentUser, onOpenAuth }) => {
+export const Header: React.FC<HeaderProps> = ({ currentUser, onOpenAuth, onLogout, onOpenProfile }) => {
     return (
         <header className="app-header">
             <div className="header-logo-container">
@@ -26,8 +28,39 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, onOpenAuth }) => {
                     Войти
                 </button>
             ) : (
-                <div style={{ fontWeight: 600, color: COLORS.gray700 }}>
-                    {currentUser.username}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div
+                        className="header-username"
+                        onClick={onOpenProfile}
+                        title="Личный кабинет"
+                        style={{ fontWeight: 600, color: COLORS.gray700, marginBottom: '5px' }}
+                    >
+                        {currentUser.username}
+                    </div>
+                    {/* --- ДОБАВЛЕНА КНОПКА ВЫХОДА --- */} 
+                    <button
+                        onClick={onLogout}
+                        title="Выйти"
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '4px',
+                            color: '#9CA3AF', // Серая по дефолту
+                            transition: 'color 0.2s',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = '#000000')} // Черная при наведении
+                        onMouseLeave={(e) => (e.currentTarget.style.color = '#9CA3AF')}
+                    >
+                        {/* Иконка логаута */}
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </button>
                 </div>
             )}
         </header>

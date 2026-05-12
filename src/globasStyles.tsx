@@ -354,7 +354,7 @@ export const GLOBAL_STYLES = `
     /* Ошибки */
     .upload-form-group.auth-group { margin-bottom: 30px; position: relative; } /* Уменьшили отступ */
     .auth-error-text {
-        position: absolute; margin-bottom: 15px; left: 4px;
+        position: absolute; top: 45px; left: 4px;
         color: #d93025; font-size: 12px; font-weight: 500;
         white-space: nowrap;
     }
@@ -430,4 +430,111 @@ export const GLOBAL_STYLES = `
         border-style: solid;
         border-color: #d93025 transparent transparent transparent;
     }
+
+    /* --- ЛИЧНЫЙ КАБИНЕТ (USER PAGE) --- */
+    .user-page-wrapper {
+        flex: 1; display: flex; flex-direction: column; background: ${COLORS.white};
+        overflow-y: auto; padding: 40px 24px; align-items: center; position: relative;
+    }
+    .btn-back-chat {
+        position: absolute; top: 40px; left: 40px; background: transparent;
+        border: 1px solid ${COLORS.gray200}; padding: 8px 16px; border-radius: 8px;
+        font-weight: 600; color: ${COLORS.gray600}; cursor: pointer; transition: 0.2s;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .btn-back-chat:hover { background: ${COLORS.gray50}; color: ${COLORS.dark}; }
+    
+    .profile-header {
+        text-align: center; margin-bottom: 40px; display: flex; flex-direction: column; align-items: center;
+    }
+    .profile-avatar {
+        width: 80px; height: 80px; background: ${COLORS.accent}; color: ${COLORS.white};
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 32px; font-weight: 700; margin-bottom: 16px;
+        box-shadow: 0 8px 16px rgba(51, 153, 255, 0.3);
+    }
+    .profile-username { font-size: 28px; font-weight: 700; color: ${COLORS.dark}; }
+    
+    .plans-title { font-size: 20px; font-weight: 600; margin-bottom: 34px; color: ${COLORS.gray700}; text-align: center;}
+    .plans-container {
+        display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; width: 100%; align-items: stretch;
+    }
+
+    /* Карточка тарифа (базовая - для неактивных) */
+    .plan-card {
+        flex: 1; min-width: 300px; max-width: 400px; padding: 24px; border-radius: 20px;
+        min-height: 200px; max-height: 300px;
+        border: 2px solid ${COLORS.gray200}; background: ${COLORS.white};
+        cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex; flex-direction: column; position: relative;
+        
+        /* Уменьшаем неактивные карточки */
+        transform: scale(0.92);
+    }
+    
+    /* Наведение на неактивную карточку */
+    .plan-card:not(.active):hover { 
+        transform: scale(0.96) translateY(-4px); 
+        box-shadow: 0 12px 24px ${COLORS.shadowLight08}; 
+    }
+
+    /* Текущая (активная) карточка */
+    .plan-card.active { 
+        cursor: default; 
+        /* Увеличиваем активную карточку */
+        transform: scale(1.05); 
+        z-index: 10; /* Поднимаем ее над соседними карточками */
+    }
+    
+    .plan-name { font-size: 22px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
+    .plan-price { font-size: 18px; font-weight: 600; color: ${COLORS.gray500}; margin-bottom: 16px; }
+    .plan-desc { font-size: 16px; color: ${COLORS.gray800}; line-height: 1.5; flex: 1; }
+    
+    .plan-badge {
+        position: absolute; top: -12px; right: 24px; padding: 4px 12px;
+        border-radius: 12px; font-size: 12px; font-weight: 700; color: ${COLORS.white};
+    }
+
+    /* Иерархия тарифов */
+    /* FREE */
+    .plan-card.tier-free { }
+    .plan-card.tier-free.active { border-color: ${COLORS.gray400}; background: ${COLORS.gray50}; }
+    
+    /* PRO */
+    .plan-card.tier-pro { border-color: ${COLORS.accent_ligher}; }
+    .plan-card.tier-pro:hover { box-shadow: 0 12px 24px rgba(51, 153, 255, 0.15); }
+    .plan-card.tier-pro.active { border-color: ${COLORS.accent_brighter}; background: #f0f7ff; box-shadow: 0 0 0 2px rgba(51, 153, 255, 0.2); }
+    .plan-card.tier-pro .plan-name { color: ${COLORS.accent_brighter}; }
+    
+    /* ULTRA - Премиальный, но в стиле приложения */
+    .plan-card.tier-ultra { 
+        background: ${COLORS.white}; 
+        border-color: ${COLORS.dark}; /* Строгая темная обводка */
+        color: ${COLORS.dark}; 
+        box-shadow: 0 4px 12px ${COLORS.shadowLight05};
+    }
+    .plan-card.tier-ultra .plan-name { 
+        color: ${COLORS.dark}; /* Темный акцентный заголовок */
+    }
+    .plan-card.tier-ultra .plan-price { 
+        color: ${COLORS.accent_brighter}; /* Цену выделяем самым ярким синим из палитры */
+        font-weight: 700;
+    }
+    .plan-card.tier-ultra .plan-desc { 
+        color: ${COLORS.gray700}; 
+    }
+    .plan-card.tier-ultra.active { 
+        border-color: ${COLORS.dark}; 
+        background: ${COLORS.gray50}; 
+        /* Двойная обводка-тень для активного состояния */
+        box-shadow: 0 0 0 1px ${COLORS.dark}, 0 12px 24px ${COLORS.shadowLight08}; 
+    }
+    .plan-card.tier-ultra:hover { 
+        box-shadow: 0 16px 32px ${COLORS.shadowMedium10}; 
+        /* Убрали отсюда transform, чтобы он не перебивал логику scale при наведении */
+    }
+
+    /* Мелкие правки для кликабельного имени в хэдере */
+    .header-username { cursor: pointer; transition: color 0.2s; padding: 4px 8px; border-radius: 6px; }
+    .header-username:hover { color: ${COLORS.accent} !important; }
 `;

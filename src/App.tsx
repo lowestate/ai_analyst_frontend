@@ -13,6 +13,7 @@ import { Header } from './components/Header';
 import { ChatArea } from './components/chat/ChatArea';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { AuthModal } from './components/user/LoginOrRegister';
+import { UserPage } from './components/user/UserPage'
 import { UploadModal } from './components/upload_data/UploadData';
 
 function MainLayout() {
@@ -35,7 +36,7 @@ function MainLayout() {
     const [uploadTab, setUploadTab] = useState<'file' | 'db'>('file');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [dbCreds, setDbCreds] = useState({ host: '', port: '5432', database: '', user: '', password: '' });
-
+    const [currentView, setCurrentView] = useState<'chat' | 'profile'>('chat');
     const allCharts = messages.flatMap(m => m.charts || []);
     const uniqueCharts: ChartData[] = []; 
     const seenKeys = new Set<string>();
@@ -322,6 +323,30 @@ function MainLayout() {
         );
     };
 
+    const handleLogout = async () => {
+        if (!currentUser) return;
+
+        try {
+            // Дергаем серверный логаут (опционально, но полезно для логов/статистики)
+            await fetch(`http://localhost:8000/logout?user_id=${currentUser.id}`, {
+                method: 'POST'
+            });
+        } catch (err) {
+            console.error("Ошибка при выходе из системы", err);
+        }
+
+        // Очищаем стейты
+        setCurrentView('chat');
+        setCurrentUser(null);
+        setSessions([]);
+        setActiveChat(null);
+        setMessages([]);
+        setDbSchema(null);
+        setChartsPayload([]);
+        setLocalDataPool([]);
+        setSelectedChart(null);
+    };
+
     return (
         <>
             <style>{GLOBAL_STYLES}</style>
@@ -337,59 +362,67 @@ function MainLayout() {
                 <Header 
                     currentUser={currentUser} 
                     onOpenAuth={() => setIsAuthModalOpen(true)} 
+                    onLogout={handleLogout}
+                    onOpenProfile={() => setCurrentView('profile')}
                 />
+                {currentView === 'chat' ? (
+                    <div className="app-layout">
+                        <LeftSidebar
+                            sessions={sessions}
+                            activeChat={activeChat}
+                            onSelectChat={handleSelectChat}
+                            onOpenUploadModal={() => setIsUploadModalOpen(true)}
+                            onDeleteChat={handleDeleteChat}
+                        />
 
-                <div className="app-layout">
-                    <LeftSidebar
-                        sessions={sessions}
-                        activeChat={activeChat}
-                        onSelectChat={handleSelectChat}
-                        onOpenUploadModal={() => setIsUploadModalOpen(true)}
-                        onDeleteChat={handleDeleteChat}
-                    />
+                        <ChatArea
+                            activeChat={activeChat}
+                            messages={messages}
+                            loading={loading}
+                            loadingPhrase={loadingPhrases[loadingIndex]}
+                            input={input}
+                            setInput={setInput}
+                            onSendMessage={sendMessage}
+                            localDataPool={localDataPool}
+                            dbSchema={dbSchema}
+                            onRefreshSchema={handleRefreshSchema}
+                            initialCharts={chartsPayload}
+                            onRetry={handleRetryMessage}
+                        />
 
-                    <ChatArea
-                        activeChat={activeChat}
-                        messages={messages}
-                        loading={loading}
-                        loadingPhrase={loadingPhrases[loadingIndex]}
-                        input={input}
-                        setInput={setInput}
-                        onSendMessage={sendMessage}
-                        localDataPool={localDataPool}
-                        dbSchema={dbSchema}
-                        onRefreshSchema={handleRefreshSchema}
-                        initialCharts={chartsPayload}
-                        onRetry={handleRetryMessage}
-                    />
+                        <RightSidebar
+                            charts={uniqueCharts}
+                            onSelectChart={setSelectedChart}
+                            isDatasetLoaded={!!activeChat && activeChat !== "temp_loading"} 
+                        />
 
-                    <RightSidebar
-                        charts={uniqueCharts}
-                        onSelectChart={setSelectedChart}
-                        isDatasetLoaded={!!activeChat && activeChat !== "temp_loading"} 
-                    />
-
-                    {selectedChart && (
-                        <div className="modal-overlay" onClick={() => setSelectedChart(null)}>
-                            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                                <DataCharts charts={[selectedChart]} preview={false} />
+                        {selectedChart && (
+                            <div className="modal-overlay" onClick={() => setSelectedChart(null)}>
+                                <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                    <DataCharts charts={[selectedChart]} preview={false} />
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    <UploadModal 
-                        isOpen={isUploadModalOpen}
-                        onClose={() => setIsUploadModalOpen(false)}
-                        uploadTab={uploadTab}
-                        setUploadTab={setUploadTab}
-                        selectedFile={selectedFile}
-                        setSelectedFile={setSelectedFile}
-                        dbCreds={dbCreds}
-                        onDbCredsChange={handleDbCredsChange}
-                        onSubmit={handleDataSubmit}
-                        isSubmitDisabled={isSubmitDisabled}
+                        <UploadModal 
+                            isOpen={isUploadModalOpen}
+                            onClose={() => setIsUploadModalOpen(false)}
+                            uploadTab={uploadTab}
+                            setUploadTab={setUploadTab}
+                            selectedFile={selectedFile}
+                            setSelectedFile={setSelectedFile}
+                            dbCreds={dbCreds}
+                            onDbCredsChange={handleDbCredsChange}
+                            onSubmit={handleDataSubmit}
+                            isSubmitDisabled={isSubmitDisabled}
+                        />
+                    </div>
+                ) : (
+                    <UserPage 
+                        currentUser={currentUser!} 
+                        onBack={() => setCurrentView('chat')} 
                     />
-                </div>
+                )}
             </div>
         </>
     );
