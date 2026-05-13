@@ -60,13 +60,13 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const [isDataOpen, setIsDataOpen] = useState(true);
     const [isFinOpen, setIsFinOpen] = useState(true);
     const [chartsPayload, setChartsPayload] = useState<any[]>(initialCharts);
-    
+
     const menuRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    
+
     // Вычисляем, работаем ли мы сейчас с БД
-    const isDbMode = !!dbSchema; 
-    
+    const isDbMode = !!dbSchema;
+
     // Стейт для показа ошибки и анимации
     // Добавь эти два стейта в начале компонента ChatArea (или там, где у тебя переключатель)
     const [showAiWarning, setShowAiWarning] = useState(false);
@@ -76,16 +76,16 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const handleAiToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (isDbMode) {
             setShowAiWarning(true);
-            
+
             if (timeoutId) {
                 clearTimeout(timeoutId);
             }
-            
+
             // Ставим таймер ровно на 5100 мс (5.1 секунды)
             const newTimeout = setTimeout(() => {
                 setShowAiWarning(false);
-            }, 5100); 
-            
+            }, 5100);
+
             setTimeoutId(newTimeout);
             return;
         }
@@ -121,7 +121,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             const container = messagesEndRef.current.parentElement;
             if (container) {
                 const distance = container.scrollHeight - container.scrollTop - container.clientHeight;
-                
+
                 if (distance > 0) {
                     // Браузерный smooth scroll отрабатывает в среднем за 0.5-1 сек, что идеально укладывается в твои "максимум 2 секунды".
                     messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -157,17 +157,17 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const handleSuggestionClick = (suggestion: typeof CHAT_SUGGESTIONS[0]) => {
         const hasFinTag = suggestion.text.includes('[Ф]');
         const hasDataTag = suggestion.text.includes('[А]');
-        
-        const cleanText = suggestion.text.replace(/\[[ФА]\]\s*/g, ''); 
+
+        const cleanText = suggestion.text.replace(/\[[ФА]\]\s*/g, '');
 
         if (suggestion.action === 'send') {
-            setInput(''); 
+            setInput('');
             // ИСПРАВЛЕНО: передаем isDbMode || useAi
-            onSendMessage(suggestion.text, isDbMode || useAi, removedCols); 
+            onSendMessage(suggestion.text, isDbMode || useAi, removedCols);
         } else if (suggestion.action === 'fill') {
-            setInput(cleanText); 
-            setIsFinTag(hasFinTag); 
-            setIsDataTag(hasDataTag); 
+            setInput(cleanText);
+            setIsFinTag(hasFinTag);
+            setIsDataTag(hasDataTag);
         }
     };
 
@@ -196,13 +196,13 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 borderRadius: '10px',
                 padding: '0 8px',
                 fontSize: '12px',
-                lineHeight: '1', 
+                lineHeight: '1',
                 color: '#4a90e2',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.6 : 1,
                 transition: 'all 0.2s ease',
                 whiteSpace: 'nowrap',
-                flexShrink: 0 
+                flexShrink: 0
             }}
             onMouseEnter={e => {
                 if (!loading) {
@@ -221,16 +221,16 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
     const handleInputSend = () => {
         if (!input.trim()) return;
-        
+
         let textToSend = input;
         if (isFinTag) textToSend = `[Ф] ${input}`;
-        else if (isDataTag) textToSend = `[А] ${input}`; 
-        
+        else if (isDataTag) textToSend = `[А] ${input}`;
+
         // ИСПРАВЛЕНО: передаем isDbMode || useAi
         onSendMessage(textToSend, isDbMode || useAi, removedCols);
         setInput('');
         setIsFinTag(false);
-        setIsDataTag(false); 
+        setIsDataTag(false);
     };
 
     // Собираем категории подсказок в массив, чтобы отрендерить их циклом
@@ -257,8 +257,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 {activeChat && activeChat !== "temp_loading" && (
                     dbSchema ? (
                         <ERDDiagram
-                            tables={dbSchema.tables} 
-                            relations={dbSchema.relations} 
+                            tables={dbSchema.tables}
+                            relations={dbSchema.relations}
                             onRefresh={onRefreshSchema}
                         />
                     ) : localDataPool.length > 0 ? (
@@ -269,10 +269,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 {messages.map(msg => {
                     // ИСПРАВЛЕНИЕ: Расширяем логику, чтобы фронт распознавал исторические SQL-блоки 
                     // (и подтвержденные агентом, и отклоненные юзером)
-                    const isSqlValidation = msg.isSqlWaiting || 
+                    const isSqlValidation = msg.isSqlWaiting ||
                         (msg.text.includes("```sql") && (
-                            msg.text.includes("нужно выполнить SQL запрос:") || 
-                            msg.text.includes("[STATUS: approve]") || 
+                            msg.text.includes("нужно выполнить SQL запрос:") ||
+                            msg.text.includes("[STATUS: approve]") ||
                             msg.text.includes("[STATUS: reject]")
                         ));
 
@@ -294,8 +294,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                         border: '1px solid #e5e7eb', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                                     }}
                                 >
-                                    <SqlValidationBlock 
-                                        text={msg.text} 
+                                    <SqlValidationBlock
+                                        text={msg.text}
                                         onAction={(action: 'approve' | 'reject', feedbackText?: string, editedQuery?: string) => {
                                             // ИСПРАВЛЕНО: передаем isDbMode || useAi
                                             onSendMessage('', isDbMode || useAi, removedCols, action, feedbackText, editedQuery);
@@ -331,7 +331,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                 </div>
                             ) : (
                                 <div className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''}`}>
-    
+
                                     <div className="msg-bubble-inline">
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                             {msg.text.replace(/\[[ФА]\]\s*/g, '')}
@@ -352,8 +352,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
-                                                    transition: 'all 0.2s ease',
-                                                    marginTop: '-10px'
+                                                    transition: 'all 0.2s ease'
                                                 }}
                                                 onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
                                                     e.currentTarget.style.background = '#d93025';
@@ -393,98 +392,98 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                         </div>
                     </div>
                 )}
-                <div ref={messagesEndRef} style={{ float:"left", clear: "both" }} />
+                <div ref={messagesEndRef} style={{ float: "left", clear: "both" }} />
             </div>
 
             {activeChat && activeChat !== "temp_loading" && (
-            <div className="input-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
-                    
-                    {suggestionRows.length > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center' }}>
-                            {suggestionRows.map((row, index) => (
-                                <React.Fragment key={row.id}>
-                                    {/* СТРОКА С ПОДСКАЗКАМИ: строго 16px */}
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        width: '100%',
-                                        height: row.isOpen? '32px' : '22px',
-                                    }}>
-                                        <div 
-                                            onClick={row.toggle}
-                                            style={{ 
-                                                display: 'flex', alignItems: 'center', cursor: 'pointer', 
-                                                userSelect: 'none', marginRight: '10px', flexShrink: 0
-                                            }}
-                                        >
-                                            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '4px', height: '20px' }}>
-                                                <ChevronIcon isOpen={row.isOpen}/>
-                                            </span>
-                                            <span style={{ 
-                                                display: 'flex', alignItems: 'center',
-                                                height: '16px', fontSize: '12px',
-                                                color: '#999', fontStyle: 'italic', whiteSpace: 'nowrap', 
-                                                lineHeight: '1', 
-                                            }}>
-                                                {row.title}
-                                            </span>
-                                        </div>
-                                        
+                <div className="input-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+
+                        {suggestionRows.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center' }}>
+                                {suggestionRows.map((row, index) => (
+                                    <React.Fragment key={row.id}>
+                                        {/* СТРОКА С ПОДСКАЗКАМИ: строго 16px */}
                                         <div style={{
                                             display: 'flex',
-                                            gap: '8px',
                                             alignItems: 'center',
-                                            overflow: 'hidden', 
-                                            maxWidth: row.isOpen ? '2000px' : '0px', 
-                                            opacity: row.isOpen ? 1 : 0,
-                                            transition: 'max-width 0.4s ease-in-out, opacity 0.3s ease-in-out',
-                                            whiteSpace: 'nowrap',
-                                            flexWrap: 'nowrap'
+                                            width: '100%',
+                                            height: row.isOpen ? '32px' : '22px',
                                         }}>
-                                            {row.items.map((suggestion, idx) => renderSuggestionButton(suggestion, idx))}
+                                            <div
+                                                onClick={row.toggle}
+                                                style={{
+                                                    display: 'flex', alignItems: 'center', cursor: 'pointer',
+                                                    userSelect: 'none', marginRight: '10px', flexShrink: 0
+                                                }}
+                                            >
+                                                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '4px', height: '20px' }}>
+                                                    <ChevronIcon isOpen={row.isOpen} />
+                                                </span>
+                                                <span style={{
+                                                    display: 'flex', alignItems: 'center',
+                                                    height: '16px', fontSize: '12px',
+                                                    color: '#999', fontStyle: 'italic', whiteSpace: 'nowrap',
+                                                    lineHeight: '1',
+                                                }}>
+                                                    {row.title}
+                                                </span>
+                                            </div>
+
+                                            <div style={{
+                                                display: 'flex',
+                                                gap: '8px',
+                                                alignItems: 'center',
+                                                overflow: 'hidden',
+                                                maxWidth: row.isOpen ? '2000px' : '0px',
+                                                opacity: row.isOpen ? 1 : 0,
+                                                transition: 'max-width 0.4s ease-in-out, opacity 0.3s ease-in-out',
+                                                whiteSpace: 'nowrap',
+                                                flexWrap: 'nowrap'
+                                            }}>
+                                                {row.items.map((suggestion, idx) => renderSuggestionButton(suggestion, idx))}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* РАЗДЕЛИТЕЛЬ: отступы по 6px для симметрии */}
-                                    {index < suggestionRows.length - 1 && (
-                                        <div style={{ 
-                                            width: '100%', height: '1px', 
-                                            background: '#e2e8ee'
-                                        }} />
-                                    )}
-                                </React.Fragment>
-                            ))}
+                                        {/* РАЗДЕЛИТЕЛЬ: отступы по 6px для симметрии */}
+                                        {index < suggestionRows.length - 1 && (
+                                            <div style={{
+                                                width: '100%', height: '1px',
+                                                background: '#e2e8ee'
+                                            }} />
+                                        )}
+                                    </React.Fragment>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Поле ввода с верхним отступом 6px, чтобы соответствовать логике разделителей */}
+                        <div className="input-box" style={{ width: '100%', marginBottom: '10px' }}>
+                            <input
+                                value={input}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                    setInput(e.target.value);
+                                }}
+                                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleInputSend();
+                                    }
+                                }}
+                                placeholder="Что исследуем?"
+                            />
                         </div>
-                    )}
-                    
-                    {/* Поле ввода с верхним отступом 6px, чтобы соответствовать логике разделителей */}
-                    <div className="input-box" style={{ width: '100%', marginBottom: '10px' }}>
-                        <input
-                            value={input}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                setInput(e.target.value);
-                            }}
-                            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    handleInputSend();
-                                }
-                            }}
-                            placeholder="Что исследуем?"
-                        />
-                    </div>
 
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', marginBottom: '10px'}}>
-                            
-                            <label 
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', marginBottom: '10px' }}>
+
+                            <label
                                 className="ai-toggle-container" // Убрали анимацию отсюда
                                 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', height: '28px', position: 'relative' }}
                             >
                                 {/* Всплывающая подсказка */}
                                 {showAiWarning && (
-                                    <div 
-                                        key={timeoutId ? timeoutId.toString() : 'tooltip'} 
+                                    <div
+                                        key={timeoutId ? timeoutId.toString() : 'tooltip'}
                                         className="ai-db-tooltip"
                                     >
                                         С БД нельзя работать без AI, так как агент будет составлять SQL запросы
@@ -493,14 +492,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
                                 {/* Добавили класс анимации именно сюда, к самому переключателю */}
                                 <div className={`toggle-switch ${showAiWarning ? 'shake-animation' : ''}`} style={{ margin: 0 }}>
-                                    <input 
-                                        type="checkbox" 
+                                    <input
+                                        type="checkbox"
                                         // Если мы в режиме БД, тумблер ВСЕГДА включен визуально
-                                        checked={isDbMode || useAi} 
+                                        checked={isDbMode || useAi}
                                         onChange={handleAiToggle}
                                         // Обрати внимание: мы НЕ блокируем кнопку через disabled={isDbMode}, 
                                         // иначе пользователь не сможет по ней кликнуть и увидеть тултип.
-                                        disabled={loading} 
+                                        disabled={loading}
                                     />
                                     <span className="toggle-slider"></span>
                                 </div>
@@ -517,8 +516,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                         style={{
                                             display: 'flex',
                                             alignItems: 'flex-start',
-                                            background: isHovered ? '#ffffff' : '#fff3f3', 
-                                            border: '1px solid #cd5c5c', 
+                                            background: isHovered ? '#ffffff' : '#fff3f3',
+                                            border: '1px solid #cd5c5c',
                                             borderRadius: '20px',
                                             padding: '3px 6px 3px 12px',
                                             cursor: loading ? 'not-allowed' : 'pointer',
@@ -527,21 +526,21 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                             fontSize: '12px',
                                             fontFamily: 'sans-serif',
                                             userSelect: 'none',
-                                            height: '28px', 
+                                            height: '28px',
                                             transition: 'all 0.4s ease'
                                         }}
                                     >
-                                        <span style={{ 
-                                            fontWeight: 600, 
-                                            whiteSpace: 'nowrap', 
+                                        <span style={{
+                                            fontWeight: 600,
+                                            whiteSpace: 'nowrap',
                                             height: '20px',
-                                            display: 'flex', 
-                                            alignItems: 'center', 
+                                            display: 'flex',
+                                            alignItems: 'center',
                                             marginTop: '1px'
                                         }}>
                                             Убрать столбцы
                                         </span>
-                                        
+
                                         <div style={{
                                             borderRadius: isHovered && removedCols.length > 0 ? '10px' : '50%',
                                             minWidth: '20px',
@@ -555,7 +554,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                             fontSize: '12px',
                                             color: '#000',
                                             transition: 'all 0.6s ease',
-                                            overflow: 'hidden', 
+                                            overflow: 'hidden',
                                             whiteSpace: 'normal',
                                             wordBreak: 'break-word',
                                             textAlign: 'left',
@@ -571,22 +570,22 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                     {isMenuOpen && !loading && (
                                         <div style={{
                                             position: 'absolute',
-                                            bottom: 'calc(100% + 10px)', 
+                                            bottom: 'calc(100% + 10px)',
                                             left: '0',
                                             background: '#fff',
                                             border: '1px solid #dce4ec',
                                             borderRadius: '12px',
                                             padding: '12px',
-                                            boxShadow: '0 -4px 16px rgba(0,0,0,0.1)', 
+                                            boxShadow: '0 -4px 16px rgba(0,0,0,0.1)',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '8px',
                                             zIndex: 100,
                                             minWidth: '260px'
                                         }}>
-                                            <div style={{ 
-                                                display: 'flex', 
-                                                alignItems: 'center', 
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
                                                 justifyContent: 'space-between',
                                                 gap: '8px',
                                                 borderBottom: '1px solid #f0f4f8',

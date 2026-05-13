@@ -491,8 +491,8 @@ export const GLOBAL_STYLES = `
     .plan-desc { font-size: 16px; color: ${COLORS.gray800}; line-height: 1.5; flex: 1; }
     
     .plan-badge {
-        position: absolute; top: -12px; right: 24px; padding: 4px 12px;
-        border-radius: 12px; font-size: 12px; font-weight: 700; color: ${COLORS.white};
+        position: absolute; top: -16px; right: 24px; padding: 4px 12px;
+        border-radius: 16px; font-size: 16px; font-weight: 700; color: ${COLORS.white};
     }
 
     /* Иерархия тарифов */
@@ -537,4 +537,16 @@ export const GLOBAL_STYLES = `
     /* Мелкие правки для кликабельного имени в хэдере */
     .header-username { cursor: pointer; transition: color 0.2s; padding: 4px 8px; border-radius: 6px; }
     .header-username:hover { color: ${COLORS.accent} !important; }
+
+    .msg-bubble-inline {
+        display: flex;
+        align-items: center; /* Центрируем по вертикали */
+        gap: 10px; /* Расстояние между текстом и кнопкой */
+    }
+
+    /* Убираем стандартные отступы у текста, чтобы он не ломал выравнивание */
+    .msg-bubble-inline p {
+        margin: 0;
+        line-height: 1.4;
+    }
 `;
