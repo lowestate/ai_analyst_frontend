@@ -46,7 +46,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
 
         try {
             const endpoint = authMode === 'login' ? '/login' : '/register';
-            const res = await fetch(`http://localhost:8000${endpoint}`, {
+            const res = await fetch(`http://localhost:8001${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(authForm)
@@ -62,7 +62,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
             // Успех
             onSuccess({ username: authForm.username, id: data.user_id });
             onClose();
-            
+
         } catch (err) {
             setAuthErrors(prev => ({ ...prev, general: 'Ошибка сети' }));
         } finally {
@@ -79,27 +79,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
                 </button>
-                
+
                 <div className="auth-title">
                     {authMode === 'login' ? 'Вход в аккаунт' : 'Регистрация'}
                 </div>
 
                 <div className="auth-form-container">
                     <div className="upload-form-group auth-group">
-                        <input 
-                            className="upload-input" type="text" name="username" 
-                            placeholder="Логин" value={authForm.username} onChange={handleAuthChange} 
+                        <input
+                            className="upload-input" type="text" name="username"
+                            placeholder="Логин" value={authForm.username} onChange={handleAuthChange}
                         />
                         {authErrors.username && <span className="auth-error-text">{authErrors.username}</span>}
                     </div>
 
                     <div className="upload-form-group auth-group password-wrapper">
-                        <input 
-                            className="upload-input" type={showAuthPassword ? "text" : "password"} name="password" 
-                            placeholder="Пароль" value={authForm.password} onChange={handleAuthChange} 
+                        <input
+                            className="upload-input" type={showAuthPassword ? "text" : "password"} name="password"
+                            placeholder="Пароль" value={authForm.password} onChange={handleAuthChange}
                         />
-                        <button 
-                            type="button" className={`eye-btn ${showAuthPassword ? 'open' : ''}`} 
+                        <button
+                            type="button" className={`eye-btn ${showAuthPassword ? 'open' : ''}`}
                             onClick={() => setShowAuthPassword(!showAuthPassword)}
                         >
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -109,10 +109,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
                             </svg>
                         </button>
                         {authErrors.password && <span className="auth-error-text">{authErrors.password}</span>}
-                        {authErrors.general && !authErrors.password && <span className="auth-error-text" style={{bottom: '-35px'}}>{authErrors.general}</span>}
+                        {authErrors.general && !authErrors.password && <span className="auth-error-text" style={{ bottom: '-35px' }}>{authErrors.general}</span>}
                     </div>
 
-                    <div 
+                    <div
                         className="auth-switch-text"
                         onClick={() => {
                             setAuthMode(authMode === 'login' ? 'register' : 'login');

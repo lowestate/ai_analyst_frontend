@@ -7,17 +7,17 @@ export const DbCredentialsForm = ({ credentials, onChange }: { credentials: any,
 
     const handleTestConnection = async () => {
         if (!credentials.host || !credentials.database || !credentials.user) return;
-        
+
         setTestState('loading');
         try {
-            const res = await fetch('http://localhost:8000/test_connection', {
+            const res = await fetch('http://localhost:8001/test_connection', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(credentials)
             });
-            
+
             if (!res.ok) throw new Error(`HTTP Ошибка: ${res.status}`);
-            
+
             const data = await res.json();
             if (data.status === 'success') {
                 setTestState('success');
@@ -50,19 +50,19 @@ export const DbCredentialsForm = ({ credentials, onChange }: { credentials: any,
             <div className="upload-form-group">
                 <input className="upload-input" type="text" name="user" placeholder="Username" value={credentials.user} onChange={onChange} />
             </div>
-            
+
             <div className="upload-form-group password-wrapper">
-                <input 
-                    className="upload-input" 
-                    type={showPassword ? "text" : "password"} 
-                    name="password" 
-                    placeholder="Password" 
-                    value={credentials.password} 
-                    onChange={onChange} 
+                <input
+                    className="upload-input"
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="Password"
+                    value={credentials.password}
+                    onChange={onChange}
                 />
-                <button 
-                    type="button" 
-                    className={`eye-btn ${showPassword ? 'open' : ''}`} 
+                <button
+                    type="button"
+                    className={`eye-btn ${showPassword ? 'open' : ''}`}
                     onClick={() => setShowPassword(!showPassword)}
                     title={showPassword ? "Скрыть пароль" : "Показать пароль"}
                 >
@@ -78,18 +78,18 @@ export const DbCredentialsForm = ({ credentials, onChange }: { credentials: any,
             </div>
 
             {/* Кнопка Проверить подключение */}
-            <button 
+            <button
                 type="button"
                 className={`test-conn-btn ${testState}`}
                 onClick={handleTestConnection}
                 disabled={testState === 'loading' || !credentials.host || !credentials.user}
             >
                 <span>{testState === 'loading' ? 'Проверка...' : 'Проверить подключение'}</span>
-                
+
                 {testState === 'success' && (
                     <span className="test-conn-status-ok">ОК</span>
                 )}
-                
+
                 {testState === 'error' && (
                     <div className="error-icon-wrapper">
                         <svg className="error-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -97,7 +97,7 @@ export const DbCredentialsForm = ({ credentials, onChange }: { credentials: any,
                             <line x1="15" y1="9" x2="9" y2="15" />
                             <line x1="9" y1="9" x2="15" y2="15" />
                         </svg>
-                        
+
                         <div className="error-tooltip" onClick={e => e.stopPropagation()}>
                             <div className="tooltip-header">
                                 <span>Ошибка подключения</span>

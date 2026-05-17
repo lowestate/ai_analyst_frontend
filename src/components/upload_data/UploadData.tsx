@@ -12,11 +12,12 @@ interface UploadModalProps {
     onDbCredsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onSubmit: () => void;
     isSubmitDisabled: boolean;
+    currentUser?: { username: string; id: number; plan_name?: string } | null;
 }
 
 export const UploadModal: React.FC<UploadModalProps> = ({
     isOpen, onClose, uploadTab, setUploadTab, selectedFile, setSelectedFile, 
-    dbCreds, onDbCredsChange, onSubmit, isSubmitDisabled
+    dbCreds, onDbCredsChange, onSubmit, isSubmitDisabled, currentUser
 }) => {
     if (!isOpen) return null;
 
@@ -28,7 +29,15 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     <div className={`upload-tab ${uploadTab === 'file' ? 'active' : ''}`} onClick={() => setUploadTab('file')}>
                         Загрузить файл
                     </div>
-                    <div className={`upload-tab ${uploadTab === 'db' ? 'active' : ''}`} onClick={() => setUploadTab('db')}>
+                    <div 
+                        className={`upload-tab ${uploadTab === 'db' ? 'active' : ''}`} 
+                        onClick={() => {
+                            if (currentUser?.plan_name !== 'ultra') return;
+                            setUploadTab('db');
+                        }}
+                        style={currentUser?.plan_name !== 'ultra' ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                        title={currentUser?.plan_name !== 'ultra' ? 'Только для тарифа Ultra' : ''}
+                    >
                         База данных (PostgreSQL)
                     </div>
                 </div>

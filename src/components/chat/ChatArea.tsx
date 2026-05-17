@@ -20,6 +20,8 @@ interface ChatAreaProps {
     onRefreshSchema?: () => Promise<any>;
     initialCharts?: any[];
     onRetry: (msgId: string, retryData: any) => void;
+    currentUser?: { username: string; id: number; plan_name?: string } | null;
+    aiRequests?: number[];
 }
 
 const CHAT_SUGGESTIONS = [
@@ -48,7 +50,8 @@ const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
 export const ChatArea: React.FC<ChatAreaProps> = ({
     activeChat, messages, loading, loadingPhrase,
     input, setInput, onSendMessage, localDataPool,
-    dbSchema, onRefreshSchema, initialCharts = [], onRetry
+    dbSchema, onRefreshSchema, initialCharts = [], onRetry,
+    currentUser, aiRequests = []
 }) => {
     const [useAi, setUseAi] = useState(false);
     const [removedCols, setRemovedCols] = useState<string[]>([]);
@@ -68,12 +71,18 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const isDbMode = !!dbSchema;
 
     // Стейт для показа ошибки и анимации
-    // Добавь эти два стейта в начале компонента ChatArea (или там, где у тебя переключатель)
     const [showAiWarning, setShowAiWarning] = useState(false);
     const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
 
+    // Стейт для тултипа "Только для pro / ultra"
+    const [isHoveredAi, setIsHoveredAi] = useState(false);
+
+    const planName = currentUser?.plan_name || 'free';
+
     // Умный обработчик клика по тумблеру
     const handleAiToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (planName === 'free') return;
+
         if (isDbMode) {
             setShowAiWarning(true);
 
@@ -251,6 +260,39 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         }
     ].filter(row => row.items.length > 0); // Оставляем только те, где есть подсказки
 
+    const renderProgressBar = () => {
+        if (planName !== 'pro') return null;
+
+        const count = aiRequests.length;
+        let color = '#4caf50'; // green
+        if (count >= 3 && count <= 4) color = '#ff9800'; // orange
+        else if (count >= 5) color = '#d32f2f'; // maroon/dark red
+
+        const width = `${Math.min((count / 5) * 100, 100)}%`;
+
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px', marginTop: '5px' }}>
+                <div style={{ fontSize: '12px', color: '#666', marginRight: '8px', whiteSpace: 'nowrap', userSelect: 'none' }}>
+                    Запросы: {count}/5
+                </div>
+                <div style={{
+                    height: '6px',
+                    width: '100%',
+                    backgroundColor: '#e0e0e0',
+                    borderRadius: '3px',
+                    overflow: 'hidden'
+                }}>
+                    <div style={{
+                        height: '100%',
+                        width: width,
+                        backgroundColor: color,
+                        transition: 'width 0.3s ease, background-color 0.3s ease'
+                    }} />
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="col-center" style={{ overflowY: 'auto' }}>
             <div className="messages-wrapper">
@@ -321,7 +363,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                     </div>
 
                                     <div
-                                        className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''}`}
+                                        className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''} ${msg.isWarning ? 'warning' : ''}`}
                                         style={{ width: '100%' }}
                                     >
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -330,12 +372,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                     </div>
                                 </div>
                             ) : (
-                                <div className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''}`}>
+                                <div className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''} ${msg.isWarning ? 'warning' : ''}`}>
 
                                     <div className="msg-bubble-inline">
-                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                            {msg.text.replace(/\[[ФА]\]\s*/g, '')}
-                                        </ReactMarkdown>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                {msg.text.replace(/\[[ФА]\]\s*/g, '')}
+                                            </ReactMarkdown>
+                                        </div>
 
                                         {msg.isError && msg.retryData && (
                                             <button
@@ -479,6 +523,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                             <label
                                 className="ai-toggle-container" // Убрали анимацию отсюда
                                 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', height: '28px', position: 'relative' }}
+                                onMouseEnter={() => setIsHoveredAi(true)}
+                                onMouseLeave={() => setIsHoveredAi(false)}
                             >
                                 {/* Всплывающая подсказка */}
                                 {showAiWarning && (
@@ -490,8 +536,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                     </div>
                                 )}
 
+                                {isHoveredAi && planName === 'free' && !showAiWarning && (
+                                    <div className="ai-db-tooltip">
+                                        Только для pro / ultra
+                                    </div>
+                                )}
+
                                 {/* Добавили класс анимации именно сюда, к самому переключателю */}
-                                <div className={`toggle-switch ${showAiWarning ? 'shake-animation' : ''}`} style={{ margin: 0 }}>
+                                <div className={`toggle-switch ${showAiWarning ? 'shake-animation' : ''} ${planName === 'free' ? 'disabled' : ''}`} style={{ margin: 0 }}>
                                     <input
                                         type="checkbox"
                                         // Если мы в режиме БД, тумблер ВСЕГДА включен визуально
@@ -499,12 +551,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                         onChange={handleAiToggle}
                                         // Обрати внимание: мы НЕ блокируем кнопку через disabled={isDbMode}, 
                                         // иначе пользователь не сможет по ней кликнуть и увидеть тултип.
-                                        disabled={loading}
+                                        disabled={loading || planName === 'free'}
                                     />
                                     <span className="toggle-slider"></span>
                                 </div>
                                 <span className="ai-toggle-label" style={{ userSelect: 'none', lineHeight: '1' }}>ai</span>
                             </label>
+
+                            {renderProgressBar()}
 
                             {allColumns.length > 0 && (
                                 <div ref={menuRef} style={{ position: 'relative', display: 'flex', alignItems: 'flex-start' }}>

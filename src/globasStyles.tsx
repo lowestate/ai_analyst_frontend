@@ -98,6 +98,7 @@ export const GLOBAL_STYLES = `
     .msg-row.agent { justify-content: flex-start; }
     .msg-bubble.agent { width: 73%; background: ${COLORS.white}; border: 1px solid ${COLORS.gray200}; color: ${COLORS.dark}; box-shadow: 0 4px 12px ${COLORS.shadowLight05}; border-bottom-left-radius: 4px; }
     .msg-bubble.agent.error { background: ${COLORS.errorBg}; height: 55px; border: 1px solid ${COLORS.errorBorder}; color: ${COLORS.errorBorder}; box-shadow: none; }
+    .msg-bubble.warning { background: #fff8e1; border: 1px solid #ffc107; color: #b76c00; box-shadow: none; }
     .msg-row.user { justify-content: flex-end; }
     .msg-bubble.user { max-width: 60%; background: ${COLORS.gray100}; color: ${COLORS.dark}; border: 1px solid ${COLORS.accent_brighter}; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px ${COLORS.shadowLight08}; font-weight: 450; }
 
@@ -211,6 +212,8 @@ export const GLOBAL_STYLES = `
     .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e4e4e7; transition: .3s; border-radius: 24px; }
     .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3.5px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .toggle-switch input:checked + .toggle-slider { background-color: #328fec; }
+    .toggle-switch.disabled { opacity: 0.5; cursor: not-allowed; }
+    .toggle-switch.disabled .toggle-slider { cursor: not-allowed; }
     .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); }
     .ai-toggle-container { display: flex; align-items: center; gap: 8px; margin-left: 8px; align-self: flex-start; cursor: pointer; }
     .ai-toggle-label { font-size: 14px; font-weight: 600; color: #52525b; user-select: none; margin-bottom: 3px; }

@@ -26,6 +26,7 @@ export interface Message {
     text: string;
     charts?: ChartData[];
     isError?: boolean;
+    isWarning?: boolean;
     isSqlWaiting?: boolean;
     retryData?: {
         overrideText?: string;

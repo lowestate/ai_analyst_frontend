@@ -4,31 +4,32 @@ import React, { useEffect, useState } from 'react';
 // import { COLORS } from './styles'; 
 
 interface UserPageProps {
-    currentUser: { username: string; id: number };
+    currentUser: { username: string; id: number; plan_name?: string };
     onBack: () => void;
+    onPlanChange?: (newPlan: string) => void;
 }
 
 const PLANS_DATA = [
-    { 
-        id: 'free', 
-        name: 'Free', 
-        price: 'Бесплатно', 
+    {
+        id: 'free',
+        name: 'Free',
+        price: 'Бесплатно',
         desc: 'Базовый доступ к анализу данных с помощью команд. Работа только с файлами',
         tierClass: 'tier-free'
     },
-    { 
-        id: 'pro', 
-        name: 'Pro', 
-        price: '99 руб. / месяц', 
+    {
+        id: 'pro',
+        name: 'Pro',
+        price: '99 руб. / месяц',
         desc: 'Продвинутая аналитика с помощью AI. Расширяет возможности анализа и добавляет интерпретируемость результатов',
         tierClass: 'tier-pro',
         badge: 'Популярный',
         badgeColor: '#3399FF' // COLORS.accent
     },
-    { 
-        id: 'ultra', 
-        name: 'Ultra', 
-        price: '199 руб. / месяц', 
+    {
+        id: 'ultra',
+        name: 'Ultra',
+        price: '199 руб. / месяц',
         desc: 'Максимальный доступ к анализу, добавляющий возможность работать с БД PostgreSQL. Агент сам пишет запросы, Вы их подтверждаете',
         tierClass: 'tier-ultra',
         badge: 'Максимум',
@@ -36,7 +37,7 @@ const PLANS_DATA = [
     }
 ];
 
-export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack }) => {
+export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanChange }) => {
     const [currentPlan, setCurrentPlan] = useState<string | null>('free'); // По умолчанию free
     const [isLoading, setIsLoading] = useState(true);
 
@@ -44,7 +45,7 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack }) => {
         // Запрашиваем текущую инфу о юзере (чтобы получить актуальный план)
         const fetchUserData = async () => {
             try {
-                const res = await fetch(`http://localhost:8000/users/${currentUser.id}`);
+                const res = await fetch(`http://localhost:8001/users/${currentUser.id}`);
                 if (res.ok) {
                     const data = await res.json();
                     if (data.plan_name) {
@@ -65,7 +66,7 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack }) => {
         if (targetPlan === currentPlan) return;
 
         try {
-            const res = await fetch('http://localhost:8000/change_subscription', {
+            const res = await fetch('http://localhost:8001/change_subscription', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -75,10 +76,11 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack }) => {
             });
 
             if (!res.ok) throw new Error('Ошибка при смене тарифа');
-            
+
             const data = await res.json();
             if (data.status === 'success') {
                 setCurrentPlan(data.plan_name); // Обновляем UI
+                if (onPlanChange) onPlanChange(data.plan_name.toLowerCase());
             }
         } catch (err) {
             console.error(err);
@@ -96,11 +98,11 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack }) => {
 
     return (
         <div className="user-page-wrapper" onClick={handleBackgroundClick}>
-            <button 
-                className="btn-back-chat" 
-                onClick={(e) => { 
+            <button
+                className="btn-back-chat"
+                onClick={(e) => {
                     e.stopPropagation(); // Останавливаем клик, чтобы не дергать фон
-                    onBack(); 
+                    onBack();
                 }}
             >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -117,13 +119,13 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack }) => {
             </div>
 
             <div className="plans-title">Ваша подписка</div>
-            
+
             <div className="plans-container">
                 {PLANS_DATA.map((plan) => {
                     const isActive = currentPlan === plan.id;
-                    
+
                     return (
-                        <div 
+                        <div
                             key={plan.id}
                             className={`plan-card ${plan.tierClass} ${isActive ? 'active' : ''}`}
                             onClick={(e) => {
@@ -139,13 +141,13 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack }) => {
                             <div className="plan-name">{plan.name}</div>
                             <div className="plan-price">{plan.price}</div>
                             <div className="plan-desc">{plan.desc}</div>
-                            
-                            <div style={{ 
+
+                            <div style={{
                                 marginTop: 'auto', // Автоматически прижимает надпись к самому низу карточки
-                                paddingTop: '20px', 
-                                fontWeight: isActive ? 700 : 600, 
-                                color: isActive 
-                                    ? (plan.id === 'ultra' ? '#343434' : '#3399FF') 
+                                paddingTop: '20px',
+                                fontWeight: isActive ? 700 : 600,
+                                color: isActive
+                                    ? (plan.id === 'ultra' ? '#343434' : '#3399FF')
                                     : '#a1a1aa', // Серый цвет для неактивных тарифов
                                 transition: 'color 0.2s'
                             }}>
