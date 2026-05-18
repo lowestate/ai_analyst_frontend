@@ -60,11 +60,12 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const [searchQuery, setSearchQuery] = useState('');
     const [isFinTag, setIsFinTag] = useState(false);
     const [isDataTag, setIsDataTag] = useState(false);
-    const [isDataOpen, setIsDataOpen] = useState(true);
-    const [isFinOpen, setIsFinOpen] = useState(true);
+    const [isDataOpen, setIsDataOpen] = useState(false);
+    const [isFinOpen, setIsFinOpen] = useState(false);
     const [chartsPayload, setChartsPayload] = useState<any[]>(initialCharts);
 
     const menuRef = useRef<HTMLDivElement>(null);
+    const suggestionsRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Вычисляем, работаем ли мы сейчас с БД
@@ -76,6 +77,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
     // Стейт для тултипа "Только для pro / ultra"
     const [isHoveredAi, setIsHoveredAi] = useState(false);
+    const [isHoveredLimit, setIsHoveredLimit] = useState(false);
 
     const planName = currentUser?.plan_name || 'free';
 
@@ -114,16 +116,20 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
                 setIsMenuOpen(false);
             }
+            if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+                setIsDataOpen(false);
+                setIsFinOpen(false);
+            }
         };
 
-        if (isMenuOpen) {
+        if (isMenuOpen || isDataOpen || isFinOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
-        }
-    }, [isMenuOpen]);
+        };
+    }, [isMenuOpen, isDataOpen, isFinOpen]);
 
     useEffect(() => {
         if (messagesEndRef.current) {
@@ -197,7 +203,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                height: '20px', // Высота кнопки
+                height: '28px', // Высота кнопки
                 boxSizing: 'border-box',
                 margin: '0',
                 background: '#f0f4f8',
@@ -271,15 +277,24 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         const width = `${Math.min((count / 5) * 100, 100)}%`;
 
         return (
-            <div style={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px', marginTop: '5px' }}>
-                <div style={{ fontSize: '12px', color: '#666', marginRight: '8px', whiteSpace: 'nowrap', userSelect: 'none' }}>
-                    Запросы: {count}/5
+            <div
+                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '70px', marginTop: '2px', position: 'relative' }}
+                onMouseEnter={() => setIsHoveredLimit(true)}
+                onMouseLeave={() => setIsHoveredLimit(false)}
+            >
+                {isHoveredLimit && (
+                    <div className="ai-db-tooltip" style={{ width: '220px', left: '-10px', bottom: 'calc(100% + 5px)', animation: 'none', opacity: 1, zIndex: 1000 }}>
+                        Для подписки pro ограничение 5 запросов в секунду - для безлимита нужна подписка ultra
+                    </div>
+                )}
+                <div style={{ fontSize: '11px', color: '#666', marginRight: '6px', whiteSpace: 'nowrap', userSelect: 'none', transform: 'translateY(-2px)' }}>
+                    {count}/5
                 </div>
                 <div style={{
-                    height: '6px',
+                    height: '4px',
                     width: '100%',
                     backgroundColor: '#e0e0e0',
-                    borderRadius: '3px',
+                    borderRadius: '2px',
                     overflow: 'hidden'
                 }}>
                     <div style={{
@@ -440,93 +455,159 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             </div>
 
             {activeChat && activeChat !== "temp_loading" && (
-                <div className="input-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div className="input-container" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', width: '100%', gap: '25px' }}>
 
-                        {suggestionRows.length > 0 && (
-                            <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center' }}>
-                                {suggestionRows.map((row, index) => (
-                                    <React.Fragment key={row.id}>
-                                        {/* СТРОКА С ПОДСКАЗКАМИ: строго 16px */}
+                    {/* Левая часть - 10% */}
+                    <div style={{ width: '10%', marginTop: '10px', minWidth: '130px', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
+
+                        {/* 3 строка - удаление столбцов */}
+                        {allColumns.length > 0 && (
+                            <div ref={menuRef} style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: '5px' }}>
+                                <button
+                                    onMouseEnter={() => setIsHovered(true)}
+                                    onMouseLeave={() => setIsHovered(false)}
+                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                    disabled={loading}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        background: isHovered ? '#ffffff' : '#fff3f3',
+                                        border: '1px solid #cd5c5c',
+                                        borderRadius: '20px',
+                                        padding: '3px 6px 3px 12px',
+                                        cursor: loading ? 'not-allowed' : 'pointer',
+                                        opacity: loading ? 0.6 : 1,
+                                        color: '#000',
+                                        fontSize: '12px',
+                                        fontFamily: 'sans-serif',
+                                        userSelect: 'none',
+                                        height: '28px',
+                                        transition: 'all 0.4s ease',
+                                        width: '100%',
+                                        justifyContent: 'space-between'
+                                    }}
+                                >
+                                    <span style={{
+                                        fontWeight: 600,
+                                        whiteSpace: 'nowrap',
+                                        height: '20px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        marginTop: '1px'
+                                    }}>
+                                        Убрать столбцы
+                                    </span>
+
+                                    <div style={{
+                                        borderRadius: isHovered && removedCols.length > 0 ? '10px' : '50%',
+                                        minWidth: '20px',
+                                        maxWidth: isHovered && removedCols.length > 0 ? '400px' : '20px',
+                                        height: '20px',
+                                        maxHeight: isHovered && removedCols.length > 0 ? '20px' : '20px',
+                                        padding: isHovered && removedCols.length > 0 ? '4px 10px' : '0px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '12px',
+                                        color: '#000',
+                                        transition: 'all 0.6s ease',
+                                        overflow: 'hidden',
+                                        whiteSpace: 'normal',
+                                        wordBreak: 'break-word',
+                                        textAlign: 'left',
+                                        lineHeight: '1.2',
+                                        marginTop: '1px'
+                                    }}>
+                                        <span style={{ minWidth: isHovered && removedCols.length > 0 ? 'max-content' : 'auto' }}>
+                                            {isHovered && removedCols.length > 0 ? removedCols.join(' | ') : removedCols.length}
+                                        </span>
+                                    </div>
+                                </button>
+
+                                {isMenuOpen && !loading && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: 'calc(100% + 10px)',
+                                        left: '0',
+                                        background: '#fff',
+                                        border: '1px solid #dce4ec',
+                                        borderRadius: '12px',
+                                        padding: '12px',
+                                        boxShadow: '0 -4px 16px rgba(0,0,0,0.1)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '8px',
+                                        zIndex: 100,
+                                        minWidth: '260px'
+                                    }}>
                                         <div style={{
                                             display: 'flex',
                                             alignItems: 'center',
-                                            width: '100%',
-                                            height: row.isOpen ? '32px' : '22px',
+                                            justifyContent: 'space-between',
+                                            gap: '8px',
+                                            borderBottom: '1px solid #f0f4f8',
+                                            paddingBottom: '8px'
                                         }}>
-                                            <div
-                                                onClick={row.toggle}
+                                            <div style={{ fontSize: '12px', color: '#666', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                                Исключить из анализа:
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                placeholder="Поиск..."
                                                 style={{
-                                                    display: 'flex', alignItems: 'center', cursor: 'pointer',
-                                                    userSelect: 'none', marginRight: '10px', flexShrink: 0
+                                                    padding: '4px 8px',
+                                                    fontSize: '12px',
+                                                    border: '1px solid #dce4ec',
+                                                    borderRadius: '6px',
+                                                    outline: 'none',
+                                                    width: '80px',
+                                                    flexGrow: 1,
+                                                    background: '#f9fbfd'
                                                 }}
-                                            >
-                                                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '4px', height: '20px' }}>
-                                                    <ChevronIcon isOpen={row.isOpen} />
-                                                </span>
-                                                <span style={{
-                                                    display: 'flex', alignItems: 'center',
-                                                    height: '16px', fontSize: '12px',
-                                                    color: '#999', fontStyle: 'italic', whiteSpace: 'nowrap',
-                                                    lineHeight: '1',
-                                                }}>
-                                                    {row.title}
-                                                </span>
-                                            </div>
-
-                                            <div style={{
-                                                display: 'flex',
-                                                gap: '8px',
-                                                alignItems: 'center',
-                                                overflow: 'hidden',
-                                                maxWidth: row.isOpen ? '2000px' : '0px',
-                                                opacity: row.isOpen ? 1 : 0,
-                                                transition: 'max-width 0.4s ease-in-out, opacity 0.3s ease-in-out',
-                                                whiteSpace: 'nowrap',
-                                                flexWrap: 'nowrap'
-                                            }}>
-                                                {row.items.map((suggestion, idx) => renderSuggestionButton(suggestion, idx))}
-                                            </div>
+                                            />
                                         </div>
 
-                                        {/* РАЗДЕЛИТЕЛЬ: отступы по 6px для симметрии */}
-                                        {index < suggestionRows.length - 1 && (
-                                            <div style={{
-                                                width: '100%', height: '1px',
-                                                background: '#e2e8ee'
-                                            }} />
-                                        )}
-                                    </React.Fragment>
-                                ))}
+                                        <div style={{
+                                            maxHeight: '180px',
+                                            overflowY: 'auto',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '8px',
+                                            paddingRight: '4px'
+                                        }}>
+                                            {filteredColumns.length > 0 ? (
+                                                filteredColumns.map(col => (
+                                                    <label key={col} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', margin: 0 }}>
+                                                        <input
+                                                            type="checkbox"
+                                                            style={{ cursor: 'pointer' }}
+                                                            checked={removedCols.includes(col)}
+                                                            onChange={() => handleToggleCol(col)}
+                                                        />
+                                                        <span style={{ wordBreak: 'break-word' }}>{col}</span>
+                                                    </label>
+                                                ))
+                                            ) : (
+                                                <div style={{ fontSize: '11px', color: '#999', textAlign: 'center', padding: '10px 0' }}>
+                                                    Колонки не найдены
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
-                        {/* Поле ввода с верхним отступом 6px, чтобы соответствовать логике разделителей */}
-                        <div className="input-box" style={{ width: '100%', marginBottom: '10px' }}>
-                            <input
-                                value={input}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                    setInput(e.target.value);
-                                }}
-                                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        handleInputSend();
-                                    }
-                                }}
-                                placeholder="Что исследуем?"
-                            />
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', marginBottom: '10px' }}>
-
+                        {/* 1 строка - переключатель ai и лимиты */}
+                        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px' }}>
                             <label
-                                className="ai-toggle-container" // Убрали анимацию отсюда
-                                style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', height: '28px', position: 'relative' }}
+                                className="ai-toggle-container"
+                                style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }}
                                 onMouseEnter={() => setIsHoveredAi(true)}
                                 onMouseLeave={() => setIsHoveredAi(false)}
                             >
-                                {/* Всплывающая подсказка */}
                                 {showAiWarning && (
                                     <div
                                         key={timeoutId ? timeoutId.toString() : 'tooltip'}
@@ -542,15 +623,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                     </div>
                                 )}
 
-                                {/* Добавили класс анимации именно сюда, к самому переключателю */}
                                 <div className={`toggle-switch ${showAiWarning ? 'shake-animation' : ''} ${planName === 'free' ? 'disabled' : ''}`} style={{ margin: 0 }}>
                                     <input
                                         type="checkbox"
-                                        // Если мы в режиме БД, тумблер ВСЕГДА включен визуально
                                         checked={isDbMode || useAi}
                                         onChange={handleAiToggle}
-                                        // Обрати внимание: мы НЕ блокируем кнопку через disabled={isDbMode}, 
-                                        // иначе пользователь не сможет по ней кликнуть и увидеть тултип.
                                         disabled={loading || planName === 'free'}
                                     />
                                     <span className="toggle-slider"></span>
@@ -559,145 +636,128 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                             </label>
 
                             {renderProgressBar()}
+                        </div>
+                    </div>
 
-                            {allColumns.length > 0 && (
-                                <div ref={menuRef} style={{ position: 'relative', display: 'flex', alignItems: 'flex-start' }}>
-                                    <button
-                                        onMouseEnter={() => setIsHovered(true)}
-                                        onMouseLeave={() => setIsHovered(false)}
-                                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                        disabled={loading}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'flex-start',
-                                            background: isHovered ? '#ffffff' : '#fff3f3',
-                                            border: '1px solid #cd5c5c',
-                                            borderRadius: '20px',
-                                            padding: '3px 6px 3px 12px',
-                                            cursor: loading ? 'not-allowed' : 'pointer',
-                                            opacity: loading ? 0.6 : 1,
-                                            color: '#000',
-                                            fontSize: '12px',
-                                            fontFamily: 'sans-serif',
-                                            userSelect: 'none',
-                                            height: '28px',
-                                            transition: 'all 0.4s ease'
-                                        }}
-                                    >
-                                        <span style={{
-                                            fontWeight: 600,
-                                            whiteSpace: 'nowrap',
-                                            height: '20px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            marginTop: '1px'
-                                        }}>
-                                            Убрать столбцы
-                                        </span>
+                    {/* Правая часть - 90% */}
+                    <div style={{ width: '90%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', marginTop: '13px' }}>
 
-                                        <div style={{
-                                            borderRadius: isHovered && removedCols.length > 0 ? '10px' : '50%',
-                                            minWidth: '20px',
-                                            maxWidth: isHovered && removedCols.length > 0 ? '400px' : '20px',
-                                            height: '20px',
-                                            maxHeight: isHovered && removedCols.length > 0 ? '20px' : '20px',
-                                            padding: isHovered && removedCols.length > 0 ? '4px 10px' : '0px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '12px',
-                                            color: '#000',
-                                            transition: 'all 0.6s ease',
-                                            overflow: 'hidden',
-                                            whiteSpace: 'normal',
-                                            wordBreak: 'break-word',
-                                            textAlign: 'left',
-                                            lineHeight: '1.2',
-                                            marginTop: '1px'
-                                        }}>
-                                            <span style={{ minWidth: isHovered && removedCols.length > 0 ? 'max-content' : 'auto' }}>
-                                                {isHovered && removedCols.length > 0 ? removedCols.join(' | ') : removedCols.length}
-                                            </span>
-                                        </div>
-                                    </button>
+                        <div style={{ display: 'flex', flexDirection: 'row', width: '100%', gap: '15px', alignItems: 'flex-end', marginBottom: '10px' }}>
+                            {/* Нижняя часть - поле ввода */}
+                            <div className="input-box" style={{ flex: 1 }}>
+                                <input
+                                    value={input}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                        setInput(e.target.value);
+                                    }}
+                                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleInputSend();
+                                        }
+                                    }}
+                                    placeholder="Что исследуем?"
+                                />
+                            </div>
 
-                                    {isMenuOpen && !loading && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }} ref={suggestionsRef}>
+                                <span style={{ fontSize: '11px', color: '#666', fontWeight: 500, paddingLeft: '4px' }}>Доступные команды</span>
+                                <div style={{ display: 'flex', flexDirection: 'row', gap: '10px' }}>
+                                    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                         <div style={{
                                             position: 'absolute',
-                                            bottom: 'calc(100% + 10px)',
-                                            left: '0',
+                                            bottom: 'calc(100% + 8px)',
+                                            right: 0,
                                             background: '#fff',
-                                            border: '1px solid #dce4ec',
+                                            border: isDataOpen ? '1px solid #dce4ec' : '0px solid transparent',
                                             borderRadius: '12px',
-                                            padding: '12px',
-                                            boxShadow: '0 -4px 16px rgba(0,0,0,0.1)',
+                                            boxShadow: isDataOpen ? '0 -4px 16px rgba(0,0,0,0.1)' : 'none',
                                             display: 'flex',
                                             flexDirection: 'column',
-                                            gap: '8px',
+                                            gap: '6px',
                                             zIndex: 100,
-                                            minWidth: '260px'
+                                            maxHeight: isDataOpen ? '300px' : '0px',
+                                            opacity: isDataOpen ? 1 : 0,
+                                            overflowY: 'auto',
+                                            transition: 'max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out',
+                                            pointerEvents: isDataOpen ? 'auto' : 'none',
+                                            padding: isDataOpen ? '8px' : '0px',
+                                            minWidth: '220px'
                                         }}>
-                                            <div style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'space-between',
-                                                gap: '8px',
-                                                borderBottom: '1px solid #f0f4f8',
-                                                paddingBottom: '8px'
-                                            }}>
-                                                <div style={{ fontSize: '12px', color: '#666', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                                                    Исключить из анализа:
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    value={searchQuery}
-                                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                                    placeholder="Поиск..."
-                                                    style={{
-                                                        padding: '4px 8px',
-                                                        fontSize: '12px',
-                                                        border: '1px solid #dce4ec',
-                                                        borderRadius: '6px',
-                                                        outline: 'none',
-                                                        width: '80px',
-                                                        flexGrow: 1,
-                                                        background: '#f9fbfd'
-                                                    }}
-                                                />
-                                            </div>
-
-                                            <div style={{
-                                                maxHeight: '180px',
-                                                overflowY: 'auto',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: '8px',
-                                                paddingRight: '4px'
-                                            }}>
-                                                {filteredColumns.length > 0 ? (
-                                                    filteredColumns.map(col => (
-                                                        <label key={col} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', margin: 0 }}>
-                                                            <input
-                                                                type="checkbox"
-                                                                style={{ cursor: 'pointer' }}
-                                                                checked={removedCols.includes(col)}
-                                                                onChange={() => handleToggleCol(col)}
-                                                            />
-                                                            <span style={{ wordBreak: 'break-word' }}>{col}</span>
-                                                        </label>
-                                                    ))
-                                                ) : (
-                                                    <div style={{ fontSize: '11px', color: '#999', textAlign: 'center', padding: '10px 0' }}>
-                                                        Колонки не найдены
-                                                    </div>
-                                                )}
-                                            </div>
+                                            {dataAnalysisSuggestions.map((suggestion, idx) => renderSuggestionButton(suggestion, idx))}
                                         </div>
-                                    )}
-                                </div>
-                            )}
+                                        <button
+                                            onClick={() => {
+                                                setIsDataOpen(!isDataOpen);
+                                                if (isFinOpen) setIsFinOpen(false);
+                                            }}
+                                            style={{
+                                                background: isDataOpen ? '#e0f0ff' : '#f0f4f8',
+                                                border: '1px solid #dce4ec',
+                                                borderRadius: '10px',
+                                                padding: '0 16px',
+                                                height: '30px',
+                                                fontSize: '13px',
+                                                color: '#4a90e2',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease',
+                                                fontWeight: 600,
+                                                whiteSpace: 'nowrap'
+                                            }}
+                                        >
+                                            Анализ данных
+                                        </button>
+                                    </div>
 
+                                    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <div style={{
+                                            position: 'absolute',
+                                            bottom: 'calc(100% + 8px)',
+                                            right: 0,
+                                            background: '#fff',
+                                            border: isFinOpen ? '1px solid #dce4ec' : '0px solid transparent',
+                                            borderRadius: '12px',
+                                            boxShadow: isFinOpen ? '0 -4px 16px rgba(0,0,0,0.1)' : 'none',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '6px',
+                                            zIndex: 100,
+                                            maxHeight: isFinOpen ? '300px' : '0px',
+                                            opacity: isFinOpen ? 1 : 0,
+                                            overflowY: 'auto',
+                                            transition: 'max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out',
+                                            pointerEvents: isFinOpen ? 'auto' : 'none',
+                                            padding: isFinOpen ? '8px' : '0px',
+                                            minWidth: '220px'
+                                        }}>
+                                            {financialAnalysisSuggestions.map((suggestion, idx) => renderSuggestionButton(suggestion, idx))}
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                setIsFinOpen(!isFinOpen);
+                                                if (isDataOpen) setIsDataOpen(false);
+                                            }}
+                                            style={{
+                                                background: isFinOpen ? '#e0f0ff' : '#f0f4f8',
+                                                border: '1px solid #dce4ec',
+                                                borderRadius: '10px',
+                                                padding: '0 16px',
+                                                height: '30px',
+                                                fontSize: '13px',
+                                                color: '#4a90e2',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease',
+                                                fontWeight: 600,
+                                                whiteSpace: 'nowrap'
+                                            }}
+                                        >
+                                            Бизнес и финансы
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
                     </div>
                 </div>
             )}

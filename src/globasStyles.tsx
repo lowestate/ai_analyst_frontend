@@ -221,16 +221,16 @@ export const GLOBAL_STYLES = `
     .custom-slider::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #328fec; border: 2px solid #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
 
     /* --- iOS Toggle для AI --- */
-    .toggle-switch { position: relative; display: inline-block; width: 40px; height: 25px; flex-shrink: 0; }
+    .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; flex-shrink: 0; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e4e4e7; transition: .3s; border-radius: 24px; }
-    .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3.5px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e4e4e7; transition: .3s; border-radius: 20px; }
+    .toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .toggle-switch input:checked + .toggle-slider { background-color: #328fec; }
     .toggle-switch.disabled { opacity: 0.5; cursor: not-allowed; }
     .toggle-switch.disabled .toggle-slider { cursor: not-allowed; }
-    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(14px); }
     .ai-toggle-container { display: flex; align-items: center; gap: 8px; margin-left: 8px; align-self: flex-start; cursor: pointer; }
-    .ai-toggle-label { font-size: 14px; font-weight: 600; color: #52525b; user-select: none; margin-bottom: 3px; }
+    .ai-toggle-label { font-size: 13px; font-weight: 600; color: #52525b; user-select: none; margin-bottom: 2px; }
 
     /* --- ИНПУТ С ПАРОЛЕМ И ГЛАЗИКОМ --- */
     .password-wrapper { position: relative; display: flex; align-items: center; width: 100%; }
