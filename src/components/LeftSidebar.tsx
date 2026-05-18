@@ -8,6 +8,8 @@ interface SidebarProps {
     onSelectChat: (id: string) => void;
     onOpenUploadModal: () => void;
     onDeleteChat: (id: string) => void;
+    isSidebarHidden: boolean;
+    onToggleSidebar: () => void;
 }
 
 export const LeftSidebar: React.FC<SidebarProps> = ({
@@ -15,7 +17,9 @@ export const LeftSidebar: React.FC<SidebarProps> = ({
     activeChat,
     onSelectChat,
     onOpenUploadModal,
-    onDeleteChat
+    onDeleteChat,
+    isSidebarHidden,
+    onToggleSidebar
 }) => {
     const displaySessions = [...sessions].reverse();
 
@@ -96,12 +100,21 @@ export const LeftSidebar: React.FC<SidebarProps> = ({
 
     return (
         <div className="col-left">
-            <button
-                className="btn-upload"
-                onClick={onOpenUploadModal}
-            >
-                Новый анализ
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'row', gap: isSidebarHidden ? '4px' : '8px', marginBottom: '24px', alignItems: 'center', justifyContent: isSidebarHidden ? 'center' : 'flex-start' }}>
+                <button onClick={onToggleSidebar} className="sidebar-toggle-btn" title={isSidebarHidden ? 'Показать меню' : 'Скрыть меню'}>
+                    {isSidebarHidden ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                    ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+                    )}
+                </button>
+                <button
+                    className="btn-upload"
+                    onClick={onOpenUploadModal}
+                >
+                    {isSidebarHidden ? '+' : 'Новый анализ'}
+                </button>
+            </div>
 
             <div
                 className="chat-list"
@@ -121,9 +134,8 @@ export const LeftSidebar: React.FC<SidebarProps> = ({
                             }}
                         >
                             <div
-                                className={`chat-item ${
-                                    isActive && !isDeletingThis ? 'active' : ''
-                                }`}
+                                className={`chat-item ${isActive && !isDeletingThis ? 'active' : ''
+                                    }`}
                                 onClick={() => {
                                     if (!isDeletingThis) {
                                         onSelectChat(s.id);

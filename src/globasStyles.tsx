@@ -35,13 +35,18 @@ export const COLORS = {
     overlay50: 'rgba(0,0,0,0.6)'
 };
 
-const COLUMN_DISIVISION_PARTS = {
-    left: 1,
-    middle: 5,
-    right: 1
-}
-
 export const GLOBAL_STYLES = `
+    :root {
+        --col-left-flex: 5;
+        --col-center-flex: 25;
+        --col-right-flex: 5;
+    }
+    .app-layout.sidebar-hidden {
+        --col-left-flex: 3;
+        --col-center-flex: 54;
+        --col-right-flex: 12;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
     body { overflow: hidden; background-color: ${COLORS.gray50}; color: ${COLORS.dark}; }
 
@@ -66,11 +71,20 @@ export const GLOBAL_STYLES = `
     .btn-login-header:hover { opacity: 0.9; }
 
     /* --- ЛЕВАЯ КОЛОНКА --- */
-    .col-left { flex: ${COLUMN_DISIVISION_PARTS.left}; background: ${COLORS.gray100}; border-right: 1px solid ${COLORS.gray200}; display: flex; flex-direction: column; padding: 18px 12px; overflow-y: hidden; }
-    .btn-upload { display: block; text-align: center; background: ${COLORS.white}; border: 1.5px solid ${COLORS.dark}; color: ${COLORS.dark}; border-radius: 12px; padding: 12px; cursor: pointer; font-weight: 600; font-size: 14px; margin-bottom: 24px; transition: all 0.2s ease; box-shadow: 0 2px 0 ${COLORS.shadowLight05}; }
+    .col-left { flex: var(--col-left-flex); background: ${COLORS.gray100}; border-right: 1px solid ${COLORS.gray200}; display: flex; flex-direction: column; padding: 18px 12px; overflow-y: hidden; transition: flex 0.3s ease, padding 0.3s ease; }
+    .sidebar-hidden .col-left { padding: 18px 2px; }
+    
+    .sidebar-toggle-btn { background: transparent; border: none; cursor: pointer; color: ${COLORS.dark}; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 8px; transition: background 0.2s; flex-shrink: 0; }
+    .sidebar-hidden .sidebar-toggle-btn { padding: 0; width: 24px; height: 24px; }
+    .sidebar-toggle-btn:hover { background: ${COLORS.gray200}; }
+    
+    .btn-upload { display: flex; align-items: center; justify-content: center; height: 36px; background: ${COLORS.white}; border: 1.5px solid ${COLORS.dark}; color: ${COLORS.dark}; border-radius: 12px; padding: 12px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s ease; box-shadow: 0 2px 0 ${COLORS.shadowLight05}; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; }
+    .sidebar-hidden .btn-upload { padding: 0; width: 24px; height: 24px; font-size: 18px; flex: none; border-radius: 6px; }
     .btn-upload:hover { background: ${COLORS.dark}; color: ${COLORS.white}; }
     .btn-upload:active { transform: translateY(2px); box-shadow: none; }
-    .chat-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 2px; }
+    
+    .sidebar-hidden .chat-list { opacity: 0; pointer-events: none; height: 0; margin: 0; padding: 0; }
+    .chat-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 2px; transition: opacity 0.2s ease; opacity: 1; }
     .chat-list::-webkit-scrollbar { width: 6px; }
     .chat-list::-webkit-scrollbar-thumb { background: ${COLORS.gray300}; border-radius: 4px; }
     .chat-item { padding: 12px 12px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; background: transparent; transition: all 0.2s ease; }
@@ -80,7 +94,7 @@ export const GLOBAL_STYLES = `
     .chat-item .dataset-name { font-size: 12px; color: ${COLORS.gray500}; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     /* --- ЦЕНТРАЛЬНАЯ КОЛОНКА --- */
-    .col-center { flex: ${COLUMN_DISIVISION_PARTS.middle}; display: flex; flex-direction: column; background: ${COLORS.white}; position: relative; min-width: 0; }
+    .col-center { flex: var(--col-center-flex); display: flex; flex-direction: column; background: ${COLORS.white}; position: relative; min-width: 0; transition: flex 0.3s ease; }
     .messages-wrapper { flex: 1; display: flex; flex-direction: column; background: ${COLORS.white}; overflow-y: auto; padding: 0 40px 32px 40px; scrollbar-width: thin; scrollbar-color: ${COLORS.gray300} transparent; position: relative; }
     .messages-wrapper::-webkit-scrollbar { width: 6px; display: block; }
     .messages-wrapper::-webkit-scrollbar-thumb { background-color: ${COLORS.gray200}; border-radius: 10px; }
@@ -135,7 +149,7 @@ export const GLOBAL_STYLES = `
     .sample-table tr:hover td { background: ${COLORS.gray50}; }
 
     /* --- ПРАВАЯ КОЛОНКА --- */
-    .col-right { flex: ${COLUMN_DISIVISION_PARTS.right}; background: ${COLORS.gray50}; border-left: 1px solid ${COLORS.gray200}; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 20px; min-width: 0; }
+    .col-right { flex: var(--col-right-flex); background: ${COLORS.gray50}; border-left: 1px solid ${COLORS.gray200}; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 20px; min-width: 0; transition: flex 0.3s ease; }
     .col-right::-webkit-scrollbar { width: 6px; }
     .col-right::-webkit-scrollbar-thumb { background: ${COLORS.gray300}; border-radius: 4px; }
     .chart-preview-box { width: 85%; aspect-ratio: 4/3; background: ${COLORS.white}; border: 1px solid ${COLORS.gray200}; border-radius: 12px; box-shadow: 0 2px 8px ${COLORS.shadowLight05}; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; color: ${COLORS.gray600}; font-size: 13px; font-weight: 500; text-align: center; }

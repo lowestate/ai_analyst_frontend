@@ -22,6 +22,7 @@ function MainLayout() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isSidebarHidden, setIsSidebarHidden] = useState(false);
     const [selectedChart, setSelectedChart] = useState<ChartData | null>(null);
     const [localDataPool, setLocalDataPool] = useState<any[]>([]);
     const [dbSchema, setDbSchema] = useState<any | null>(null);
@@ -66,6 +67,25 @@ function MainLayout() {
         else setLoadingIndex(0);
         return () => clearInterval(interval);
     }, [loading]);
+
+    // Trigger window resize events during the sidebar hide/show transition (0.3s)
+    // This allows Plotly charts to dynamically adjust their width
+    useEffect(() => {
+        let isCancelled = false;
+        const start = Date.now();
+        const duration = 350;
+
+        const animateResize = () => {
+            if (isCancelled) return;
+            window.dispatchEvent(new Event('resize'));
+            if (Date.now() - start < duration) {
+                requestAnimationFrame(animateResize);
+            }
+        };
+        requestAnimationFrame(animateResize);
+
+        return () => { isCancelled = true; };
+    }, [isSidebarHidden]);
 
     useEffect(() => {
         const fetchSessions = async () => {
@@ -407,13 +427,15 @@ function MainLayout() {
                     onOpenProfile={() => setCurrentView('profile')}
                 />
                 {currentView === 'chat' ? (
-                    <div className="app-layout">
+                    <div className={`app-layout ${isSidebarHidden ? 'sidebar-hidden' : ''}`}>
                         <LeftSidebar
                             sessions={sessions}
                             activeChat={activeChat}
                             onSelectChat={handleSelectChat}
                             onOpenUploadModal={() => setIsUploadModalOpen(true)}
                             onDeleteChat={handleDeleteChat}
+                            isSidebarHidden={isSidebarHidden}
+                            onToggleSidebar={() => setIsSidebarHidden(prev => !prev)}
                         />
 
                         <ChatArea
