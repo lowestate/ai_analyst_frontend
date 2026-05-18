@@ -12,6 +12,7 @@ import { Header } from './components/Header';
 
 import { ChatArea } from './components/chat/ChatArea';
 import { Dashboard } from './components/dashboard/Dashboard';
+import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/user/LoginOrRegister';
 import { UserPage } from './components/user/UserPage'
 import { UploadModal } from './components/upload_data/UploadData';
@@ -30,8 +31,19 @@ function MainLayout() {
     const [aiRequests, setAiRequests] = useState<number[]>([]);
 
     // --- СТЕЙТЫ АВТОРИЗАЦИИ ---
-    const [currentUser, setCurrentUser] = useState<{ username: string, id: number, plan_name?: string } | null>(null);
+    const [currentUser, setCurrentUser] = useState<{ username: string, id: number, plan_name?: string, role?: string } | null>(() => {
+        const saved = localStorage.getItem('currentUser');
+        return saved ? JSON.parse(saved) : null;
+    });
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+    useEffect(() => {
+        if (currentUser) {
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        } else {
+            localStorage.removeItem('currentUser');
+        }
+    }, [currentUser]);
 
     // --- СТЕЙТЫ ЗАГРУЗКИ ---
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -112,8 +124,8 @@ function MainLayout() {
                 const res = await fetch(`http://localhost:8001/users/${currentUser.id}`);
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.plan_name) {
-                        setCurrentUser(prev => prev ? { ...prev, plan_name: data.plan_name.toLowerCase() } : null);
+                    if (data.plan_name || data.role) {
+                        setCurrentUser(prev => prev ? { ...prev, plan_name: data.plan_name?.toLowerCase(), role: data.role } : null);
                     }
                 }
             } catch (err) {
@@ -410,8 +422,6 @@ function MainLayout() {
 
     return (
         <>
-            <style>{GLOBAL_STYLES}</style>
-
             {isAuthModalOpen && (
                 <AuthModal
                     onClose={() => setIsAuthModalOpen(false)}
@@ -497,12 +507,16 @@ function MainLayout() {
 
 function App() {
     return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<MainLayout />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-            </Routes>
-        </Router>
+        <>
+            <style>{GLOBAL_STYLES}</style>
+            <Router>
+                <Routes>
+                    <Route path="/" element={<MainLayout />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/admin" element={<AdminPanel />} />
+                </Routes>
+            </Router>
+        </>
     );
 }
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 interface AuthModalProps {
     onClose: () => void;
-    onSuccess: (user: { username: string; id: number }) => void;
+    onSuccess: (user: { username: string; id: number; role?: string }) => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
@@ -60,7 +60,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
             }
 
             // Успех
-            onSuccess({ username: authForm.username, id: data.user_id });
+            onSuccess({ username: authForm.username, id: data.user_id, role: data.role });
             onClose();
 
         } catch (err) {

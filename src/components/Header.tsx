@@ -1,8 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { COLORS } from '../globasStyles';
 
 interface HeaderProps {
-    currentUser: { username: string; id: number } | null;
+    currentUser: { username: string; id: number; role?: string } | null;
     onOpenAuth: () => void;
     onLogout: () => void;
     onOpenProfile: () => void;
@@ -29,6 +30,41 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, onOpenAuth, onLogou
                 </button>
             ) : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {currentUser.role === 'admin' && (
+                        <Link
+                            to="/admin"
+                            className="btn-admin-header"
+                            style={{
+                                background: 'none',
+                                border: `1.5px solid ${COLORS.dark}`,
+                                borderRadius: '8px',
+                                padding: '6px 12px',
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                color: COLORS.dark,
+                                textDecoration: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s ease',
+                                cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = COLORS.dark;
+                                e.currentTarget.style.color = COLORS.white;
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                                e.currentTarget.style.color = COLORS.dark;
+                            }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Админка
+                        </Link>
+                    )}
                     <div
                         className="header-username"
                         onClick={onOpenProfile}
