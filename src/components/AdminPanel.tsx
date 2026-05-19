@@ -14,6 +14,7 @@ interface LLMRequest {
     created_at: string;
     duration_ms: number;
     initiator: string;
+    used_tool?: string;
     error_message: string;
 }
 
@@ -42,6 +43,7 @@ const REQUEST_COLUMNS = [
     { key: 'created_at', label: 'Создан' },
     { key: 'duration_ms', label: 'Длительность' },
     { key: 'initiator', label: 'Инициатор' },
+    { key: 'used_tool', label: 'Инструмент' },
     { key: 'error_message', label: 'Ошибка' }
 ];
 
@@ -118,6 +120,13 @@ export const AdminPanel: React.FC = () => {
     const [usersFilterInputs, setUsersFilterInputs] = useState<{ [key: string]: string }>({});
     const [usersCollapsedCols, setUsersCollapsedCols] = useState<{ [key: string]: boolean }>({});
 
+    const [hoveredHeader, setHoveredHeader] = useState<{
+        colKey: string;
+        rect: DOMRect;
+    } | null>(null);
+
+    const [hoverTimeoutId, setHoverTimeoutId] = useState<any>(null);
+
     const showToast = (message: string, type: 'success' | 'error') => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 3000);
@@ -133,6 +142,20 @@ export const AdminPanel: React.FC = () => {
             }
         } catch (err) {
             console.error('Не удалось загрузить тарифные планы', err);
+        }
+    };
+
+    const [statsData, setStatsData] = useState<any | null>(null);
+
+    const fetchRequestsStats = async () => {
+        try {
+            const res = await fetch('http://localhost:8001/admin/llm_requests/stats');
+            if (res.ok) {
+                const data = await res.json();
+                setStatsData(data);
+            }
+        } catch (err) {
+            console.error('Не удалось загрузить статистику логов', err);
         }
     };
 
@@ -192,6 +215,7 @@ export const AdminPanel: React.FC = () => {
     useEffect(() => {
         if (activeTab === 'llm_requests') {
             fetchRequests();
+            fetchRequestsStats();
         }
     }, [page, sortCol, sortOrder, filterCol, filterVal, activeTab]);
 
@@ -461,7 +485,7 @@ export const AdminPanel: React.FC = () => {
             <div style={{
                 display: 'flex',
                 alignItems: 'flex-end',
-                background: '#e2e8f0', 
+                background: '#e2e8f0',
                 padding: '8px 16px 0 16px',
                 borderTopLeftRadius: '16px',
                 borderTopRightRadius: '16px',
@@ -559,7 +583,7 @@ export const AdminPanel: React.FC = () => {
                 borderBottomLeftRadius: '16px',
                 borderBottomRightRadius: '16px',
                 border: `1px solid ${COLORS.gray200}`,
-                borderTop: 'none', 
+                borderTop: 'none',
                 boxShadow: `0 4px 12px ${COLORS.shadowLight05}`,
                 width: '100%',
                 maxWidth: '1400px',
@@ -580,16 +604,36 @@ export const AdminPanel: React.FC = () => {
                                             const isFiltered = filterCol === col.key && filterVal !== '';
                                             const showInput = activeFilterInputs[col.key];
                                             const isCollapsed = collapsedCols[col.key];
+                                            const shouldHover = ['input_tokens', 'output_tokens', 'duration_ms', 'model_name', 'initiator', 'request_status', 'used_tool'].includes(col.key);
 
                                             return (
-                                                <th 
-                                                    key={col.key} 
-                                                    style={{ 
-                                                        padding: '12px 16px', 
-                                                        userSelect: 'none', 
+                                                <th
+                                                    key={col.key}
+                                                    onMouseEnter={(e) => {
+                                                        if (shouldHover) {
+                                                            if (hoverTimeoutId) {
+                                                                clearTimeout(hoverTimeoutId);
+                                                                setHoverTimeoutId(null);
+                                                            }
+                                                            const rect = e.currentTarget.getBoundingClientRect();
+                                                            setHoveredHeader({ colKey: col.key, rect });
+                                                        }
+                                                    }}
+                                                    onMouseLeave={() => {
+                                                        if (shouldHover) {
+                                                            const timeout = setTimeout(() => {
+                                                                setHoveredHeader(null);
+                                                            }, 200);
+                                                            setHoverTimeoutId(timeout);
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        padding: '12px 16px',
+                                                        userSelect: 'none',
                                                         position: 'relative',
                                                         whiteSpace: 'nowrap',
-                                                        width: isCollapsed ? '1px' : undefined
+                                                        width: isCollapsed ? '1px' : undefined,
+                                                        cursor: shouldHover ? 'help' : undefined
                                                     }}
                                                 >
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -794,6 +838,9 @@ export const AdminPanel: React.FC = () => {
                                                 <td style={getCellStyle('initiator', { padding: '12px 16px', fontSize: '13px' })} title={req.initiator}>
                                                     {req.initiator}
                                                 </td>
+                                                <td style={getCellStyle('used_tool', { padding: '12px 16px', fontSize: '13px' })} title={req.used_tool || ''}>
+                                                    {req.used_tool || '-'}
+                                                </td>
                                                 <td style={getCellStyle('error_message', {
                                                     padding: '12px 16px',
                                                     fontSize: '13px',
@@ -912,11 +959,11 @@ export const AdminPanel: React.FC = () => {
                                             const isCollapsed = usersCollapsedCols[col.key];
 
                                             return (
-                                                <th 
-                                                    key={col.key} 
-                                                    style={{ 
-                                                        padding: '12px 16px', 
-                                                        userSelect: 'none', 
+                                                <th
+                                                    key={col.key}
+                                                    style={{
+                                                        padding: '12px 16px',
+                                                        userSelect: 'none',
                                                         position: 'relative',
                                                         whiteSpace: 'nowrap',
                                                         width: isCollapsed ? '1px' : undefined
@@ -1256,6 +1303,202 @@ export const AdminPanel: React.FC = () => {
                     </>
                 )}
             </div>
+
+            {/* Всплывающие карточки статистики при ховере на заголовки логов LLM */}
+            {hoveredHeader && statsData && (() => {
+                const { colKey, rect } = hoveredHeader;
+                const stats = statsData[colKey];
+                if (!stats) return null;
+
+                const isNumeric = ['input_tokens', 'output_tokens', 'duration_ms'].includes(colKey);
+                const colLabel = REQUEST_COLUMNS.find(c => c.key === colKey)?.label || '';
+
+                // Вычисление координат (выравнивание по центру под ячейкой заголовка)
+                const top = rect.bottom + window.scrollY + 8;
+                const left = rect.left + window.scrollX + (rect.width / 2) - 130; // 260px ширина
+
+                const formatDurationStats = (ms: number): string => {
+                    if (ms === 0) return '0 сек.';
+                    if (ms < 1000) return `${ms.toFixed(0)} мс`;
+                    const totalSec = ms / 1000;
+                    if (totalSec < 60) {
+                        return `${totalSec.toFixed(1)} сек.`;
+                    }
+                    const min = Math.floor(totalSec / 60);
+                    const sec = Math.round(totalSec % 60);
+                    if (sec === 0) return `${min} мин.`;
+                    return `${min} мин. ${sec} сек.`;
+                };
+
+                return (
+                    <div 
+                        onMouseEnter={() => {
+                            if (hoverTimeoutId) {
+                                clearTimeout(hoverTimeoutId);
+                                setHoverTimeoutId(null);
+                            }
+                        }}
+                        onMouseLeave={() => {
+                            const timeout = setTimeout(() => {
+                                setHoveredHeader(null);
+                            }, 200);
+                            setHoverTimeoutId(timeout);
+                        }}
+                        style={{
+                            position: 'absolute',
+                            top: `${top}px`,
+                            left: `${left}px`,
+                            width: '260px',
+                            background: '#1e293b',
+                            color: '#f8fafc',
+                            borderRadius: '12px',
+                            padding: '16px',
+                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4)',
+                            border: '1px solid #334155',
+                            zIndex: 99999,
+                            pointerEvents: 'auto',
+                            fontFamily: 'inherit',
+                            boxSizing: 'border-box'
+                        }}>
+                        {isNumeric ? (
+                            <div>
+                                <div style={{ fontSize: '11px', fontWeight: 600, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                    Статистика: {colLabel}
+                                </div>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '12px' }}>
+                                    <tbody>
+                                        <tr style={{ borderBottom: '1px solid #334155' }}>
+                                            <td style={{ padding: '6px 0', color: '#94a3b8' }}>Среднее</td>
+                                            <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600 }}>
+                                                {colKey === 'duration_ms' ? formatDurationStats(stats.mean) : stats.mean}
+                                            </td>
+                                        </tr>
+                                        <tr style={{ borderBottom: '1px solid #334155' }}>
+                                            <td style={{ padding: '6px 0', color: '#94a3b8' }}>Медиана</td>
+                                            <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600 }}>
+                                                {colKey === 'duration_ms' ? formatDurationStats(stats.median) : stats.median}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '6px 0', color: '#94a3b8' }}>Станд. откл.</td>
+                                            <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600 }}>
+                                                {colKey === 'duration_ms' ? formatDurationStats(stats.std) : stats.std}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <div style={{ borderTop: '1px solid #334155', paddingTop: '10px' }}>
+                                    <div style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '6px', fontWeight: 500 }}>
+                                        Распределение частот:
+                                    </div>
+                                    {stats.distribution && stats.distribution.length > 0 ? (() => {
+                                        const counts = stats.distribution.map((d: any) => d.count);
+                                        const maxCount = Math.max(...counts, 1);
+                                        const svgWidth = 228; // 260px - 32px padding
+                                        const svgHeight = 60;
+                                        const barWidth = Math.floor(svgWidth / stats.distribution.length) - 2;
+
+                                        return (
+                                            <div>
+                                                <svg width={svgWidth} height={svgHeight} style={{ display: 'block', overflow: 'visible' }}>
+                                                    {stats.distribution.map((d: any, idx: number) => {
+                                                        const barHeight = (d.count / maxCount) * svgHeight;
+                                                        const x = idx * (barWidth + 2);
+                                                        const y = svgHeight - barHeight;
+                                                        return (
+                                                            <rect
+                                                                key={idx}
+                                                                x={x}
+                                                                y={y}
+                                                                width={barWidth}
+                                                                height={barHeight}
+                                                                fill="url(#accentGradient)"
+                                                                rx="1.5"
+                                                            />
+                                                        );
+                                                    })}
+                                                    <defs>
+                                                        <linearGradient id="accentGradient" x1="0" y1="0" x2="0" y2="1">
+                                                            <stop offset="0%" stopColor="#38bdf8" />
+                                                            <stop offset="100%" stopColor="#0284c7" />
+                                                        </linearGradient>
+                                                    </defs>
+                                                </svg>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#ffffff', marginTop: '4px' }}>
+                                                    <span>{colKey === 'duration_ms' ? formatDurationStats(stats.distribution[0]?.bin_start) : stats.distribution[0]?.bin_start}</span>
+                                                    <span>{colKey === 'duration_ms' ? formatDurationStats(stats.distribution[stats.distribution.length - 1]?.bin_end) : stats.distribution[stats.distribution.length - 1]?.bin_end}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })() : (
+                                        <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>Нет данных</div>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            <div>
+                                <div style={{ fontSize: '11px', fontWeight: 600, color: '#c084fc', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
+                                    Анализ категорий: {colLabel}
+                                </div>
+                                <div style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '8px', fontWeight: 500 }}>
+                                    Распределение (по убыванию):
+                                </div>
+                                {stats && stats.length > 0 ? (() => {
+                                    const counts = stats.map((c: any) => c.count);
+                                    const maxCount = Math.max(...counts, 1);
+
+                                    return (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {stats.slice(0, 5).map((item: any, idx: number) => {
+                                                const percentage = (item.count / maxCount) * 100;
+                                                return (
+                                                    <div key={idx} style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center', padding: '0 8px', borderRadius: '6px', overflow: 'hidden' }}>
+                                                        {/* Proportional background bar */}
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            left: 0,
+                                                            top: 0,
+                                                            bottom: 0,
+                                                            width: `${percentage}%`,
+                                                            background: 'rgba(168, 85, 247, 0.15)',
+                                                            borderRadius: '4px',
+                                                            zIndex: 1
+                                                        }} />
+
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            width: '100%',
+                                                            fontSize: '11px',
+                                                            zIndex: 2,
+                                                            position: 'relative'
+                                                        }}>
+                                                            <span style={{ color: '#e2e8f0', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }} title={item.name}>
+                                                                {item.name}
+                                                            </span>
+                                                            <span style={{ color: '#c084fc', fontWeight: 600 }}>
+                                                                {item.count}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                            {stats.length > 5 && (
+                                                <div style={{ fontSize: '10px', color: '#64748b', textAlign: 'center', marginTop: '4px' }}>
+                                                    + ещё {stats.length - 5} вариантов
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })() : (
+                                    <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>Нет данных</div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
         </div>
     );
 };

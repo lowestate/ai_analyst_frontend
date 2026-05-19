@@ -271,10 +271,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
         const count = aiRequests.length;
         let color = '#4caf50'; // green
-        if (count >= 3 && count <= 4) color = '#ff9800'; // orange
-        else if (count >= 5) color = '#d32f2f'; // maroon/dark red
+        if (count == 2) color = '#ff9800'; // orange
+        else if (count == 3) color = '#d32f2f'; // maroon/dark red
 
-        const width = `${Math.min((count / 5) * 100, 100)}%`;
+        const width = `${Math.min((count / 3) * 100, 100)}%`;
 
         return (
             <div
@@ -284,11 +284,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             >
                 {isHoveredLimit && (
                     <div className="ai-db-tooltip" style={{ width: '220px', left: '-10px', bottom: 'calc(100% + 5px)', animation: 'none', opacity: 1, zIndex: 1000 }}>
-                        Для подписки pro ограничение 5 запросов в секунду - для безлимита нужна подписка ultra
+                        Для подписки pro ограничение 3 запросов в минуту - для безлимита нужна подписка ultra
                     </div>
                 )}
                 <div style={{ fontSize: '11px', color: '#666', marginRight: '6px', whiteSpace: 'nowrap', userSelect: 'none', transform: 'translateY(-2px)' }}>
-                    {count}/5
+                    {count}/3
                 </div>
                 <div style={{
                     height: '4px',
@@ -390,7 +390,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                 <div className={`msg-bubble markdown-body ${msg.sender} ${msg.isError ? 'error' : ''} ${msg.isWarning ? 'warning' : ''}`}>
 
                                     <div className="msg-bubble-inline">
-                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ minWidth: 0 }}>
                                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                                 {msg.text.replace(/\[[ФА]\]\s*/g, '')}
                                             </ReactMarkdown>
