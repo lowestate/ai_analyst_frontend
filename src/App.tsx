@@ -100,6 +100,22 @@ function MainLayout() {
     }, [isSidebarHidden]);
 
     useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (selectedChart) {
+                    setSelectedChart(null);
+                } else if (isUploadModalOpen) {
+                    setIsUploadModalOpen(false);
+                } else if (isAuthModalOpen) {
+                    setIsAuthModalOpen(false);
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedChart, isUploadModalOpen, isAuthModalOpen]);
+
+    useEffect(() => {
         const fetchSessions = async () => {
             if (!currentUser) {
                 setSessions([]); // Очищаем список чатов, если вышли из аккаунта

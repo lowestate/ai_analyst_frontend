@@ -24,6 +24,8 @@ interface User {
     plan_id: number;
     is_active: boolean;
     role: string;
+    is_banned: boolean;
+    strikes: number;
 }
 
 interface Plan {
@@ -52,7 +54,9 @@ const USER_COLUMNS = [
     { key: 'username', label: 'Имя пользователя' },
     { key: 'plan_id', label: 'Тарифный план' },
     { key: 'is_active', label: 'Статус' },
-    { key: 'role', label: 'Роль' }
+    { key: 'role', label: 'Роль' },
+    { key: 'is_banned', label: 'Забанен' },
+    { key: 'strikes', label: 'Кол-во нарушений' }
 ];
 
 const formatDuration = (ms: number): string => {
@@ -73,6 +77,118 @@ const formatDuration = (ms: number): string => {
         }
         return `${seconds} сек.`;
     }
+};
+
+// ──────────────────────────────────────────────────────────────
+// Кастомный дропдаун для столбца "Забанен" — без нативного select
+// (нативный <select> красится в чёрный OS dark-mode'ом)
+// ──────────────────────────────────────────────────────────────
+interface BanDropdownProps {
+    userId: number;
+    isBanned: boolean;
+    strikes: number;
+    disabled: boolean;
+    onToggle: (userId: number, newValue: boolean) => void;
+}
+
+const BanDropdown: React.FC<BanDropdownProps> = ({ userId, isBanned, strikes, disabled, onToggle }) => {
+    const [open, setOpen] = React.useState(false);
+    const [dropUp, setDropUp] = React.useState(false);
+    const btnRef = React.useRef<HTMLButtonElement>(null);
+
+    const handleOpen = () => {
+        if (disabled) return;
+        if (!open && btnRef.current) {
+            const rect = btnRef.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            setDropUp(spaceBelow < 120);
+        }
+        setOpen(prev => !prev);
+    };
+
+    const options = [
+        { value: false, label: 'Не забанен', color: '#15803d', bg: '#f0fdf4' },
+        { value: true, label: 'Забанен', color: '#b91c1c', bg: '#fef2f2' },
+    ];
+    const current = options.find(o => o.value === isBanned) ?? options[0];
+
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ position: 'relative' }}>
+                <button
+                    ref={btnRef}
+                    disabled={disabled}
+                    onClick={handleOpen}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 8px',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        borderRadius: '6px',
+                        border: `1.5px solid ${isBanned ? '#f87171' : '#d1d5db'}`,
+                        background: current.bg,
+                        color: current.color,
+                        cursor: disabled ? 'not-allowed' : 'pointer',
+                        opacity: disabled ? 0.7 : 1,
+                        fontFamily: 'inherit',
+                        whiteSpace: 'nowrap',
+                        outline: 'none'
+                    }}
+                >
+                    {current.label}
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </button>
+
+                {open && (
+                    <>
+                        <div
+                            style={{ position: 'fixed', inset: 0, zIndex: 999 }}
+                            onClick={() => setOpen(false)}
+                        />
+                        <div style={{
+                            position: 'absolute',
+                            ...(dropUp ? { bottom: '110%' } : { top: '110%' }),
+                            left: 0,
+                            zIndex: 1000,
+                            background: '#ffffff',
+                            border: '1.5px solid #e2e8f0',
+                            borderRadius: '8px',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                            overflow: 'hidden',
+                            minWidth: '130px'
+                        }}>
+                            {options.map(opt => (
+                                <div
+                                    key={String(opt.value)}
+                                    onClick={() => { onToggle(userId, opt.value); setOpen(false); }}
+                                    style={{
+                                        padding: '8px 14px',
+                                        fontSize: '13px',
+                                        fontWeight: 600,
+                                        color: opt.color,
+                                        background: isBanned === opt.value ? opt.bg : '#ffffff',
+                                        cursor: 'pointer',
+                                        whiteSpace: 'nowrap',
+                                        transition: 'background 0.15s'
+                                    }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = opt.bg)}
+                                    onMouseLeave={e => (e.currentTarget.style.background = isBanned === opt.value ? opt.bg : '#ffffff')}
+                                >
+                                    {opt.label}
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {/* Бейдж со страйками - теперь отдельный столбец, но оставляем совместимость */}
+        </div>
+    );
 };
 
 export const AdminPanel: React.FC = () => {
@@ -383,27 +499,43 @@ export const AdminPanel: React.FC = () => {
         try {
             const res = await fetch(`http://localhost:8001/admin/users/${targetUserId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    role: newRole,
-                    plan_id: newPlanId,
-                    is_active: newIsActive
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role: newRole, plan_id: newPlanId, is_active: newIsActive })
             });
-
             if (!res.ok) {
                 const errData = await res.json();
                 throw new Error(errData.detail || 'Не удалось обновить пользователя');
             }
-
             setUsers(prev =>
                 prev.map(u => (u.user_id === targetUserId ? { ...u, role: newRole, plan_id: newPlanId, is_active: newIsActive } : u))
             );
             showToast('Данные пользователя успешно обновлены!', 'success');
         } catch (err: any) {
             showToast(err.message || 'Ошибка обновления данных', 'error');
+        }
+    };
+
+    const handleUserBanToggle = async (targetUserId: number, newIsBanned: boolean) => {
+        try {
+            const res = await fetch(`http://localhost:8001/admin/users/${targetUserId}/ban`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_banned: newIsBanned })
+            });
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.detail || 'Не удалось изменить статус бана');
+            }
+            setUsers(prev =>
+                prev.map(u => u.user_id === targetUserId
+                    ? { ...u, is_banned: newIsBanned, strikes: newIsBanned ? u.strikes : 0 }
+                    : u
+                )
+            );
+            const msg = newIsBanned ? 'Пользователь забанен' : 'Пользователь разбанен, страйки сброшены';
+            showToast(msg, newIsBanned ? 'error' : 'success');
+        } catch (err: any) {
+            showToast(err.message || 'Ошибка изменения статуса бана', 'error');
         }
     };
 
@@ -1208,6 +1340,18 @@ export const AdminPanel: React.FC = () => {
                                                         <option value="admin">admin</option>
                                                     </select>
                                                 </td>
+                                                <td style={getUserCellStyle('is_banned', { padding: '8px 16px', fontSize: '13px' })}>
+                                                    <BanDropdown
+                                                        userId={u.user_id}
+                                                        isBanned={u.is_banned ?? false}
+                                                        strikes={u.strikes ?? 0}
+                                                        disabled={currentUser?.id === u.user_id}
+                                                        onToggle={handleUserBanToggle}
+                                                    />
+                                                </td>
+                                                <td style={getUserCellStyle('strikes', { padding: '12px 16px', fontSize: '13px', color: COLORS.gray600, fontFamily: 'monospace' })} title={String(u.user_id)}>
+                                                    {u.strikes}
+                                                </td>
                                             </tr>
                                         ))
                                     )}
@@ -1331,7 +1475,7 @@ export const AdminPanel: React.FC = () => {
                 };
 
                 return (
-                    <div 
+                    <div
                         onMouseEnter={() => {
                             if (hoverTimeoutId) {
                                 clearTimeout(hoverTimeoutId);

@@ -22,9 +22,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
         const newErrors = { username: '', password: '', general: '' };
 
         if (authMode === 'register') {
-            const usernameRegex = /^[a-zA-Z]{4,}$/;
+            const usernameRegex = /^[a-zA-Z0-9_]{4,}$/;
             if (!usernameRegex.test(authForm.username)) {
-                newErrors.username = 'Только английские буквы, минимум 4 символа';
+                newErrors.username = 'Только английские буквы, цифры и _, минимум 4 символа';
                 isValid = false;
             }
             if (authForm.password.length < 6) {

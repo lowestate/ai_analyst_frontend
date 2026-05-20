@@ -329,6 +329,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                     const isSqlValidation = msg.isSqlWaiting ||
                         (msg.text.includes("```sql") && (
                             msg.text.includes("нужно выполнить SQL запрос:") ||
+                            msg.text.includes("Я исправил запрос:") ||
                             msg.text.includes("[STATUS: approve]") ||
                             msg.text.includes("[STATUS: reject]")
                         ));
