@@ -55,7 +55,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
             const data = await res.json();
 
             if (!res.ok) {
-                setAuthErrors(prev => ({ ...prev, general: data.detail || 'Ошибка авторизации' }));
+                let errorText = data.detail || 'Ошибка авторизации';
+                if (errorText.includes("Вы заблокированы за нарушение правил безопасности")) {
+                    errorText = "Ваш аккаунт заблокирован за опасные запросы";
+                }
+                setAuthErrors(prev => ({ ...prev, general: errorText }));
                 return;
             }
 

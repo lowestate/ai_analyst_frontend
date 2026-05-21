@@ -7,6 +7,7 @@ interface UserPageProps {
     currentUser: { username: string; id: number; plan_name?: string };
     onBack: () => void;
     onPlanChange?: (newPlan: string) => void;
+    isBanned?: boolean;
 }
 
 const PLANS_DATA = [
@@ -37,9 +38,10 @@ const PLANS_DATA = [
     }
 ];
 
-export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanChange }) => {
+export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanChange, isBanned }) => {
     const [currentPlan, setCurrentPlan] = useState<string | null>('free'); // По умолчанию free
     const [isLoading, setIsLoading] = useState(true);
+    const [localBanned, setLocalBanned] = useState(isBanned || false);
 
     useEffect(() => {
         // Запрашиваем текущую инфу о юзере (чтобы получить актуальный план)
@@ -50,6 +52,9 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
                     const data = await res.json();
                     if (data.plan_name) {
                         setCurrentPlan(data.plan_name.toLowerCase());
+                    }
+                    if (data.is_banned !== undefined) {
+                        setLocalBanned(data.is_banned);
                     }
                 }
             } catch (err) {
@@ -118,6 +123,24 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
                 <div className="profile-username">{currentUser.username}</div>
             </div>
 
+            {localBanned && (
+                <div style={{
+                    backgroundColor: '#fffbe6', // Бледно-желтый фон
+                    border: '1px solid #faad14', // Желтая обводка
+                    borderRadius: '12px',
+                    padding: '16px 24px',
+                    marginBottom: '32px',
+                    color: '#d48806', // Темно-желтый/оранжевый текст для читаемости
+                    textAlign: 'center',
+                    fontWeight: 600,
+                    maxWidth: '500px',
+                    width: '100%',
+                    boxShadow: '0 4px 12px rgba(250, 173, 20, 0.1)'
+                }}>
+                    Ваш аккаунт заблокирован.<br/>Все действия по анализу данных ограничены.
+                </div>
+            )}
+
             <div className="plans-title">Ваша подписка</div>
 
             <div className="plans-container">
@@ -130,7 +153,12 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
                             className={`plan-card ${plan.tierClass} ${isActive ? 'active' : ''}`}
                             onClick={(e) => {
                                 e.stopPropagation(); // Останавливаем всплытие до фона
+                                if (localBanned) return;
                                 handlePlanChange(plan.id);
+                            }}
+                            style={{
+                                opacity: localBanned && !isActive ? 0.6 : 1,
+                                cursor: localBanned ? 'not-allowed' : (isActive ? 'default' : 'pointer')
                             }}
                         >
                             {plan.badge && (
@@ -148,10 +176,10 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
                                 fontWeight: isActive ? 700 : 600,
                                 color: isActive
                                     ? (plan.id === 'ultra' ? '#343434' : '#3399FF')
-                                    : '#a1a1aa', // Серый цвет для неактивных тарифов
+                                    : (localBanned ? '#a1a1aa' : '#a1a1aa'), // Серый цвет для неактивных тарифов
                                 transition: 'color 0.2s'
                             }}>
-                                {isActive ? 'Текущий тариф' : 'Выбрать тариф'}
+                                {isActive ? 'Текущий тариф' : (localBanned ? 'Недоступно' : 'Выбрать тариф')}
                             </div>
                         </div>
                     );

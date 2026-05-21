@@ -10,6 +10,7 @@ interface SidebarProps {
     onDeleteChat: (id: string) => void;
     isSidebarHidden: boolean;
     onToggleSidebar: () => void;
+    isBanned?: boolean;
 }
 
 export const LeftSidebar: React.FC<SidebarProps> = ({
@@ -19,7 +20,8 @@ export const LeftSidebar: React.FC<SidebarProps> = ({
     onOpenUploadModal,
     onDeleteChat,
     isSidebarHidden,
-    onToggleSidebar
+    onToggleSidebar,
+    isBanned = false
 }) => {
     const displaySessions = [...sessions].reverse();
 
@@ -110,7 +112,12 @@ export const LeftSidebar: React.FC<SidebarProps> = ({
                 </button>
                 <button
                     className="btn-upload"
-                    onClick={onOpenUploadModal}
+                    onClick={() => { if (!isBanned) onOpenUploadModal(); }}
+                    disabled={isBanned}
+                    style={{
+                        opacity: isBanned ? 0.5 : 1,
+                        cursor: isBanned ? 'not-allowed' : 'pointer'
+                    }}
                 >
                     {isSidebarHidden ? '+' : 'Новый анализ'}
                 </button>

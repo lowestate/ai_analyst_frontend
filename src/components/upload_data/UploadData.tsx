@@ -13,13 +13,14 @@ interface UploadModalProps {
     onSubmit: () => void;
     isSubmitDisabled: boolean;
     currentUser?: { username: string; id: number; plan_name?: string } | null;
+    isBanned?: boolean;
 }
 
 export const UploadModal: React.FC<UploadModalProps> = ({
     isOpen, onClose, uploadTab, setUploadTab, selectedFile, setSelectedFile, 
-    dbCreds, onDbCredsChange, onSubmit, isSubmitDisabled, currentUser
+    dbCreds, onDbCredsChange, onSubmit, isSubmitDisabled, currentUser, isBanned = false
 }) => {
-    if (!isOpen) return null;
+    if (!isOpen || isBanned) return null;
 
     return (
         <div className="modal-overlay" onClick={onClose}>

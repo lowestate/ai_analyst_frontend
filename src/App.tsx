@@ -12,7 +12,7 @@ import { Header } from './components/Header';
 
 import { ChatArea } from './components/chat/ChatArea';
 import { Dashboard } from './components/dashboard/Dashboard';
-import { AdminPanel } from './components/AdminPanel';
+import { AdminPanel } from './components/admin_panel/AdminPanel';
 import { AuthModal } from './components/user/LoginOrRegister';
 import { UserPage } from './components/user/UserPage'
 import { UploadModal } from './components/upload_data/UploadData';
@@ -36,6 +36,7 @@ function MainLayout() {
         return saved ? JSON.parse(saved) : null;
     });
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [banModalOpen, setBanModalOpen] = useState(false);
 
     useEffect(() => {
         if (currentUser) {
@@ -140,6 +141,9 @@ function MainLayout() {
                 const res = await fetch(`http://localhost:8001/users/${currentUser.id}`);
                 if (res.ok) {
                     const data = await res.json();
+                    if (data.is_banned) {
+                        setBanModalOpen(true);
+                    }
                     if (data.plan_name || data.role) {
                         setCurrentUser(prev => prev ? { ...prev, plan_name: data.plan_name?.toLowerCase(), role: data.role } : null);
                     }
@@ -375,6 +379,10 @@ function MainLayout() {
                 textToDisplay += `\n\n\`\`\`sql\n${data.sql_query}\n\`\`\``;
             }
 
+            if (textToDisplay && textToDisplay.includes("Вы заблокированы за нарушение правил безопасности")) {
+                setBanModalOpen(true);
+            }
+
             setMessages(prev => [...prev, {
                 id: (Date.now() + 1).toString(),
                 sender: 'agent',
@@ -438,13 +446,6 @@ function MainLayout() {
 
     return (
         <>
-            {isAuthModalOpen && (
-                <AuthModal
-                    onClose={() => setIsAuthModalOpen(false)}
-                    onSuccess={(user) => setCurrentUser(user)}
-                />
-            )}
-
             <div className="app-root">
                 <Header
                     currentUser={currentUser}
@@ -462,6 +463,7 @@ function MainLayout() {
                             onDeleteChat={handleDeleteChat}
                             isSidebarHidden={isSidebarHidden}
                             onToggleSidebar={() => setIsSidebarHidden(prev => !prev)}
+                            isBanned={banModalOpen}
                         />
 
                         <ChatArea
@@ -479,12 +481,14 @@ function MainLayout() {
                             onRetry={handleRetryMessage}
                             currentUser={currentUser}
                             aiRequests={aiRequests}
+                            isBanned={banModalOpen}
                         />
 
                         <RightSidebar
                             charts={uniqueCharts}
                             onSelectChart={setSelectedChart}
                             isDatasetLoaded={!!activeChat && activeChat !== "temp_loading"}
+                            isBanned={banModalOpen}
                         />
 
                         {selectedChart && (
@@ -507,6 +511,7 @@ function MainLayout() {
                             onSubmit={handleDataSubmit}
                             isSubmitDisabled={isSubmitDisabled}
                             currentUser={currentUser}
+                            isBanned={banModalOpen}
                         />
                     </div>
                 ) : (
@@ -514,7 +519,55 @@ function MainLayout() {
                         currentUser={currentUser!}
                         onBack={() => setCurrentView('chat')}
                         onPlanChange={(newPlan) => setCurrentUser(prev => prev ? { ...prev, plan_name: newPlan } : null)}
+                        isBanned={banModalOpen}
                     />
+                )}
+
+                {isAuthModalOpen && (
+                    <AuthModal
+                        onClose={() => setIsAuthModalOpen(false)}
+                        onSuccess={(user) => setCurrentUser(user)}
+                    />
+                )}
+
+                {banModalOpen && (
+                    <div
+                        className="auth-overlay"
+                        style={{
+                            zIndex: 10000,
+                            alignItems: 'flex-start', // Выравнивание сверху
+                            paddingTop: '50px',        // Отступ сверху
+                        }}
+                    >
+                        <div
+                            className="auth-modal"
+                            style={{
+                                textAlign: 'center',
+                                width: '600px',       // ШИРИНА ОКНА (МЕНЯТЬ ЗДЕСЬ)
+                                maxWidth: '90%',
+                                height: '150px',      // ВЫСОТА ОКНА (МЕНЯТЬ ЗДЕСЬ)
+                                minHeight: '150px',   // ОБЯЗАТЕЛЬНО: сбрасываем min-height: 420px из CSS
+                                padding: '30px',      // Внутренние отступы
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center' // Центрируем контент по вертикали
+                            }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <h2 style={{ color: '#000000ff', fontSize: '20px', marginBottom: '20px' }}>Ваш аккаунт заблокирован за опасные запросы</h2>
+                            <button
+                                onClick={() => {
+                                    setBanModalOpen(false);
+                                    handleLogout();
+                                }}
+                                className="btn-auth-submit"
+                                style={{ width: '150px', padding: '10px', fontSize: '14px' }}
+                            >
+                                Понятно
+                            </button>
+                        </div>
+                    </div>
                 )}
             </div>
         </>

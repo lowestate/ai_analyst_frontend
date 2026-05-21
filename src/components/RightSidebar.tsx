@@ -7,6 +7,7 @@ interface RightSidebarProps {
     charts: ChartData[];
     onSelectChart: (chart: ChartData) => void;
     isDatasetLoaded: boolean;
+    isBanned?: boolean;
 }
 
 export const COLORS = {
@@ -86,7 +87,7 @@ export const getChartInfo = (chart: ChartData) => {
     return { title: 'График', columnName: null, subtitle: null };
 };
 
-export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChart, isDatasetLoaded }) => {
+export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChart, isDatasetLoaded, isBanned = false }) => {
     const navigate = useNavigate();
 
     const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -152,7 +153,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
             {/* КНОПКА ДАШБОРДА */}
             {isDatasetLoaded && hasCharts && (
                 <button 
-                    onClick={() => navigate('/dashboard', { state: { charts, folders: FOLDERS } })}
+                    disabled={isBanned}
+                    onClick={() => { if (!isBanned) navigate('/dashboard', { state: { charts, folders: FOLDERS } }); }}
                     style={{
                         width: '100%',
                         marginBottom: '20px', padding: '10px 16px',
@@ -163,12 +165,14 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
                         fontWeight: 600, fontSize: '14px',
                         transition: 'all 0.2s ease',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                        boxShadow: `0 2px 0 ${COLORS.shadowLight05}`
+                        boxShadow: `0 2px 0 ${COLORS.shadowLight05}`,
+                        opacity: isBanned ? 0.6 : 1,
+                        cursor: isBanned ? 'not-allowed' : 'pointer'
                     }}
-                    onMouseEnter={e => e.currentTarget.style.backgroundColor = COLORS.gray100}
-                    onMouseLeave={e => e.currentTarget.style.backgroundColor = COLORS.white}
-                    onMouseDown={e => e.currentTarget.style.transform = 'translateY(2px)'}
-                    onMouseUp={e => e.currentTarget.style.transform = 'none'}
+                    onMouseEnter={e => { if (!isBanned) e.currentTarget.style.backgroundColor = COLORS.gray100; }}
+                    onMouseLeave={e => { if (!isBanned) e.currentTarget.style.backgroundColor = COLORS.white; }}
+                    onMouseDown={e => { if (!isBanned) e.currentTarget.style.transform = 'translateY(2px)'; }}
+                    onMouseUp={e => { if (!isBanned) e.currentTarget.style.transform = 'none'; }}
                 >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -241,7 +245,17 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
                                             <div style={{ color: '#aaa', fontStyle: 'italic', fontSize: '13px', padding: '15px 0' }}>Пусто</div>
                                         ) : (
                                             [...folderCharts].reverse().map((c, i) => (
-                                                <div key={i} className="chart-preview-box" onClick={() => onSelectChart(c)} style={{ flexDirection: 'column', width: '92%' }}>
+                                                <div 
+                                                    key={i} 
+                                                    className="chart-preview-box" 
+                                                    onClick={() => { if (!isBanned) onSelectChart(c); }} 
+                                                    style={{ 
+                                                        flexDirection: 'column', 
+                                                        width: '92%',
+                                                        cursor: isBanned ? 'not-allowed' : 'pointer',
+                                                        opacity: isBanned ? 0.7 : 1
+                                                    }}
+                                                >
                                                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#444', textAlign: 'left', width: '100%', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: '1.3', marginTop: '-10px' }}>
                                                         {getChartInfo(c).title} {getChartInfo(c).columnName?.split('_').join('\u200B_')}
                                                     </div>

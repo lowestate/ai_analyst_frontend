@@ -22,6 +22,7 @@ interface ChatAreaProps {
     onRetry: (msgId: string, retryData: any) => void;
     currentUser?: { username: string; id: number; plan_name?: string } | null;
     aiRequests?: number[];
+    isBanned?: boolean;
 }
 
 const CHAT_SUGGESTIONS = [
@@ -51,7 +52,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     activeChat, messages, loading, loadingPhrase,
     input, setInput, onSendMessage, localDataPool,
     dbSchema, onRefreshSchema, initialCharts = [], onRetry,
-    currentUser, aiRequests = []
+    currentUser, aiRequests = [], isBanned = false
 }) => {
     const [useAi, setUseAi] = useState(false);
     const [removedCols, setRemovedCols] = useState<string[]>([]);
@@ -197,7 +198,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const renderSuggestionButton = (suggestion: typeof CHAT_SUGGESTIONS[0], index: number) => (
         <button
             key={index}
-            disabled={loading}
+            disabled={loading || isBanned}
             onClick={() => handleSuggestionClick(suggestion)}
             style={{
                 display: 'flex',
@@ -213,8 +214,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 fontSize: '12px',
                 lineHeight: '1',
                 color: '#4a90e2',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.6 : 1,
+                cursor: (loading || isBanned) ? 'not-allowed' : 'pointer',
+                opacity: (loading || isBanned) ? 0.6 : 1,
                 transition: 'all 0.2s ease',
                 whiteSpace: 'nowrap',
                 flexShrink: 0
@@ -235,7 +236,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     );
 
     const handleInputSend = () => {
-        if (!input.trim()) return;
+        if (isBanned || !input.trim()) return;
 
         let textToSend = input;
         if (isFinTag) textToSend = `[Ф] ${input}`;
@@ -652,12 +653,13 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                         setInput(e.target.value);
                                     }}
                                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                                        if (e.key === 'Enter') {
+                                        if (e.key === 'Enter' && !isBanned) {
                                             e.preventDefault();
                                             handleInputSend();
                                         }
                                     }}
-                                    placeholder="Что исследуем?"
+                                    placeholder={isBanned ? "Действие недоступно (бан)" : "Что исследуем?"}
+                                    disabled={isBanned || loading}
                                 />
                             </div>
 
