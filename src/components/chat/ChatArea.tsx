@@ -664,103 +664,106 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }} ref={suggestionsRef}>
-                                <span style={{ fontSize: '11px', color: '#666', fontWeight: 500, paddingLeft: '4px' }}>Доступные команды</span>
-                                <div style={{ display: 'flex', flexDirection: 'row', gap: '10px' }}>
-                                    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                        <div style={{
-                                            position: 'absolute',
-                                            bottom: 'calc(100% + 8px)',
-                                            right: 0,
-                                            background: '#fff',
-                                            border: isDataOpen ? '1px solid #dce4ec' : '0px solid transparent',
-                                            borderRadius: '12px',
-                                            boxShadow: isDataOpen ? '0 -4px 16px rgba(0,0,0,0.1)' : 'none',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: '6px',
-                                            zIndex: 100,
-                                            maxHeight: isDataOpen ? '300px' : '0px',
-                                            opacity: isDataOpen ? 1 : 0,
-                                            overflowY: 'auto',
-                                            transition: 'max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out',
-                                            pointerEvents: isDataOpen ? 'auto' : 'none',
-                                            padding: isDataOpen ? '8px' : '0px',
-                                            minWidth: '220px'
-                                        }}>
-                                            {dataAnalysisSuggestions.map((suggestion, idx) => renderSuggestionButton(suggestion, idx))}
-                                        </div>
-                                        <button
-                                            onClick={() => {
-                                                setIsDataOpen(!isDataOpen);
-                                                if (isFinOpen) setIsFinOpen(false);
-                                            }}
-                                            style={{
-                                                background: isDataOpen ? '#e0f0ff' : '#f0f4f8',
-                                                border: '1px solid #dce4ec',
-                                                borderRadius: '10px',
-                                                padding: '0 16px',
-                                                height: '30px',
-                                                fontSize: '13px',
-                                                color: '#4a90e2',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s ease',
-                                                fontWeight: 600,
-                                                whiteSpace: 'nowrap'
-                                            }}
-                                        >
-                                            Анализ данных
-                                        </button>
-                                    </div>
+                                {!isDbMode && (
+                                    <>
+                                        <span style={{ fontSize: '11px', color: '#666', fontWeight: 500, paddingLeft: '4px' }}>Доступные команды</span>
+                                        <div style={{ display: 'flex', flexDirection: 'row', gap: '10px' }}>
+                                            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    bottom: 'calc(100% + 8px)',
+                                                    right: 0,
+                                                    background: '#fff',
+                                                    border: isDataOpen ? '1px solid #dce4ec' : '0px solid transparent',
+                                                    borderRadius: '12px',
+                                                    boxShadow: isDataOpen ? '0 -4px 16px rgba(0,0,0,0.1)' : 'none',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '6px',
+                                                    zIndex: 100,
+                                                    maxHeight: isDataOpen ? '300px' : '0px',
+                                                    opacity: isDataOpen ? 1 : 0,
+                                                    overflowY: 'auto',
+                                                    transition: 'max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out',
+                                                    pointerEvents: isDataOpen ? 'auto' : 'none',
+                                                    padding: isDataOpen ? '8px' : '0px',
+                                                    minWidth: '220px'
+                                                }}>
+                                                    {dataAnalysisSuggestions.map((suggestion, idx) => renderSuggestionButton(suggestion, idx))}
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        setIsDataOpen(!isDataOpen);
+                                                        if (isFinOpen) setIsFinOpen(false);
+                                                    }}
+                                                    style={{
+                                                        background: isDataOpen ? '#e0f0ff' : '#f0f4f8',
+                                                        border: '1px solid #dce4ec',
+                                                        borderRadius: '10px',
+                                                        padding: '0 16px',
+                                                        height: '30px',
+                                                        fontSize: '13px',
+                                                        color: '#4a90e2',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s ease',
+                                                        fontWeight: 600,
+                                                        whiteSpace: 'nowrap'
+                                                    }}
+                                                >
+                                                    Анализ данных
+                                                </button>
+                                            </div>
 
-                                    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                        <div style={{
-                                            position: 'absolute',
-                                            bottom: 'calc(100% + 8px)',
-                                            right: 0,
-                                            background: '#fff',
-                                            border: isFinOpen ? '1px solid #dce4ec' : '0px solid transparent',
-                                            borderRadius: '12px',
-                                            boxShadow: isFinOpen ? '0 -4px 16px rgba(0,0,0,0.1)' : 'none',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: '6px',
-                                            zIndex: 100,
-                                            maxHeight: isFinOpen ? '300px' : '0px',
-                                            opacity: isFinOpen ? 1 : 0,
-                                            overflowY: 'auto',
-                                            transition: 'max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out',
-                                            pointerEvents: isFinOpen ? 'auto' : 'none',
-                                            padding: isFinOpen ? '8px' : '0px',
-                                            minWidth: '220px'
-                                        }}>
-                                            {financialAnalysisSuggestions.map((suggestion, idx) => renderSuggestionButton(suggestion, idx))}
+                                            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    bottom: 'calc(100% + 8px)',
+                                                    right: 0,
+                                                    background: '#fff',
+                                                    border: isFinOpen ? '1px solid #dce4ec' : '0px solid transparent',
+                                                    borderRadius: '12px',
+                                                    boxShadow: isFinOpen ? '0 -4px 16px rgba(0,0,0,0.1)' : 'none',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '6px',
+                                                    zIndex: 100,
+                                                    maxHeight: isFinOpen ? '300px' : '0px',
+                                                    opacity: isFinOpen ? 1 : 0,
+                                                    overflowY: 'auto',
+                                                    transition: 'max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out',
+                                                    pointerEvents: isFinOpen ? 'auto' : 'none',
+                                                    padding: isFinOpen ? '8px' : '0px',
+                                                    minWidth: '220px'
+                                                }}>
+                                                    {financialAnalysisSuggestions.map((suggestion, idx) => renderSuggestionButton(suggestion, idx))}
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        setIsFinOpen(!isFinOpen);
+                                                        if (isDataOpen) setIsDataOpen(false);
+                                                    }}
+                                                    style={{
+                                                        background: isFinOpen ? '#e0f0ff' : '#f0f4f8',
+                                                        border: '1px solid #dce4ec',
+                                                        borderRadius: '10px',
+                                                        padding: '0 16px',
+                                                        height: '30px',
+                                                        fontSize: '13px',
+                                                        color: '#4a90e2',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s ease',
+                                                        fontWeight: 600,
+                                                        whiteSpace: 'nowrap'
+                                                    }}
+                                                >
+                                                    Бизнес и финансы
+                                                </button>
+                                            </div>
                                         </div>
-                                        <button
-                                            onClick={() => {
-                                                setIsFinOpen(!isFinOpen);
-                                                if (isDataOpen) setIsDataOpen(false);
-                                            }}
-                                            style={{
-                                                background: isFinOpen ? '#e0f0ff' : '#f0f4f8',
-                                                border: '1px solid #dce4ec',
-                                                borderRadius: '10px',
-                                                padding: '0 16px',
-                                                height: '30px',
-                                                fontSize: '13px',
-                                                color: '#4a90e2',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s ease',
-                                                fontWeight: 600,
-                                                whiteSpace: 'nowrap'
-                                            }}
-                                        >
-                                            Бизнес и финансы
-                                        </button>
-                                    </div>
-                                </div>
+                                    </>
+                                )}
                             </div>
                         </div>
-
                     </div>
                 </div>
             )}

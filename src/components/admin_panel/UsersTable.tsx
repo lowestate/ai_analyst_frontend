@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { COLORS } from '../../globasStyles';
 
 export interface User {
@@ -9,6 +10,7 @@ export interface User {
     role: string;
     is_banned: boolean;
     strikes: number;
+    register_date?: string;
 }
 
 export interface Plan {
@@ -23,8 +25,30 @@ export const USER_COLUMNS = [
     { key: 'is_active', label: 'Статус' },
     { key: 'role', label: 'Роль' },
     { key: 'is_banned', label: 'Забанен' },
-    { key: 'strikes', label: 'Кол-во нарушений' }
+    { key: 'strikes', label: 'Кол-во нарушений' },
+    { key: 'register_date', label: 'Дата регистрации' }
 ];
+
+export const formatLocalDate = (dateStr: string | undefined | null): string => {
+    if (!dateStr) return '-';
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const yyyy = date.getFullYear();
+        const mm = pad(date.getMonth() + 1);
+        const dd = pad(date.getDate());
+        const hh = pad(date.getHours());
+        const mi = pad(date.getMinutes());
+        const ss = pad(date.getSeconds());
+        
+        return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+    } catch {
+        return dateStr;
+    }
+};
+
 
 interface BanDropdownProps {
     userId: number;
@@ -37,6 +61,7 @@ interface BanDropdownProps {
 const BanDropdown: React.FC<BanDropdownProps> = ({ userId, isBanned, strikes, disabled, onToggle }) => {
     const [open, setOpen] = useState(false);
     const [dropUp, setDropUp] = useState(false);
+    const [coords, setCoords] = useState({ top: 0, left: 0 });
     const btnRef = useRef<HTMLButtonElement>(null);
 
     const handleOpen = () => {
@@ -44,10 +69,27 @@ const BanDropdown: React.FC<BanDropdownProps> = ({ userId, isBanned, strikes, di
         if (!open && btnRef.current) {
             const rect = btnRef.current.getBoundingClientRect();
             const spaceBelow = window.innerHeight - rect.bottom;
-            setDropUp(spaceBelow < 120);
+            const isDropUp = spaceBelow < 120;
+            setDropUp(isDropUp);
+            setCoords({
+                top: isDropUp ? rect.top - 4 : rect.bottom + 4,
+                left: rect.left
+            });
         }
         setOpen(prev => !prev);
     };
+
+    useEffect(() => {
+        const handleClose = () => setOpen(false);
+        if (open) {
+            window.addEventListener('scroll', handleClose, true);
+            window.addEventListener('resize', handleClose);
+        }
+        return () => {
+            window.removeEventListener('scroll', handleClose, true);
+            window.removeEventListener('resize', handleClose);
+        };
+    }, [open]);
 
     const options = [
         { value: false, label: 'Не забанен', color: '#15803d', bg: '#f0fdf4' },
@@ -86,17 +128,18 @@ const BanDropdown: React.FC<BanDropdownProps> = ({ userId, isBanned, strikes, di
                     </svg>
                 </button>
 
-                {open && (
+                {open && createPortal(
                     <>
                         <div
-                            style={{ position: 'fixed', inset: 0, zIndex: 999 }}
+                            style={{ position: 'fixed', inset: 0, zIndex: 99999 }}
                             onClick={() => setOpen(false)}
                         />
                         <div style={{
-                            position: 'absolute',
-                            ...(dropUp ? { bottom: '110%' } : { top: '110%' }),
-                            left: 0,
-                            zIndex: 1000,
+                            position: 'fixed',
+                            top: `${coords.top}px`,
+                            left: `${coords.left}px`,
+                            transform: dropUp ? 'translateY(-100%)' : 'none',
+                            zIndex: 100000,
                             background: '#ffffff',
                             border: '1.5px solid #e2e8f0',
                             borderRadius: '8px',
@@ -125,12 +168,161 @@ const BanDropdown: React.FC<BanDropdownProps> = ({ userId, isBanned, strikes, di
                                 </div>
                             ))}
                         </div>
-                    </>
+                    </>,
+                    document.body
                 )}
             </div>
         </div>
     );
 };
+
+interface CustomTableDropdownProps<T> {
+    value: T;
+    options: {
+        value: T;
+        label: string;
+        color?: string;
+        bg?: string;
+        hoverBg?: string;
+    }[];
+    disabled?: boolean;
+    onChange: (newValue: T) => void;
+    minWidth?: string;
+    buttonStyle?: React.CSSProperties;
+}
+
+function CustomTableDropdown<T>({
+    value,
+    options,
+    disabled = false,
+    onChange,
+    minWidth = '130px',
+    buttonStyle = {}
+}: CustomTableDropdownProps<T>) {
+    const [open, setOpen] = useState(false);
+    const [dropUp, setDropUp] = useState(false);
+    const [coords, setCoords] = useState({ top: 0, left: 0 });
+    const btnRef = useRef<HTMLButtonElement>(null);
+
+    const handleOpen = () => {
+        if (disabled) return;
+        if (!open && btnRef.current) {
+            const rect = btnRef.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const isDropUp = spaceBelow < 120;
+            setDropUp(isDropUp);
+            setCoords({
+                top: isDropUp ? rect.top - 4 : rect.bottom + 4,
+                left: rect.left
+            });
+        }
+        setOpen(prev => !prev);
+    };
+
+    useEffect(() => {
+        const handleClose = () => setOpen(false);
+        if (open) {
+            window.addEventListener('scroll', handleClose, true);
+            window.addEventListener('resize', handleClose);
+        }
+        return () => {
+            window.removeEventListener('scroll', handleClose, true);
+            window.removeEventListener('resize', handleClose);
+        };
+    }, [open]);
+
+    const current = options.find(o => o.value === value) ?? options[0];
+
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+            <div style={{ position: 'relative', width: '100%' }}>
+                <button
+                    ref={btnRef}
+                    disabled={disabled}
+                    onClick={handleOpen}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '6px',
+                        padding: '5px 10px',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        borderRadius: '6px',
+                        border: `1.5px solid ${COLORS.gray200}`,
+                        background: current.bg || '#ffffff',
+                        color: current.color || COLORS.gray700,
+                        cursor: disabled ? 'not-allowed' : 'pointer',
+                        opacity: disabled ? 0.7 : 1,
+                        fontFamily: 'inherit',
+                        whiteSpace: 'nowrap',
+                        outline: 'none',
+                        width: '100%',
+                        ...buttonStyle
+                    }}
+                >
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {current.label}
+                    </span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0 }}>
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </button>
+
+                {open && createPortal(
+                    <>
+                        <div
+                            style={{ position: 'fixed', inset: 0, zIndex: 99999 }}
+                            onClick={() => setOpen(false)}
+                        />
+                        <div style={{
+                            position: 'fixed',
+                            top: `${coords.top}px`,
+                            left: `${coords.left}px`,
+                            transform: dropUp ? 'translateY(-100%)' : 'none',
+                            zIndex: 100000,
+                            background: '#ffffff',
+                            border: '1.5px solid #e2e8f0',
+                            borderRadius: '8px',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                            overflow: 'hidden',
+                            minWidth: minWidth
+                        }}>
+                            {options.map((opt, idx) => {
+                                const isSelected = opt.value === value;
+                                const rowBg = opt.bg || (idx % 2 === 0 ? '#ffffff' : '#f8fafc');
+                                const defaultHoverBg = isSelected ? (opt.bg || '#f1f5f9') : '#f1f5f9';
+                                const hoverBg = opt.hoverBg || defaultHoverBg;
+
+                                return (
+                                    <div
+                                        key={String(opt.value)}
+                                        onClick={() => { onChange(opt.value); setOpen(false); }}
+                                        style={{
+                                            padding: '8px 14px',
+                                            fontSize: '13px',
+                                            fontWeight: isSelected ? 700 : 500,
+                                            color: opt.color || COLORS.gray700,
+                                            background: isSelected ? (opt.bg || '#f1f5f9') : rowBg,
+                                            cursor: 'pointer',
+                                            whiteSpace: 'nowrap',
+                                            transition: 'background 0.15s'
+                                        }}
+                                        onMouseEnter={e => (e.currentTarget.style.background = hoverBg)}
+                                        onMouseLeave={e => (e.currentTarget.style.background = isSelected ? (opt.bg || '#f1f5f9') : rowBg)}
+                                    >
+                                        {opt.label}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </>,
+                    document.body
+                )}
+            </div>
+        </div>
+    );
+}
 
 export interface UsersTableProps {
     currentUser: any;
@@ -503,84 +695,57 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                                         {u.username}
                                     </td>
                                     <td style={getUserCellStyle('plan_id', { padding: '8px 16px', fontSize: '13px' })}>
-                                        <select
+                                        <CustomTableDropdown
                                             value={u.plan_id}
-                                            onChange={(e) => handleUserUpdate(u.user_id, u.role, parseInt(e.target.value), u.is_active)}
-                                            style={{
-                                                padding: '4px 8px',
-                                                fontSize: '13px',
-                                                borderRadius: '6px',
-                                                border: `1.5px solid ${COLORS.gray200}`,
-                                                background: COLORS.white,
-                                                outline: 'none',
-                                                cursor: 'pointer',
-                                                width: '100%',
-                                                fontFamily: 'inherit'
-                                            }}
-                                        >
-                                            {plans.length > 0 ? (
-                                                plans.map(p => (
-                                                    <option key={p.plan_id} value={p.plan_id}>
-                                                        {p.plan_id} - {p.plan_name}
-                                                    </option>
-                                                ))
-                                            ) : (
-                                                <>
-                                                    <option value={1}>1 - free</option>
-                                                    <option value={2}>2 - pro</option>
-                                                    <option value={3}>3 - ultra</option>
-                                                </>
-                                            )}
-                                        </select>
+                                            onChange={(newVal) => handleUserUpdate(u.user_id, u.role, newVal, u.is_active)}
+                                            options={plans.length > 0 ? (
+                                                plans.map(p => ({
+                                                    value: p.plan_id,
+                                                    label: `${p.plan_id} - ${p.plan_name}`,
+                                                    color: COLORS.gray700,
+                                                    hoverBg: '#f1f5f9'
+                                                }))
+                                            ) : [
+                                                { value: 1, label: '1 - free', color: COLORS.gray700, hoverBg: '#f1f5f9' },
+                                                { value: 2, label: '2 - pro', color: COLORS.gray700, hoverBg: '#f1f5f9' },
+                                                { value: 3, label: '3 - ultra', color: COLORS.gray700, hoverBg: '#f1f5f9' }
+                                            ]}
+                                            minWidth="160px"
+                                        />
                                     </td>
                                     <td style={getUserCellStyle('is_active', { padding: '8px 16px', fontSize: '13px' })}>
-                                        <select
+                                        <CustomTableDropdown
                                             disabled={currentUser?.id === u.user_id}
-                                            value={String(u.is_active)}
-                                            onChange={(e) => handleUserUpdate(u.user_id, u.role, u.plan_id, e.target.value === 'true')}
-                                            style={{
-                                                padding: '4px 8px',
-                                                fontSize: '13px',
-                                                borderRadius: '6px',
-                                                border: `1.5px solid ${COLORS.gray200}`,
-                                                background: COLORS.white,
-                                                outline: 'none',
-                                                cursor: currentUser?.id === u.user_id ? 'not-allowed' : 'pointer',
-                                                width: '100%',
-                                                fontFamily: 'inherit',
+                                            value={u.is_active}
+                                            onChange={(newVal) => handleUserUpdate(u.user_id, u.role, u.plan_id, newVal)}
+                                            options={[
+                                                { value: true, label: 'Активен', color: '#137333', bg: '#e6f4ea', hoverBg: '#d7eedb' },
+                                                { value: false, label: 'Удален', color: '#c5221f', bg: '#fce8e6', hoverBg: '#fad2cf' }
+                                            ]}
+                                            buttonStyle={{
                                                 fontWeight: 600,
-                                                opacity: currentUser?.id === u.user_id ? 0.7 : 1,
                                                 color: u.is_active ? '#137333' : '#c5221f',
-                                                backgroundColor: u.is_active ? '#e6f4ea' : '#fce8e6'
+                                                background: u.is_active ? '#e6f4ea' : '#fce8e6',
+                                                border: `1.5px solid ${u.is_active ? '#a3cfb0' : '#f5c2c1'}`
                                             }}
-                                        >
-                                            <option value="true" style={{ color: '#137333', backgroundColor: '#e6f4ea' }}>Активен</option>
-                                            <option value="false" style={{ color: '#c5221f', backgroundColor: '#fce8e6' }}>Удален</option>
-                                        </select>
+                                            minWidth="130px"
+                                        />
                                     </td>
                                     <td style={getUserCellStyle('role', { padding: '8px 16px', fontSize: '13px' })}>
-                                        <select
+                                        <CustomTableDropdown
                                             disabled={currentUser?.id === u.user_id}
                                             value={u.role || 'user'}
-                                            onChange={(e) => handleUserUpdate(u.user_id, e.target.value, u.plan_id, u.is_active)}
-                                            style={{
-                                                padding: '4px 8px',
-                                                fontSize: '13px',
-                                                borderRadius: '6px',
-                                                border: `1.5px solid ${COLORS.gray200}`,
-                                                background: COLORS.white,
-                                                outline: 'none',
-                                                cursor: currentUser?.id === u.user_id ? 'not-allowed' : 'pointer',
-                                                width: '100%',
-                                                fontFamily: 'inherit',
-                                                opacity: currentUser?.id === u.user_id ? 0.7 : 1,
+                                            onChange={(newVal) => handleUserUpdate(u.user_id, newVal, u.plan_id, u.is_active)}
+                                            options={[
+                                                { value: 'user', label: 'user', color: COLORS.gray700, hoverBg: '#f1f5f9' },
+                                                { value: 'admin', label: 'admin', color: COLORS.accent, hoverBg: '#f1f5f9' }
+                                            ]}
+                                            buttonStyle={{
                                                 fontWeight: u.role === 'admin' ? 600 : 'normal',
                                                 color: u.role === 'admin' ? COLORS.accent : COLORS.gray700
                                             }}
-                                        >
-                                            <option value="user">user</option>
-                                            <option value="admin">admin</option>
-                                        </select>
+                                            minWidth="130px"
+                                        />
                                     </td>
                                     <td style={getUserCellStyle('is_banned', { padding: '8px 16px', fontSize: '13px' })}>
                                         <BanDropdown
@@ -593,6 +758,9 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                                     </td>
                                     <td style={getUserCellStyle('strikes', { padding: '12px 16px', fontSize: '13px', color: COLORS.gray600, fontFamily: 'monospace' })} title={String(u.user_id)}>
                                         {u.strikes}
+                                    </td>
+                                    <td style={getUserCellStyle('register_date', { padding: '12px 16px', fontSize: '13px', color: COLORS.gray600, fontFamily: 'monospace', whiteSpace: 'nowrap' })} title={formatLocalDate(u.register_date)}>
+                                        {formatLocalDate(u.register_date)}
                                     </td>
                                 </tr>
                             ))
