@@ -398,7 +398,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                             </ReactMarkdown>
                                         </div>
 
-                                        {msg.isError && msg.retryData && (
+                                        {(msg.isError || msg.isWarning) && msg.retryData && (
                                             <button
                                                 onClick={() => onRetry(msg.id, msg.retryData!)}
                                                 style={{
@@ -406,8 +406,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                                     width: '24px',
                                                     height: '24px',
                                                     background: 'transparent',
-                                                    border: '1px solid #d93025',
-                                                    color: '#d93025',
+                                                    border: msg.isWarning ? '1px solid #ffc107' : '1px solid #d93025',
+                                                    color: msg.isWarning ? '#b76c00' : '#d93025',
                                                     borderRadius: '6px',
                                                     cursor: 'pointer',
                                                     display: 'flex',
@@ -416,12 +416,12 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                                     transition: 'all 0.2s ease'
                                                 }}
                                                 onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                                                    e.currentTarget.style.background = '#d93025';
+                                                    e.currentTarget.style.background = msg.isWarning ? '#ffc107' : '#d93025';
                                                     e.currentTarget.style.color = '#fff';
                                                 }}
                                                 onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
                                                     e.currentTarget.style.background = 'transparent';
-                                                    e.currentTarget.style.color = '#d93025';
+                                                    e.currentTarget.style.color = msg.isWarning ? '#b76c00' : '#d93025';
                                                 }}
                                             >
                                                 <svg

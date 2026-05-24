@@ -71,15 +71,7 @@ function MainLayout() {
         }
     });
 
-    const loadingPhrases = ['Анализирую...', 'Исследую...', 'Изучаю...', 'Отправляю датасет в пентагон...'];
-    const [loadingIndex, setLoadingIndex] = useState(0);
-
-    useEffect(() => {
-        let interval: ReturnType<typeof setInterval>;
-        if (loading) interval = setInterval(() => setLoadingIndex(prev => (prev + 1) % loadingPhrases.length), 4000);
-        else setLoadingIndex(0);
-        return () => clearInterval(interval);
-    }, [loading]);
+    const [loadingPhrase, setLoadingPhrase] = useState('Проверка запроса...');
 
     // Trigger window resize events during the sidebar hide/show transition (0.3s)
     // This allows Plotly charts to dynamically adjust their width
@@ -168,6 +160,7 @@ function MainLayout() {
         if (id === activeChat || !currentUser) return;
         setActiveChat("temp_loading");
         setMessages([]);
+        setLoadingPhrase("Загрузка истории чата...");
         setLoading(true);
 
         try {
@@ -222,6 +215,7 @@ function MainLayout() {
         setIsUploadModalOpen(false);
         setActiveChat("temp_loading");
         setMessages([]);
+        setLoadingPhrase("Загрузка и обработка файла...");
         setLoading(true);
 
         try {
@@ -353,6 +347,7 @@ function MainLayout() {
         }
 
         setInput('');
+        setLoadingPhrase("Проверка запроса...");
         setLoading(true);
 
         try {
@@ -372,24 +367,63 @@ function MainLayout() {
             });
 
             if (!res.ok) throw new Error(`HTTP Ошибка: ${res.status}`);
-            const data = await res.json();
 
-            let textToDisplay = data.reply;
-            if (data.is_waiting_for_sql && data.sql_query) {
-                textToDisplay += `\n\n\`\`\`sql\n${data.sql_query}\n\`\`\``;
+            const reader = res.body?.getReader();
+            if (!reader) throw new Error("Не удалось получить поток данных от сервера");
+
+            const decoder = new TextDecoder("utf-8");
+            let buffer = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                
+                // Сохраняем последний неоконченный кусок в буфере
+                buffer = lines.pop() || "";
+
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    try {
+                        const parsed = JSON.parse(line);
+                        if (parsed.type === 'progress') {
+                            setLoadingPhrase(parsed.message);
+                        } else if (parsed.type === 'final') {
+                            const data = parsed.data;
+
+                            let textToDisplay = data.reply;
+                            let isSqlWaiting = data.is_waiting_for_sql;
+                            let isWarning = false;
+
+                            if (data.is_waiting_for_sql && !data.sql_query) {
+                                textToDisplay = "Не удалось получить ответ модели из-за высокой нагрузки. Попробуйте чуть позже";
+                                isSqlWaiting = false;
+                                isWarning = true;
+                            } else if (data.is_waiting_for_sql && data.sql_query) {
+                                textToDisplay += `\n\n\`\`\`sql\n${data.sql_query}\n\`\`\``;
+                            }
+
+                            if (textToDisplay && textToDisplay.includes("Вы заблокированы за нарушение правил безопасности")) {
+                                setBanModalOpen(true);
+                            }
+
+                            setMessages(prev => [...prev, {
+                                id: (Date.now() + 1).toString(),
+                                sender: 'agent',
+                                text: textToDisplay,
+                                charts: data.charts,
+                                isSqlWaiting: isSqlWaiting,
+                                isWarning: isWarning,
+                                retryData: isWarning ? { overrideText, useAiFlag, colsToRemove, sqlAction, sqlFeedback, sqlQuery } : undefined
+                            }]);
+                        }
+                    } catch (e) {
+                        console.error("Ошибка парсинга строки стрима:", e, line);
+                    }
+                }
             }
-
-            if (textToDisplay && textToDisplay.includes("Вы заблокированы за нарушение правил безопасности")) {
-                setBanModalOpen(true);
-            }
-
-            setMessages(prev => [...prev, {
-                id: (Date.now() + 1).toString(),
-                sender: 'agent',
-                text: textToDisplay,
-                charts: data.charts,
-                isSqlWaiting: data.is_waiting_for_sql
-            }]);
         } catch (err: any) {
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
@@ -470,7 +504,7 @@ function MainLayout() {
                             activeChat={activeChat}
                             messages={messages}
                             loading={loading}
-                            loadingPhrase={loadingPhrases[loadingIndex]}
+                            loadingPhrase={loadingPhrase}
                             input={input}
                             setInput={setInput}
                             onSendMessage={sendMessage}
