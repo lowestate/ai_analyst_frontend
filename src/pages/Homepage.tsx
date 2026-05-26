@@ -629,7 +629,7 @@ export function Homepage({ currentUser, onOpenAuth, onLogout, onOpenProfile }: H
                             avatar={margaretAvatar}
                             avatarName="МАРГАРЕТ"
                             employeeName="Маргарет"
-                            employeeRole="СТАРШИЙ БИБЛИОТЕКАРЬ ДАННЫХ"
+                            employeeRole="АРХИВАРИУС ДАННЫХ"
                             description="Маргарет — старший библиотекарь офиса. Сорок лет среди отчётов и каталогов: задайте вопрос словами — она найдёт нужные данные."
                             bullets={[
                                 "Семантический поиск по всем хранилищам через LLM",
@@ -647,7 +647,7 @@ export function Homepage({ currentUser, onOpenAuth, onLogout, onOpenProfile }: H
                             avatar={bobAvatar}
                             avatarName="БОБ"
                             employeeName="Боб"
-                            employeeRole="ФИНАНСОВЫЙ АНАЛИТИК - АГЕНТ"
+                            employeeRole="АНАЛИТИК ДАННЫХ"
                             description="Боб всегда в пиджаке и всегда с цифрами. Строит финансовые модели, считает unit-экономику и объясняет «почему» за каждым графиком."
                             bullets={[
                                 "Автоматический анализ P&L, когорт и воронок",
@@ -666,7 +666,7 @@ export function Homepage({ currentUser, onOpenAuth, onLogout, onOpenProfile }: H
                             avatar={samAvatar}
                             avatarName="СЭМ"
                             employeeName="Сэм"
-                            employeeRole="ML - ИНЖЕНЕР • AUTOML"
+                            employeeRole="ML - ИНЖЕНЕР"
                             description="Сэм сидит в углу в клетчатой рубашке и тренирует модели. Загрузите датасет — он подберёт алгоритм, обучит и задеплоит за вас."
                             bullets={[
                                 "Автоматический подбор моделей и фичей",
