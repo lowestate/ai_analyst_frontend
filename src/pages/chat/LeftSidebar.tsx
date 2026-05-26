@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ChatSession } from '../types';
-import { COLORS } from '../globasStyles'
+import { ChatSession } from '../../types';
+import { COLORS } from './RightSidebar';
 
 interface SidebarProps {
     sessions: ChatSession[];

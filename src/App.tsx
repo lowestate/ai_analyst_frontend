@@ -1,27 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import * as XLSX from 'xlsx';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import { GLOBAL_STYLES } from './globasStyles';
-import { Message, ChatSession, ChartData } from './types';
+import { GLOBAL_STYLES } from "./globasStyles";
+import { Message, ChatSession, ChartData } from "./types";
 
-import { LeftSidebar } from './components/LeftSidebar';
-import { RightSidebar } from './components/RightSidebar';
-import { DataCharts } from './components/Charts';
-import { Header } from './components/Header';
+import { LeftSidebar } from "./pages/chat/LeftSidebar";
+import { RightSidebar } from "./pages/chat/RightSidebar";
+import { DataCharts } from "./pages/chat/Charts";
+import { Header } from "./pages/Header";
 
-import { ChatArea } from './components/chat/ChatArea';
-import { Dashboard } from './components/dashboard/Dashboard';
-import { AdminPanel } from './components/admin_panel/AdminPanel';
-import { AuthModal } from './components/user/LoginOrRegister';
-import { UserPage } from './components/user/UserPage'
-import { UploadModal } from './components/upload_data/UploadData';
+import { ChatArea } from "./pages/chat/ChatArea";
+import { Dashboard } from "./pages/dashboard/Dashboard";
+import { AdminPanel } from "./pages/admin_panel/AdminPanel";
+import { AuthModal } from "./pages/user/LoginOrRegister";
+import { UserPage } from "./pages/user/UserPage";
+import { UploadModal } from "./pages/upload_data/UploadData";
+import { Homepage } from "./pages/Homepage";
+import { NotFound } from "./pages/NotFound";
 
 function MainLayout() {
     const [sessions, setSessions] = useState<ChatSession[]>([]);
     const [activeChat, setActiveChat] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
-    const [input, setInput] = useState('');
+    const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [isSidebarHidden, setIsSidebarHidden] = useState(false);
     const [selectedChart, setSelectedChart] = useState<ChartData | null>(null);
@@ -31,8 +33,13 @@ function MainLayout() {
     const [aiRequests, setAiRequests] = useState<number[]>([]);
 
     // --- СТЕЙТЫ АВТОРИЗАЦИИ ---
-    const [currentUser, setCurrentUser] = useState<{ username: string, id: number, plan_name?: string, role?: string } | null>(() => {
-        const saved = localStorage.getItem('currentUser');
+    const [currentUser, setCurrentUser] = useState<{
+        username: string;
+        id: number;
+        plan_name?: string;
+        role?: string;
+    } | null>(() => {
+        const saved = localStorage.getItem("currentUser");
         return saved ? JSON.parse(saved) : null;
     });
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -40,27 +47,33 @@ function MainLayout() {
 
     useEffect(() => {
         if (currentUser) {
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            localStorage.setItem("currentUser", JSON.stringify(currentUser));
         } else {
-            localStorage.removeItem('currentUser');
+            localStorage.removeItem("currentUser");
         }
     }, [currentUser]);
 
     // --- СТЕЙТЫ ЗАГРУЗКИ ---
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-    const [uploadTab, setUploadTab] = useState<'file' | 'db'>('file');
+    const [uploadTab, setUploadTab] = useState<"file" | "db">("file");
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [dbCreds, setDbCreds] = useState({ host: '', port: '5432', database: '', user: '', password: '' });
-    const [currentView, setCurrentView] = useState<'chat' | 'profile'>('chat');
-    const allCharts = messages.flatMap(m => m.charts || []);
+    const [dbCreds, setDbCreds] = useState({
+        host: "",
+        port: "5432",
+        database: "",
+        user: "",
+        password: "",
+    });
+    const [currentView, setCurrentView] = useState<"chat" | "profile">("chat");
+    const allCharts = messages.flatMap((m) => m.charts || []);
     const uniqueCharts: ChartData[] = [];
     const seenKeys = new Set<string>();
 
-    allCharts.forEach(chart => {
+    allCharts.forEach((chart) => {
         let key: string = chart.type;
-        if (chart.type === 'dependency') {
+        if (chart.type === "dependency") {
             key = `${chart.type}_${chart.data.col1}_${chart.data.col2}`;
-        } else if (chart.type === 'trend_line') {
+        } else if (chart.type === "trend_line") {
             key = `${chart.type}_${chart.data.date_col}`;
         } else if (chart.data && chart.data.column_name) {
             key = `${chart.type}_${chart.data.column_name}`;
@@ -71,7 +84,7 @@ function MainLayout() {
         }
     });
 
-    const [loadingPhrase, setLoadingPhrase] = useState('Проверка запроса...');
+    const [loadingPhrase, setLoadingPhrase] = useState("Проверка запроса...");
 
     // Trigger window resize events during the sidebar hide/show transition (0.3s)
     // This allows Plotly charts to dynamically adjust their width
@@ -82,19 +95,21 @@ function MainLayout() {
 
         const animateResize = () => {
             if (isCancelled) return;
-            window.dispatchEvent(new Event('resize'));
+            window.dispatchEvent(new Event("resize"));
             if (Date.now() - start < duration) {
                 requestAnimationFrame(animateResize);
             }
         };
         requestAnimationFrame(animateResize);
 
-        return () => { isCancelled = true; };
+        return () => {
+            isCancelled = true;
+        };
     }, [isSidebarHidden]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
+            if (e.key === "Escape") {
                 if (selectedChart) {
                     setSelectedChart(null);
                 } else if (isUploadModalOpen) {
@@ -104,8 +119,8 @@ function MainLayout() {
                 }
             }
         };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
     }, [selectedChart, isUploadModalOpen, isAuthModalOpen]);
 
     useEffect(() => {
@@ -116,7 +131,9 @@ function MainLayout() {
             }
             try {
                 // ПЕРЕДАЕМ user_id:
-                const res = await fetch(`http://localhost:8001/sessions?user_id=${currentUser.id}`);
+                const res = await fetch(
+                    `http://localhost:8001/sessions?user_id=${currentUser.id}`,
+                );
                 if (res.ok) {
                     const data = await res.json();
                     setSessions(data);
@@ -130,14 +147,24 @@ function MainLayout() {
         const fetchUserPlan = async () => {
             if (!currentUser) return;
             try {
-                const res = await fetch(`http://localhost:8001/users/${currentUser.id}`);
+                const res = await fetch(
+                    `http://localhost:8001/users/${currentUser.id}`,
+                );
                 if (res.ok) {
                     const data = await res.json();
                     if (data.is_banned) {
                         setBanModalOpen(true);
                     }
                     if (data.plan_name || data.role) {
-                        setCurrentUser(prev => prev ? { ...prev, plan_name: data.plan_name?.toLowerCase(), role: data.role } : null);
+                        setCurrentUser((prev) =>
+                            prev
+                                ? {
+                                    ...prev,
+                                    plan_name: data.plan_name?.toLowerCase(),
+                                    role: data.role,
+                                }
+                                : null,
+                        );
                     }
                 }
             } catch (err) {
@@ -148,10 +175,10 @@ function MainLayout() {
     }, [currentUser?.id]);
 
     useEffect(() => {
-        if (currentUser?.plan_name !== 'pro') return;
+        if (currentUser?.plan_name !== "pro") return;
         const interval = setInterval(() => {
             const now = Date.now();
-            setAiRequests(prev => prev.filter(t => now - t < 60000));
+            setAiRequests((prev) => prev.filter((t) => now - t < 60000));
         }, 1000);
         return () => clearInterval(interval);
     }, [currentUser?.plan_name]);
@@ -164,7 +191,9 @@ function MainLayout() {
         setLoading(true);
 
         try {
-            const res = await fetch(`http://localhost:8001/chat/${id}?user_id=${currentUser.id}`);
+            const res = await fetch(
+                `http://localhost:8001/chat/${id}?user_id=${currentUser.id}`,
+            );
             if (!res.ok) throw new Error("Ошибка загрузки чата");
             const data = await res.json();
 
@@ -184,9 +213,12 @@ function MainLayout() {
     const handleDeleteChat = async (chatId: string) => {
         if (!currentUser) return;
         try {
-            const res = await fetch(`http://localhost:8001/chat/${chatId}?user_id=${currentUser.id}`, { method: 'DELETE' });
+            const res = await fetch(
+                `http://localhost:8001/chat/${chatId}?user_id=${currentUser.id}`,
+                { method: "DELETE" },
+            );
             if (res.ok) {
-                setSessions(prev => prev.filter(s => s.id !== chatId));
+                setSessions((prev) => prev.filter((s) => s.id !== chatId));
                 if (activeChat === chatId) {
                     setActiveChat(null);
                     setMessages([]);
@@ -200,7 +232,7 @@ function MainLayout() {
     };
 
     const handleDbCredsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setDbCreds(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        setDbCreds((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
     const handleDataSubmit = async () => {
@@ -222,42 +254,55 @@ function MainLayout() {
             const formData = new FormData();
 
             // ---> НОВОЕ: Передаем ID пользователя на бэкенд <---
-            formData.append('user_id', currentUser.id.toString());
+            formData.append("user_id", currentUser.id.toString());
 
             let uploadFilename = "";
 
-            if (uploadTab === 'file' && selectedFile) {
+            if (uploadTab === "file" && selectedFile) {
                 uploadFilename = selectedFile.name;
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    const isCSV = selectedFile.name.toLowerCase().endsWith('.csv');
+                    const isCSV = selectedFile.name.toLowerCase().endsWith(".csv");
                     let rawData: any[] = [];
                     if (isCSV) {
                         const text = event.target?.result as string;
-                        const workbook = XLSX.read(text, { type: 'string' });
-                        rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { raw: false });
+                        const workbook = XLSX.read(text, { type: "string" });
+                        rawData = XLSX.utils.sheet_to_json(
+                            workbook.Sheets[workbook.SheetNames[0]],
+                            { raw: false },
+                        );
                     } else {
                         const arrayBuffer = event.target?.result as ArrayBuffer;
-                        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                        rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { raw: false });
+                        const workbook = XLSX.read(arrayBuffer, { type: "array" });
+                        rawData = XLSX.utils.sheet_to_json(
+                            workbook.Sheets[workbook.SheetNames[0]],
+                            { raw: false },
+                        );
                     }
                     setLocalDataPool(rawData);
                 };
-                if (selectedFile.name.toLowerCase().endsWith('.csv')) reader.readAsText(selectedFile, 'UTF-8');
+                if (selectedFile.name.toLowerCase().endsWith(".csv"))
+                    reader.readAsText(selectedFile, "UTF-8");
                 else reader.readAsArrayBuffer(selectedFile);
 
-                formData.append('file', selectedFile);
-
-            } else if (uploadTab === 'db') {
+                formData.append("file", selectedFile);
+            } else if (uploadTab === "db") {
                 uploadFilename = `PostgreSQL: ${dbCreds.database}`;
-                const payload = { type: 'postgresql', credentials: dbCreds };
-                const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-                const virtualFile = new File([blob], 'database_credentials.json', { type: 'application/json' });
+                const payload = { type: "postgresql", credentials: dbCreds };
+                const blob = new Blob([JSON.stringify(payload)], {
+                    type: "application/json",
+                });
+                const virtualFile = new File([blob], "database_credentials.json", {
+                    type: "application/json",
+                });
 
-                formData.append('file', virtualFile);
+                formData.append("file", virtualFile);
             }
 
-            const res = await fetch('http://localhost:8001/upload', { method: 'POST', body: formData });
+            const res = await fetch("http://localhost:8001/upload", {
+                method: "POST",
+                body: formData,
+            });
             if (!res.ok) throw new Error(`HTTP Ошибка: ${res.status}`);
             const data = await res.json();
 
@@ -267,12 +312,31 @@ function MainLayout() {
                 setDbSchema(null);
             }
 
-            setSessions(prev => [...prev, { id: data.chat_id, datasetName: data.dataset_summary, filename: uploadFilename }]);
+            setSessions((prev) => [
+                ...prev,
+                {
+                    id: data.chat_id,
+                    datasetName: data.dataset_summary,
+                    filename: uploadFilename,
+                },
+            ]);
             setActiveChat(data.chat_id);
-            setMessages([{ id: Date.now().toString(), sender: 'agent', text: data.preprocessing_report }]);
-
+            setMessages([
+                {
+                    id: Date.now().toString(),
+                    sender: "agent",
+                    text: data.preprocessing_report,
+                },
+            ]);
         } catch (err: any) {
-            setMessages([{ id: Date.now().toString(), sender: 'agent', text: `Ошибка загрузки: ${err.message}`, isError: true }]);
+            setMessages([
+                {
+                    id: Date.now().toString(),
+                    sender: "agent",
+                    text: `Ошибка загрузки: ${err.message}`,
+                    isError: true,
+                },
+            ]);
         } finally {
             setLoading(false);
             setSelectedFile(null);
@@ -282,12 +346,12 @@ function MainLayout() {
     const handleRefreshSchema = async () => {
         if (!activeChat || activeChat === "temp_loading") return null;
         try {
-            const res = await fetch('http://localhost:8001/refresh_schema', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: activeChat })
+            const res = await fetch("http://localhost:8001/refresh_schema", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: activeChat }),
             });
-            if (!res.ok) throw new Error('Ошибка обновления схемы');
+            if (!res.ok) throw new Error("Ошибка обновления схемы");
 
             const newSchema = await res.json();
             setDbSchema(newSchema);
@@ -299,41 +363,63 @@ function MainLayout() {
     };
 
     const isSubmitDisabled =
-        (uploadTab === 'file' && !selectedFile) ||
-        (uploadTab === 'db' && (!dbCreds.host || !dbCreds.database || !dbCreds.user || !dbCreds.password));
+        (uploadTab === "file" && !selectedFile) ||
+        (uploadTab === "db" &&
+            (!dbCreds.host ||
+                !dbCreds.database ||
+                !dbCreds.user ||
+                !dbCreds.password));
 
-    const sendMessage = async (overrideText?: string, useAiFlag: boolean = false, colsToRemove: string[] = [], sqlAction?: 'approve' | 'reject', sqlFeedback?: string, sqlQuery?: string, isRetry: boolean = false) => {
-
+    const sendMessage = async (
+        overrideText?: string,
+        useAiFlag: boolean = false,
+        colsToRemove: string[] = [],
+        sqlAction?: "approve" | "reject",
+        sqlFeedback?: string,
+        sqlQuery?: string,
+        isRetry: boolean = false,
+    ) => {
         // ИСПРАВЛЕНИЕ: Формируем текст так, чтобы отклоненный запрос остался в истории чата
         let textToSend = overrideText || input;
 
-        if (sqlAction === 'approve') {
+        if (sqlAction === "approve") {
             textToSend = "Запрос подтвержден.";
-        } else if (sqlAction === 'reject') {
+        } else if (sqlAction === "reject") {
             // Вшиваем отклоненный SQL и тег, чтобы компонент SqlValidation смог это распарсить из истории
             textToSend = `Запрос отклонен.\n\n[STATUS: reject]\n\`\`\`sql\n${sqlQuery}\n\`\`\`\n**Причина отклонения:** ${sqlFeedback || "Не указана"}`;
         }
 
-        if (!textToSend?.trim() && !sqlAction || !activeChat || activeChat === "temp_loading") return;
+        if (
+            (!textToSend?.trim() && !sqlAction) ||
+            !activeChat ||
+            activeChat === "temp_loading"
+        )
+            return;
 
         const isDbMode = !!dbSchema;
         const aiActuallyUsed = isDbMode || useAiFlag;
 
-        if (currentUser?.plan_name === 'pro' && aiActuallyUsed) {
+        if (currentUser?.plan_name === "pro" && aiActuallyUsed) {
             // Clean up old before checking
             const now = Date.now();
-            const validRequests = aiRequests.filter(t => now - t < 60000);
+            const validRequests = aiRequests.filter((t) => now - t < 60000);
 
             if (validRequests.length >= 5) {
                 const oldest = validRequests[0] || Date.now();
-                const waitSecs = Math.max(0, Math.ceil(60 - (Date.now() - oldest) / 1000));
+                const waitSecs = Math.max(
+                    0,
+                    Math.ceil(60 - (Date.now() - oldest) / 1000),
+                );
 
-                setMessages(prev => [...prev, {
-                    id: Date.now().toString(),
-                    sender: 'agent',
-                    text: `Лимит запросов превышен, подождите ${waitSecs} секунд до обновления лимита.`,
-                    isWarning: true
-                }]);
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        id: Date.now().toString(),
+                        sender: "agent",
+                        text: `Лимит запросов превышен, подождите ${waitSecs} секунд до обновления лимита.`,
+                        isWarning: true,
+                    },
+                ]);
                 return;
             }
 
@@ -342,18 +428,22 @@ function MainLayout() {
 
         // Если это не ретрай и не скрытый SQL-экшен, рисуем пузырь юзера
         if (!sqlAction && !isRetry) {
-            const userMsg: Message = { id: Date.now().toString(), sender: 'user', text: textToSend };
-            setMessages(prev => [...prev, userMsg]);
+            const userMsg: Message = {
+                id: Date.now().toString(),
+                sender: "user",
+                text: textToSend,
+            };
+            setMessages((prev) => [...prev, userMsg]);
         }
 
-        setInput('');
+        setInput("");
         setLoadingPhrase("Проверка запроса...");
         setLoading(true);
 
         try {
-            const res = await fetch('http://localhost:8001/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const res = await fetch("http://localhost:8001/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     chat_id: activeChat,
                     user_id: currentUser?.id,
@@ -362,14 +452,15 @@ function MainLayout() {
                     cols_to_remove: colsToRemove,
                     sql_action: sqlAction,
                     sql_feedback: sqlFeedback,
-                    sql_query: sqlQuery
-                })
+                    sql_query: sqlQuery,
+                }),
             });
 
             if (!res.ok) throw new Error(`HTTP Ошибка: ${res.status}`);
 
             const reader = res.body?.getReader();
-            if (!reader) throw new Error("Не удалось получить поток данных от сервера");
+            if (!reader)
+                throw new Error("Не удалось получить поток данных от сервера");
 
             const decoder = new TextDecoder("utf-8");
             let buffer = "";
@@ -380,7 +471,7 @@ function MainLayout() {
 
                 buffer += decoder.decode(value, { stream: true });
                 const lines = buffer.split("\n");
-                
+
                 // Сохраняем последний неоконченный кусок в буфере
                 buffer = lines.pop() || "";
 
@@ -388,9 +479,9 @@ function MainLayout() {
                     if (!line.trim()) continue;
                     try {
                         const parsed = JSON.parse(line);
-                        if (parsed.type === 'progress') {
+                        if (parsed.type === "progress") {
                             setLoadingPhrase(parsed.message);
-                        } else if (parsed.type === 'final') {
+                        } else if (parsed.type === "final") {
                             const data = parsed.data;
 
                             let textToDisplay = data.reply;
@@ -398,26 +489,44 @@ function MainLayout() {
                             let isWarning = false;
 
                             if (data.is_waiting_for_sql && !data.sql_query) {
-                                textToDisplay = "Не удалось получить ответ модели из-за высокой нагрузки. Попробуйте чуть позже";
+                                textToDisplay =
+                                    "Не удалось получить ответ модели из-за высокой нагрузки. Попробуйте чуть позже";
                                 isSqlWaiting = false;
                                 isWarning = true;
                             } else if (data.is_waiting_for_sql && data.sql_query) {
                                 textToDisplay += `\n\n\`\`\`sql\n${data.sql_query}\n\`\`\``;
                             }
 
-                            if (textToDisplay && textToDisplay.includes("Вы заблокированы за нарушение правил безопасности")) {
+                            if (
+                                textToDisplay &&
+                                textToDisplay.includes(
+                                    "Вы заблокированы за нарушение правил безопасности",
+                                )
+                            ) {
                                 setBanModalOpen(true);
                             }
 
-                            setMessages(prev => [...prev, {
-                                id: (Date.now() + 1).toString(),
-                                sender: 'agent',
-                                text: textToDisplay,
-                                charts: data.charts,
-                                isSqlWaiting: isSqlWaiting,
-                                isWarning: isWarning,
-                                retryData: isWarning ? { overrideText, useAiFlag, colsToRemove, sqlAction, sqlFeedback, sqlQuery } : undefined
-                            }]);
+                            setMessages((prev) => [
+                                ...prev,
+                                {
+                                    id: (Date.now() + 1).toString(),
+                                    sender: "agent",
+                                    text: textToDisplay,
+                                    charts: data.charts,
+                                    isSqlWaiting: isSqlWaiting,
+                                    isWarning: isWarning,
+                                    retryData: isWarning
+                                        ? {
+                                            overrideText,
+                                            useAiFlag,
+                                            colsToRemove,
+                                            sqlAction,
+                                            sqlFeedback,
+                                            sqlQuery,
+                                        }
+                                        : undefined,
+                                },
+                            ]);
                         }
                     } catch (e) {
                         console.error("Ошибка парсинга строки стрима:", e, line);
@@ -425,14 +534,24 @@ function MainLayout() {
                 }
             }
         } catch (err: any) {
-            setMessages(prev => [...prev, {
-                id: Date.now().toString(),
-                sender: 'agent',
-                text: `Ошибка при обработке запроса: ${err.message}`,
-                isError: true,
-                // СОХРАНЯЕМ ПАРАМЕТРЫ ПРИ ОШИБКЕ
-                retryData: { overrideText, useAiFlag, colsToRemove, sqlAction, sqlFeedback, sqlQuery }
-            }]);
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: Date.now().toString(),
+                    sender: "agent",
+                    text: `Ошибка при обработке запроса: ${err.message}`,
+                    isError: true,
+                    // СОХРАНЯЕМ ПАРАМЕТРЫ ПРИ ОШИБКЕ
+                    retryData: {
+                        overrideText,
+                        useAiFlag,
+                        colsToRemove,
+                        sqlAction,
+                        sqlFeedback,
+                        sqlQuery,
+                    },
+                },
+            ]);
         } finally {
             setLoading(false);
         }
@@ -441,7 +560,7 @@ function MainLayout() {
     // ФУНКЦИЯ ДЛЯ КНОПКИ РЕТРАЯ
     const handleRetryMessage = (msgId: string, retryData: any) => {
         // Убираем красное сообщение с ошибкой
-        setMessages(prev => prev.filter(m => m.id !== msgId));
+        setMessages((prev) => prev.filter((m) => m.id !== msgId));
         // Запускаем заново с флагом isRetry = true
         sendMessage(
             retryData.overrideText,
@@ -450,7 +569,7 @@ function MainLayout() {
             retryData.sqlAction,
             retryData.sqlFeedback,
             retryData.sqlQuery,
-            true
+            true,
         );
     };
 
@@ -460,14 +579,14 @@ function MainLayout() {
         try {
             // Дергаем серверный логаут (опционально, но полезно для логов/статистики)
             await fetch(`http://localhost:8001/logout?user_id=${currentUser.id}`, {
-                method: 'POST'
+                method: "POST",
             });
         } catch (err) {
             console.error("Ошибка при выходе из системы", err);
         }
 
         // Очищаем стейты
-        setCurrentView('chat');
+        setCurrentView("chat");
         setCurrentUser(null);
         setSessions([]);
         setActiveChat(null);
@@ -485,10 +604,12 @@ function MainLayout() {
                     currentUser={currentUser}
                     onOpenAuth={() => setIsAuthModalOpen(true)}
                     onLogout={handleLogout}
-                    onOpenProfile={() => setCurrentView('profile')}
+                    onOpenProfile={() => setCurrentView("profile")}
                 />
-                {currentView === 'chat' ? (
-                    <div className={`app-layout ${isSidebarHidden ? 'sidebar-hidden' : ''}`}>
+                {currentView === "chat" ? (
+                    <div
+                        className={`app-layout ${isSidebarHidden ? "sidebar-hidden" : ""}`}
+                    >
                         <LeftSidebar
                             sessions={sessions}
                             activeChat={activeChat}
@@ -496,7 +617,7 @@ function MainLayout() {
                             onOpenUploadModal={() => setIsUploadModalOpen(true)}
                             onDeleteChat={handleDeleteChat}
                             isSidebarHidden={isSidebarHidden}
-                            onToggleSidebar={() => setIsSidebarHidden(prev => !prev)}
+                            onToggleSidebar={() => setIsSidebarHidden((prev) => !prev)}
                             isBanned={banModalOpen}
                         />
 
@@ -526,8 +647,14 @@ function MainLayout() {
                         />
 
                         {selectedChart && (
-                            <div className="modal-overlay" onClick={() => setSelectedChart(null)}>
-                                <div className="modal-content" onClick={e => e.stopPropagation()}>
+                            <div
+                                className="modal-overlay"
+                                onClick={() => setSelectedChart(null)}
+                            >
+                                <div
+                                    className="modal-content"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
                                     <DataCharts charts={[selectedChart]} preview={false} />
                                 </div>
                             </div>
@@ -551,8 +678,12 @@ function MainLayout() {
                 ) : (
                     <UserPage
                         currentUser={currentUser!}
-                        onBack={() => setCurrentView('chat')}
-                        onPlanChange={(newPlan) => setCurrentUser(prev => prev ? { ...prev, plan_name: newPlan } : null)}
+                        onBack={() => setCurrentView("chat")}
+                        onPlanChange={(newPlan) =>
+                            setCurrentUser((prev) =>
+                                prev ? { ...prev, plan_name: newPlan } : null,
+                            )
+                        }
                         isBanned={banModalOpen}
                     />
                 )}
@@ -569,34 +700,42 @@ function MainLayout() {
                         className="auth-overlay"
                         style={{
                             zIndex: 10000,
-                            alignItems: 'flex-start', // Выравнивание сверху
-                            paddingTop: '50px',        // Отступ сверху
+                            alignItems: "flex-start", // Выравнивание сверху
+                            paddingTop: "50px", // Отступ сверху
                         }}
                     >
                         <div
                             className="auth-modal"
                             style={{
-                                textAlign: 'center',
-                                width: '600px',       // ШИРИНА ОКНА (МЕНЯТЬ ЗДЕСЬ)
-                                maxWidth: '90%',
-                                height: '150px',      // ВЫСОТА ОКНА (МЕНЯТЬ ЗДЕСЬ)
-                                minHeight: '150px',   // ОБЯЗАТЕЛЬНО: сбрасываем min-height: 420px из CSS
-                                padding: '30px',      // Внутренние отступы
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center' // Центрируем контент по вертикали
+                                textAlign: "center",
+                                width: "600px", // ШИРИНА ОКНА (МЕНЯТЬ ЗДЕСЬ)
+                                maxWidth: "90%",
+                                height: "150px", // ВЫСОТА ОКНА (МЕНЯТЬ ЗДЕСЬ)
+                                minHeight: "150px", // ОБЯЗАТЕЛЬНО: сбрасываем min-height: 420px из CSS
+                                padding: "30px", // Внутренние отступы
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center", // Центрируем контент по вертикали
                             }}
-                            onClick={e => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            <h2 style={{ color: '#000000ff', fontSize: '20px', marginBottom: '20px' }}>Ваш аккаунт заблокирован за опасные запросы</h2>
+                            <h2
+                                style={{
+                                    color: "#000000ff",
+                                    fontSize: "20px",
+                                    marginBottom: "20px",
+                                }}
+                            >
+                                Ваш аккаунт заблокирован за опасные запросы
+                            </h2>
                             <button
                                 onClick={() => {
                                     setBanModalOpen(false);
                                     handleLogout();
                                 }}
                                 className="btn-auth-submit"
-                                style={{ width: '150px', padding: '10px', fontSize: '14px' }}
+                                style={{ width: "150px", padding: "10px", fontSize: "14px" }}
                             >
                                 Понятно
                             </button>
@@ -614,7 +753,9 @@ function App() {
             <style>{GLOBAL_STYLES}</style>
             <Router>
                 <Routes>
-                    <Route path="/" element={<MainLayout />} />
+                    <Route path="/" element={<Homepage />} />
+                    <Route path="/analyze" element={<MainLayout />} />
+                    <Route path="/not-exist" element={<NotFound />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/admin" element={<AdminPanel />} />
                 </Routes>
