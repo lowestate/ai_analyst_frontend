@@ -33,6 +33,9 @@
 /* Custom Font Utilities */
 .font-pixel {
   font-family: var(--font-pixel), monospace;
+  display: inline-block;
+  transform: scaleY(1.3);
+  transform-origin: center left;
 }
 
 .font-mono {

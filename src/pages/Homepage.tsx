@@ -4,8 +4,16 @@ import "./Homepage.css";
 import { samAvatar, bobAvatar, margaretAvatar } from "../assets/avatars";
 import { StatCard } from "../components/StatCard";
 import { SpecialistCard } from "../components/SpecialistCard";
+import { Header } from "./Header";
 
-export function Homepage() {
+interface HomepageProps {
+    currentUser: { username: string; id: number; role?: string } | null;
+    onOpenAuth: () => void;
+    onLogout: () => void;
+    onOpenProfile: () => void;
+}
+
+export function Homepage({ currentUser, onOpenAuth, onLogout, onOpenProfile }: HomepageProps) {
     const navigate = useNavigate();
     const [tickerOffset, setTickerOffset] = useState(0);
     const [coolerState, setCoolerState] = useState<
@@ -73,185 +81,54 @@ export function Homepage() {
     return (
         <div className="homepage-root">
             {/* HEADER SECTION */}
-            <header
+            <Header
+                currentUser={currentUser}
+                onOpenAuth={onOpenAuth}
+                onLogout={onLogout}
+                onOpenProfile={onOpenProfile}
+                isChatMode={false}
+            />
+
+            {/* LIVE TICKER */}
+            <div
                 style={{
-                    position: "sticky",
-                    top: 0,
-                    zIndex: 40,
-                    borderBottom: "1px solid var(--border-color)",
-                    backgroundColor: "rgba(253, 252, 247, 0.85)",
-                    backdropFilter: "blur(8px)",
+                    borderTop: "1px solid var(--border-color)",
+                    backgroundColor: "rgba(241, 243, 245, 0.4)",
+                    overflow: "hidden",
+                    height: "28px",
+                    display: "flex",
+                    alignItems: "center",
                 }}
             >
                 <div
+                    className="animate-ticker font-mono"
                     style={{
-                        maxWidth: "1280px",
-                        margin: "0 auto",
-                        padding: "0 24px",
-                        height: "64px",
+                        fontSize: "11px",
+                        color: "var(--muted-fg)",
+                        whiteSpace: "nowrap",
                         display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
+                        gap: "32px",
+                        paddingLeft: "16px",
                     }}
                 >
-                    <a
-                        href="#"
-                        className="font-pixel"
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "10px",
-                            textDecoration: "none",
-                            color: "inherit",
-                        }}
-                    >
-                        <div
-                            style={{
-                                width: "32px",
-                                height: "32px",
-                                backgroundColor: "var(--fg-color)",
-                                color: "var(--bg-color)",
-                                display: "grid",
-                                placeItems: "center",
-                                fontSize: "10px",
-                                fontFamily: "var(--font-pixel)",
-                            }}
-                        >
-                            DO
-                        </div>
-                        <div style={{ lineHeight: 1.1 }}>
-                            <div
-                                style={{
-                                    fontWeight: "bold",
-                                    fontSize: "14px",
-                                    letterSpacing: "-0.02em",
-                                    color: "var(--fg-color)",
-                                }}
-                            >
-                                dataoffice
-                            </div>
-                            <div
-                                className="font-mono"
-                                style={{
-                                    fontSize: "9px",
-                                    color: "var(--muted-fg)",
-                                    textTransform: "uppercase",
-                                }}
-                            >
-                                v.2.4 · build 2026
-                            </div>
-                        </div>
-                    </a>
-
-                    <nav
-                        className="font-mono"
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "28px",
-                            fontSize: "13px",
-                            fontWeight: 500,
-                        }}
-                    >
-                        <a
-                            href="#team"
-                            style={{
-                                textDecoration: "none",
-                                color: "var(--fg-color)",
-                            }}
-                        >
-                            Команда
-                        </a>
-                        <a
-                            href="#modules"
-                            style={{
-                                textDecoration: "none",
-                                color: "var(--fg-color)",
-                            }}
-                        >
-                            Модули
-                        </a>
-                        <a
-                            href="#workflow"
-                            style={{
-                                textDecoration: "none",
-                                color: "var(--fg-color)",
-                            }}
-                        >
-                            Процесс
-                        </a>
-                        <a
-                            href="#contact"
-                            style={{
-                                textDecoration: "none",
-                                color: "var(--fg-color)",
-                            }}
-                        >
-                            Контакты
-                        </a>
-                    </nav>
-
-                    <a
-                        href="#contact"
-                        className="font-mono"
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            backgroundColor: "var(--fg-color)",
-                            color: "var(--bg-color)",
-                            padding: "8px 16px",
-                            fontSize: "13px",
-                            textDecoration: "none",
-                            fontWeight: 500,
-                            transition: "background-color 0.2s",
-                        }}
-                    >
-                        Записаться <span className="animate-blink">█</span>
-                    </a>
-                </div>
-
-                {/* LIVE TICKER */}
-                <div
-                    style={{
-                        borderTop: "1px solid var(--border-color)",
-                        backgroundColor: "rgba(241, 243, 245, 0.4)",
-                        overflow: "hidden",
-                        height: "28px",
-                        display: "flex",
-                        alignItems: "center",
-                    }}
-                >
-                    <div
-                        className="animate-ticker font-mono"
-                        style={{
-                            fontSize: "11px",
-                            color: "var(--muted-fg)",
-                            whiteSpace: "nowrap",
-                            display: "flex",
-                            gap: "32px",
-                            paddingLeft: "16px",
-                        }}
-                    >
-                        <div style={{ display: "flex", gap: "32px" }}>
-                            <span>◈ DATAOFFICE LIVE</span>
-                            <span>QUERIES TODAY: 14,287 ▲ 3.2%</span>
-                            <span>MARGARET ONLINE</span>
-                            <span>BOB · ANALYZING Q3</span>
-                            <span>SAM · TRAINING MODEL #41</span>
-                            <span>UPTIME 99.98%</span>
-                        </div>
-                        <div style={{ display: "flex", gap: "32px" }}>
-                            <span>◈ DATAOFFICE LIVE</span>
-                            <span>QUERIES TODAY: 14,287 ▲ 3.2%</span>
-                            <span>MARGARET ONLINE</span>
-                            <span>BOB · ANALYZING Q3</span>
-                            <span>SAM · TRAINING MODEL #41</span>
-                            <span>UPTIME 99.98%</span>
-                        </div>
+                    <div style={{ display: "flex", gap: "32px" }}>
+                        <span>◈ DATAOFFICE LIVE</span>
+                        <span>QUERIES TODAY: 14,287 ▲ 3.2%</span>
+                        <span>MARGARET ONLINE</span>
+                        <span>BOB · ANALYZING Q3</span>
+                        <span>SAM · TRAINING MODEL #41</span>
+                        <span>UPTIME 99.98%</span>
+                    </div>
+                    <div style={{ display: "flex", gap: "32px" }}>
+                        <span>◈ DATAOFFICE LIVE</span>
+                        <span>QUERIES TODAY: 14,287 ▲ 3.2%</span>
+                        <span>MARGARET ONLINE</span>
+                        <span>BOB · ANALYZING Q3</span>
+                        <span>SAM · TRAINING MODEL #41</span>
+                        <span>UPTIME 99.98%</span>
                     </div>
                 </div>
-            </header>
+            </div>
 
             {/* HERO SECTION */}
             <section
@@ -662,22 +539,81 @@ export function Homepage() {
                         padding: "0 24px",
                     }}
                 >
-                    <div style={{ textAlign: "center", marginBottom: "48px" }}>
-                        <div
-                            className="label-tag"
-                            style={{ marginBottom: "16px" }}
-                        >
-                            ШТАТНОЕ РАСПИСАНИЕ
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-end",
+                            marginBottom: "48px",
+                        }}
+                    >
+                        <div style={{ textAlign: "left", maxWidth: "700px" }}>
+                            <div
+                                className="label-tag"
+                                style={{ marginBottom: "16px" }}
+                            >
+                                DEPARTMENT DIRECTORY · 03 STAFF
+                            </div>
+                            <h2
+                                style={{
+                                    fontSize: "42px",
+                                    fontWeight: "bold",
+                                    margin: "0 0 16px 0",
+                                    color: "var(--fg-color)",
+                                    fontFamily: "var(--font-display)",
+                                }}
+                            >
+                                Знакомьтесь, команда
+                            </h2>
+                            <p
+                                style={{
+                                    fontSize: "16px",
+                                    color: "var(--muted-fg)",
+                                    margin: 0,
+                                    lineHeight: 1.5,
+                                }}
+                            >
+                                Три модуля — три специалиста. Каждый отвечает за свой кабинет и свой тип задач.
+                            </p>
                         </div>
-                        <h2
-                            className="font-pixel"
+                        <div
                             style={{
-                                fontSize: "20px",
-                                margin: 0,
+                                border: "1px solid var(--border-color)",
+                                padding: "12px 18px",
+                                borderRadius: "6px",
+                                backgroundColor: "var(--card-bg)",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "flex-start",
+                                gap: "4px",
+                                boxShadow: "var(--shadow-paper)",
+                                minWidth: "160px",
+                                marginBottom: "4px",
                             }}
                         >
-                            НАШИ КАБИНЕТЫ
-                        </h2>
+                            <span
+                                style={{
+                                    fontSize: "9px",
+                                    fontFamily: "var(--font-mono)",
+                                    color: "var(--muted-fg)",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.05em",
+                                }}
+                            >
+                                OFFICE FLOOR - 03
+                            </span>
+                            <span
+                                style={{
+                                    fontSize: "11px",
+                                    fontFamily: "var(--font-mono)",
+                                    fontWeight: "bold",
+                                    color: "var(--fg-color)",
+                                    textTransform: "uppercase",
+                                }}
+                            >
+                                ROOMS 301–303
+                            </span>
+                        </div>
                     </div>
 
                     <div
@@ -701,6 +637,7 @@ export function Homepage() {
                                 "Связывает таблицы и источники без SQL"
                             ]}
                             employeeId="EMP_ID #1024"
+                            roomNum="КАБИНЕТ 101"
                             onClick={() => navigate("/not-exist?user=margaret")}
                         />
 
@@ -719,6 +656,7 @@ export function Homepage() {
                             ]}
                             employeeId="EMP_ID #1025"
                             isActive={true}
+                            roomNum="КАБИНЕТ 301"
                             onClick={() => navigate("/analyze")}
                         />
 
@@ -736,6 +674,7 @@ export function Homepage() {
                                 "Готовый API для предсказаний в один клик"
                             ]}
                             employeeId="EMP_ID #1026"
+                            roomNum="КАБИНЕТ 202"
                             onClick={() => navigate("/not-exist?user=sam")}
                         />
                     </div>
@@ -771,7 +710,7 @@ export function Homepage() {
                                 className="label-tag"
                                 style={{ marginBottom: "16px" }}
                             >
-                                ТЕХНОЛОГИЧЕСКИЙ ПРОЦЕСС
+                                PROCESS · 04 STEPS
                             </div>
                             <h2
                                 style={{
@@ -1131,6 +1070,6 @@ export function Homepage() {
                     </div>
                 </div>
             </footer>
-        </div>
+        </div >
     );
 }

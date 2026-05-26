@@ -19,7 +19,25 @@ import { UploadModal } from "./pages/upload_data/UploadData";
 import { Homepage } from "./pages/Homepage";
 import { NotFound } from "./pages/NotFound";
 
-function MainLayout() {
+interface MainLayoutProps {
+    currentUser: { username: string; id: number; plan_name?: string; role?: string } | null;
+    setCurrentUser: React.Dispatch<React.SetStateAction<{ username: string; id: number; plan_name?: string; role?: string } | null>>;
+    isAuthModalOpen: boolean;
+    setIsAuthModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    banModalOpen: boolean;
+    setBanModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    handleLogout: () => Promise<void>;
+}
+
+function MainLayout({
+    currentUser,
+    setCurrentUser,
+    isAuthModalOpen,
+    setIsAuthModalOpen,
+    banModalOpen,
+    setBanModalOpen,
+    handleLogout
+}: MainLayoutProps) {
     const [sessions, setSessions] = useState<ChatSession[]>([]);
     const [activeChat, setActiveChat] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -31,27 +49,6 @@ function MainLayout() {
     const [dbSchema, setDbSchema] = useState<any | null>(null);
     const [chartsPayload, setChartsPayload] = useState<any[]>([]);
     const [aiRequests, setAiRequests] = useState<number[]>([]);
-
-    // --- СТЕЙТЫ АВТОРИЗАЦИИ ---
-    const [currentUser, setCurrentUser] = useState<{
-        username: string;
-        id: number;
-        plan_name?: string;
-        role?: string;
-    } | null>(() => {
-        const saved = localStorage.getItem("currentUser");
-        return saved ? JSON.parse(saved) : null;
-    });
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [banModalOpen, setBanModalOpen] = useState(false);
-
-    useEffect(() => {
-        if (currentUser) {
-            localStorage.setItem("currentUser", JSON.stringify(currentUser));
-        } else {
-            localStorage.removeItem("currentUser");
-        }
-    }, [currentUser]);
 
     // --- СТЕЙТЫ ЗАГРУЗКИ ---
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -573,21 +570,9 @@ function MainLayout() {
         );
     };
 
-    const handleLogout = async () => {
-        if (!currentUser) return;
-
-        try {
-            // Дергаем серверный логаут (опционально, но полезно для логов/статистики)
-            await fetch(`http://localhost:8001/logout?user_id=${currentUser.id}`, {
-                method: "POST",
-            });
-        } catch (err) {
-            console.error("Ошибка при выходе из системы", err);
-        }
-
-        // Очищаем стейты
+    const localLogout = async () => {
+        await handleLogout();
         setCurrentView("chat");
-        setCurrentUser(null);
         setSessions([]);
         setActiveChat(null);
         setMessages([]);
@@ -603,8 +588,9 @@ function MainLayout() {
                 <Header
                     currentUser={currentUser}
                     onOpenAuth={() => setIsAuthModalOpen(true)}
-                    onLogout={handleLogout}
+                    onLogout={localLogout}
                     onOpenProfile={() => setCurrentView("profile")}
+                    isChatMode={true}
                 />
                 {currentView === "chat" ? (
                     <div
@@ -748,18 +734,79 @@ function MainLayout() {
 }
 
 function App() {
+    const [currentUser, setCurrentUser] = useState<{
+        username: string;
+        id: number;
+        plan_name?: string;
+        role?: string;
+    } | null>(() => {
+        const saved = localStorage.getItem("currentUser");
+        return saved ? JSON.parse(saved) : null;
+    });
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [banModalOpen, setBanModalOpen] = useState(false);
+
+    useEffect(() => {
+        if (currentUser) {
+            localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        } else {
+            localStorage.removeItem("currentUser");
+        }
+    }, [currentUser]);
+
+    const handleLogout = async () => {
+        if (!currentUser) return;
+        try {
+            await fetch(`http://localhost:8001/logout?user_id=${currentUser.id}`, {
+                method: "POST",
+            });
+        } catch (err) {
+            console.error("Ошибка при выходе из системы", err);
+        }
+        setCurrentUser(null);
+    };
+
     return (
         <>
             <style>{GLOBAL_STYLES}</style>
             <Router>
                 <Routes>
-                    <Route path="/" element={<Homepage />} />
-                    <Route path="/analyze" element={<MainLayout />} />
+                    <Route 
+                        path="/" 
+                        element={
+                            <Homepage 
+                                currentUser={currentUser} 
+                                onOpenAuth={() => setIsAuthModalOpen(true)} 
+                                onLogout={handleLogout}
+                                onOpenProfile={() => {}}
+                            />
+                        } 
+                    />
+                    <Route 
+                        path="/analyze" 
+                        element={
+                            <MainLayout 
+                                currentUser={currentUser} 
+                                setCurrentUser={setCurrentUser}
+                                isAuthModalOpen={isAuthModalOpen}
+                                setIsAuthModalOpen={setIsAuthModalOpen}
+                                banModalOpen={banModalOpen}
+                                setBanModalOpen={setBanModalOpen}
+                                handleLogout={handleLogout}
+                            />
+                        } 
+                    />
                     <Route path="/not-exist" element={<NotFound />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/admin" element={<AdminPanel />} />
                 </Routes>
             </Router>
+            {isAuthModalOpen && (
+                <AuthModal
+                    onClose={() => setIsAuthModalOpen(false)}
+                    onSuccess={(user) => setCurrentUser(user)}
+                />
+            )}
         </>
     );
 }

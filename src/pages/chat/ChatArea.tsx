@@ -41,13 +41,6 @@ const CHAT_SUGGESTIONS = [
     { label: 'Когортный анализ', action: 'fill', text: '[Ф] когортный анализ Дата Пользователь_ID' },
 ];
 
-const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        style={{ transition: 'transform 0.3s ease', transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', color: '#666' }}>
-        <polyline points="6 9 12 15 18 9"></polyline>
-    </svg>
-);
-
 export const ChatArea: React.FC<ChatAreaProps> = ({
     activeChat, messages, loading, loadingPhrase,
     input, setInput, onSendMessage, localDataPool,

@@ -14,6 +14,7 @@ interface SpecialistCardProps {
   bullets: string[];
   employeeId: string;
   isActive?: boolean;
+  roomNum?: string;
   onClick: () => void;
 }
 
@@ -28,6 +29,7 @@ export const SpecialistCard: React.FC<SpecialistCardProps> = ({
   bullets,
   employeeId,
   isActive = false,
+  roomNum,
   onClick,
 }) => {
   const accentColor = isActive ? 'var(--primary-color)' : 'var(--muted-fg)';
@@ -44,35 +46,51 @@ export const SpecialistCard: React.FC<SpecialistCardProps> = ({
       }}
     >
       {/* Card Header tag */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '4px 12px',
-          border: `1px solid ${borderPillColor}`,
-          backgroundColor: 'var(--card-bg)',
-          borderRadius: '16px',
-          fontSize: '9px',
-          fontFamily: 'var(--font-mono)',
-          fontWeight: 'bold',
-          color: isActive ? 'var(--primary-color)' : 'var(--muted-fg)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em'
-        }}>
-          <span style={{ 
-            width: '6px', 
-            height: '6px', 
-            borderRadius: '50%', 
-            backgroundColor: isActive ? 'var(--primary-color)' : 'var(--border-color)', 
-            display: 'inline-block' 
-          }} className={isActive ? 'animate-pulse' : ''}></span>
-          MODULE {moduleNum} / {moduleTitle}
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 12px',
+            border: `1px solid ${borderPillColor}`,
+            backgroundColor: 'var(--card-bg)',
+            borderRadius: '16px',
+            fontSize: '11px',
+            fontFamily: 'var(--font-mono)',
+            fontWeight: 'bold',
+            color: isActive ? 'var(--primary-color)' : 'var(--muted-fg)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em'
+          }}>
+            <span style={{ 
+              width: '6px', 
+              height: '6px', 
+              borderRadius: '50%', 
+              backgroundColor: isActive ? 'var(--primary-color)' : 'var(--border-color)', 
+              display: 'inline-block' 
+            }} className={isActive ? 'animate-pulse' : ''}></span>
+            MODULE {moduleNum} / {moduleTitle}
+          </div>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: accentColor }}></div>
+            <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: accentColor }}></div>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '4px' }}>
-          <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: accentColor }}></div>
-          <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: accentColor }}></div>
-        </div>
+        {roomNum && (
+          <div style={{ 
+            fontSize: '11px', 
+            fontFamily: 'var(--font-mono)', 
+            fontWeight: 'bold',
+            color: isActive ? 'var(--primary-color)' : 'var(--muted-fg)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            paddingLeft: '6px',
+            marginTop: '4px'
+          }}>
+            {roomNum}
+          </div>
+        )}
       </div>
 
       {/* Avatar and Title Row */}
