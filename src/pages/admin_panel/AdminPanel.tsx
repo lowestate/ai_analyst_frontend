@@ -66,17 +66,56 @@ export const AdminPanel: React.FC = () => {
                     </div>
                 )}
 
-                <div className="profile-header" style={{ marginBottom: '40px', textAlign: 'center' }}>
-                    <div className="label-tag" style={{ marginBottom: '16px' }}>
+                <div className="profile-header" style={{ marginBottom: '20px', textAlign: 'center' }}>
+                    <div className="label-tag">
                         <span className="animate-pulse" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--primary-color)', display: 'inline-block' }}></span>
                         SECURITY & AUDIT · ADMIN CONSOLE
                     </div>
-                    <p style={{ fontSize: '14px', color: 'var(--muted-fg)', margin: 0, fontFamily: 'var(--font-mono)' }}>
-                        Управление пользователями и мониторинг системных логов чата
-                    </p>
+                </div>
+
+                {/* Кнопка открытия Dozzle */}
+                <div style={{ width: '100%', maxWidth: '1400px', marginBottom: '12px', boxSizing: 'border-box' }}>
+                    <a
+                        href="http://localhost:8080"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '8px 16px',
+                            cursor: 'pointer',
+                            fontSize: '11px',
+                            fontFamily: 'var(--font-mono)',
+                            fontWeight: 'bold',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '0px',
+                            background: 'var(--card-bg)',
+                            color: 'var(--fg-color)',
+                            transition: 'all 0.2s ease',
+                            userSelect: 'none',
+                            textDecoration: 'none',
+                        }}
+                        onMouseEnter={e => {
+                            (e.currentTarget as HTMLAnchorElement).style.background = 'var(--fg-color)';
+                            (e.currentTarget as HTMLAnchorElement).style.color = 'var(--bg-color)';
+                        }}
+                        onMouseLeave={e => {
+                            (e.currentTarget as HTMLAnchorElement).style.background = 'var(--card-bg)';
+                            (e.currentTarget as HTMLAnchorElement).style.color = 'var(--fg-color)';
+                        }}
+                    >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0 }}>
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="9" y1="21" x2="9" y2="9"></line>
+                        </svg>
+                        Открыть логи (Dozzle)
+                    </a>
                 </div>
 
                 {/* Вкладки в ретро-бруталистском стиле */}
+
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',

@@ -428,10 +428,10 @@ export const LLMRequestsTable: React.FC = () => {
                             </tr>
                         ) : (
                             requests.map((req) => (
-                                <tr key={req.request_id} style={{ 
-                                    opacity: loading ? 0.6 : 1, 
+                                <tr key={req.request_id} style={{
+                                    opacity: loading ? 0.6 : 1,
                                     pointerEvents: loading ? 'none' : 'auto',
-                                    transition: 'opacity 0.15s ease' 
+                                    transition: 'opacity 0.15s ease'
                                 }}>
                                     <td style={getCellStyle('request_id', { padding: '12px 16px', fontSize: '13px', color: COLORS.gray600, fontFamily: 'monospace' })} title={req.request_id}>
                                         {req.request_id}
@@ -634,7 +634,7 @@ export const LLMRequestsTable: React.FC = () => {
                         }}
                         style={{
                             position: 'absolute',
-                            top: `250px`,
+                            top: `230px`,
                             left: `${left}px`,
                             width: '260px',
                             background: 'var(--card-bg)',
