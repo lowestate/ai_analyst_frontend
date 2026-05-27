@@ -73,10 +73,10 @@ export const AdminPanel: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Кнопка открытия Dozzle */}
+                {/* Кнопка открытия Grafana (логи) */}
                 <div style={{ width: '100%', maxWidth: '1400px', marginBottom: '12px', boxSizing: 'border-box' }}>
                     <a
-                        href="http://localhost:8080"
+                        href="http://localhost:3001/d/ai-analyst-logs/ai-analyst-logs?orgId=1&var-container=ai_analyst-backend-1&var-container=ai_analyst-db-1&var-container=ai_analyst-frontend-1&var-container=ai_analyst-minio-1&var-container=ai_analyst_redis&var-level=INFO&refresh=5s"
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{
@@ -85,7 +85,7 @@ export const AdminPanel: React.FC = () => {
                             gap: '8px',
                             padding: '8px 16px',
                             cursor: 'pointer',
-                            fontSize: '11px',
+                            fontSize: '14px',
                             fontFamily: 'var(--font-mono)',
                             fontWeight: 'bold',
                             border: '1px solid var(--border-color)',
@@ -105,12 +105,7 @@ export const AdminPanel: React.FC = () => {
                             (e.currentTarget as HTMLAnchorElement).style.color = 'var(--fg-color)';
                         }}
                     >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0 }}>
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="3" y1="9" x2="21" y2="9"></line>
-                            <line x1="9" y1="21" x2="9" y2="9"></line>
-                        </svg>
-                        Открыть логи (Dozzle)
+                        Логи
                     </a>
                 </div>
 
@@ -151,7 +146,7 @@ export const AdminPanel: React.FC = () => {
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0 }}>
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                         </svg>
-                        Логи LLM запросов
+                        LLM запросы
                     </button>
 
                     <button
