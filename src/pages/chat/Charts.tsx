@@ -1647,7 +1647,7 @@ const InteractiveChart: React.FC<{ chart: ChartData; preview?: boolean }> = ({
                                         border: "1px solid #ccc",
                                         cursor: "pointer",
                                         background: "#fff",
-                                        minWidth: "130px",
+                                        minWidth: "150px",
                                         display: "flex",
                                         justifyContent: "space-between",
                                         alignItems: "center",

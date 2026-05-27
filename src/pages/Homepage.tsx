@@ -85,7 +85,7 @@ export function Homepage({ currentUser, onOpenAuth, onLogout, onOpenProfile }: H
                 currentUser={currentUser}
                 onOpenAuth={onOpenAuth}
                 onLogout={onLogout}
-                onOpenProfile={onOpenProfile}
+                onOpenProfile={() => navigate("/analyze", { state: { view: "profile" } })}
                 isChatMode={false}
             />
 

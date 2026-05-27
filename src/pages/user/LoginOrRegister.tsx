@@ -57,7 +57,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
             if (!res.ok) {
                 let errorText = data.detail || 'Ошибка авторизации';
                 if (errorText.includes("Вы заблокированы за нарушение правил безопасности")) {
-                    errorText = "Ваш аккаунт заблокирован за опасные запросы";
+                    errorText = "Ваш аккаунт заблокирован. Если это ошибка, напишите на почту help@dataoffice.ru";
                 }
                 setAuthErrors(prev => ({ ...prev, general: errorText }));
                 return;

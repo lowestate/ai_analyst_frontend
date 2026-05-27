@@ -162,7 +162,7 @@ export const GLOBAL_STYLES = `
     .msg-bubble.user { max-width: 60%; background: var(--secondary-color); color: var(--fg-color); border: 1px solid var(--border-color); border-bottom-right-radius: 0; box-shadow: var(--shadow-paper); font-weight: 500; }
 
     /* Инпут */
-    .input-container { padding: 16px 40px; display: flex; justify-content: center; background: var(--card-bg); border-top: 1px solid var(--border-color); }
+    .input-container { padding: 0 20px; display: flex; justify-content: center; background: var(--card-bg); border-top: 1px solid var(--border-color); }
     .input-box { height: 48px; width: 100%; display: flex; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius); overflow: hidden; transition: all 0.2s ease; }
     .input-box:focus-within { border-color: var(--primary-color); background: var(--card-bg); box-shadow: 0 0 0 3px var(--primary-soft); }
     .input-box input { flex: 1; border: none; padding: 0 20px; outline: none; font-size: 14px; background: transparent; color: var(--fg-color); }
@@ -307,7 +307,7 @@ export const GLOBAL_STYLES = `
     .auth-title { font-family: var(--font-pixel); font-size: 12px; font-weight: 700; color: var(--fg-color); margin-bottom: 30px; text-align: center; width: 100%; display: inline-block; transform: scaleY(1.3); transform-origin: center center; }
     .upload-form-group.auth-group { margin-bottom: 30px; position: relative; }
     .auth-error-text { position: absolute; top: 45px; left: 4px; color: oklch(0.5 0.15 20); font-size: 11px; font-weight: 500; font-family: var(--font-mono); }
-    .auth-switch-text { text-align: center; font-size: 12px; font-family: var(--font-mono); color: var(--muted-fg); margin: 4px 0 16px 0; cursor: pointer; transition: color 0.2s; }
+    .auth-switch-text { text-align: center; font-size: 12px; font-family: var(--font-mono); color: var(--muted-fg); margin: 20px 0 16px 0; cursor: pointer; transition: color 0.2s; }
     .auth-switch-text:hover { color: var(--primary-color); text-decoration: underline; }
     .btn-auth-submit { background: var(--primary-color); color: var(--primary-fg); border: 1px solid var(--primary-color); padding: 12px; border-radius: var(--radius); font-family: var(--font-mono); font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; transition: opacity 0.2s; }
     .btn-auth-submit:hover { opacity: 0.9; }
@@ -330,7 +330,7 @@ export const GLOBAL_STYLES = `
     .btn-back-chat { position: absolute; top: 40px; left: 40px; background: var(--card-bg); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: var(--radius); font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--fg-color); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow-paper); }
     .btn-back-chat:hover { background: var(--secondary-color); }
     
-    .profile-header { text-align: center; margin-bottom: 40px; display: flex; flex-direction: column; align-items: center; }
+    .profile-header { text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; }
     .profile-avatar { width: 80px; height: 80px; background: var(--primary-color); color: var(--primary-fg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; margin-bottom: 16px; box-shadow: var(--shadow-paper); }
     .profile-username { font-size: 24px; font-weight: 800; color: var(--fg-color); }
     
@@ -348,7 +348,7 @@ export const GLOBAL_STYLES = `
     .plan-name { font-family: var(--font-pixel); font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; color: var(--fg-color); display: inline-block; transform: scaleY(1.3); transform-origin: center left; }
     .plan-price { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--muted-fg); margin-bottom: 16px; }
     .plan-desc { font-size: 13px; color: var(--fg-color); line-height: 1.5; flex: 1; }
-    .plan-badge { position: absolute; top: -12px; right: 24px; padding: 4px 12px; border-radius: 12px; font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--primary-fg); background: var(--primary-color); }
+    .plan-badge { position: absolute; top: -12px; right: 24px; padding: 4px 12px; border-radius: 12px; font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--primary-fg); background: var(--primary-color); }
 
     .plan-card.tier-free.active { border-color: var(--border-color); background: var(--secondary-color); }
     .plan-card.tier-pro .plan-name { color: var(--primary-color); }

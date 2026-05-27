@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+﻿import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { COLORS } from '../../globasStyles';
 
@@ -7,7 +7,7 @@ export interface User {
     username: string;
     plan_id: number;
     is_active: boolean;
-    role: string;
+    role_id: number;
     is_banned: boolean;
     strikes: number;
     register_date?: string;
@@ -18,12 +18,17 @@ export interface Plan {
     plan_name: string;
 }
 
+export interface Role {
+    role_id: number;
+    role: string;
+}
+
 export const USER_COLUMNS = [
     { key: 'user_id', label: 'ID юзера' },
     { key: 'username', label: 'Имя пользователя' },
     { key: 'plan_id', label: 'Тарифный план' },
     { key: 'is_active', label: 'Статус' },
-    { key: 'role', label: 'Роль' },
+    { key: 'role_id', label: 'Роль' },
     { key: 'is_banned', label: 'Забанен' },
     { key: 'strikes', label: 'Кол-во нарушений' },
     { key: 'register_date', label: 'Дата регистрации' }
@@ -111,8 +116,8 @@ const BanDropdown: React.FC<BanDropdownProps> = ({ userId, isBanned, strikes, di
                         padding: '4px 8px',
                         fontSize: '13px',
                         fontWeight: 600,
-                        borderRadius: '6px',
-                        border: `1.5px solid ${isBanned ? '#f87171' : '#d1d5db'}`,
+                        borderRadius: '0px',
+                        border: `1px solid ${isBanned ? '#f87171' : 'var(--border-color)'}`,
                         background: current.bg,
                         color: current.color,
                         cursor: disabled ? 'not-allowed' : 'pointer',
@@ -140,10 +145,10 @@ const BanDropdown: React.FC<BanDropdownProps> = ({ userId, isBanned, strikes, di
                             left: `${coords.left}px`,
                             transform: dropUp ? 'translateY(-100%)' : 'none',
                             zIndex: 100000,
-                            background: '#ffffff',
-                            border: '1.5px solid #e2e8f0',
-                            borderRadius: '8px',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                            background: 'var(--card-bg)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '0px',
+                            boxShadow: 'var(--shadow-paper)',
                             overflow: 'hidden',
                             minWidth: '130px'
                         }}>
@@ -156,13 +161,13 @@ const BanDropdown: React.FC<BanDropdownProps> = ({ userId, isBanned, strikes, di
                                         fontSize: '13px',
                                         fontWeight: 600,
                                         color: opt.color,
-                                        background: isBanned === opt.value ? opt.bg : '#ffffff',
+                                        background: isBanned === opt.value ? opt.bg : 'var(--card-bg)',
                                         cursor: 'pointer',
                                         whiteSpace: 'nowrap',
                                         transition: 'background 0.15s'
                                     }}
                                     onMouseEnter={e => (e.currentTarget.style.background = opt.bg)}
-                                    onMouseLeave={e => (e.currentTarget.style.background = isBanned === opt.value ? opt.bg : '#ffffff')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = isBanned === opt.value ? opt.bg : 'var(--card-bg)')}
                                 >
                                     {opt.label}
                                 </div>
@@ -248,9 +253,9 @@ function CustomTableDropdown<T>({
                         padding: '5px 10px',
                         fontSize: '13px',
                         fontWeight: 600,
-                        borderRadius: '6px',
-                        border: `1.5px solid ${COLORS.gray200}`,
-                        background: current.bg || '#ffffff',
+                        borderRadius: '0px',
+                        border: `1px solid var(--border-color)`,
+                        background: current.bg || 'var(--card-bg)',
                         color: current.color || COLORS.gray700,
                         cursor: disabled ? 'not-allowed' : 'pointer',
                         opacity: disabled ? 0.7 : 1,
@@ -281,17 +286,17 @@ function CustomTableDropdown<T>({
                             left: `${coords.left}px`,
                             transform: dropUp ? 'translateY(-100%)' : 'none',
                             zIndex: 100000,
-                            background: '#ffffff',
-                            border: '1.5px solid #e2e8f0',
-                            borderRadius: '8px',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                            background: 'var(--card-bg)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '0px',
+                            boxShadow: 'var(--shadow-paper)',
                             overflow: 'hidden',
                             minWidth: minWidth
                         }}>
                             {options.map((opt, idx) => {
                                 const isSelected = opt.value === value;
-                                const rowBg = opt.bg || (idx % 2 === 0 ? '#ffffff' : '#f8fafc');
-                                const defaultHoverBg = isSelected ? (opt.bg || '#f1f5f9') : '#f1f5f9';
+                                const rowBg = opt.bg || (idx % 2 === 0 ? 'var(--card-bg)' : 'var(--bg-color)');
+                                const defaultHoverBg = isSelected ? (opt.bg || 'var(--secondary-color)') : 'var(--secondary-color)';
                                 const hoverBg = opt.hoverBg || defaultHoverBg;
 
                                 return (
@@ -303,13 +308,13 @@ function CustomTableDropdown<T>({
                                             fontSize: '13px',
                                             fontWeight: isSelected ? 700 : 500,
                                             color: opt.color || COLORS.gray700,
-                                            background: isSelected ? (opt.bg || '#f1f5f9') : rowBg,
+                                            background: isSelected ? (opt.bg || 'var(--secondary-color)') : rowBg,
                                             cursor: 'pointer',
                                             whiteSpace: 'nowrap',
                                             transition: 'background 0.15s'
                                         }}
                                         onMouseEnter={e => (e.currentTarget.style.background = hoverBg)}
-                                        onMouseLeave={e => (e.currentTarget.style.background = isSelected ? (opt.bg || '#f1f5f9') : rowBg)}
+                                        onMouseLeave={e => (e.currentTarget.style.background = isSelected ? (opt.bg || 'var(--secondary-color)') : rowBg)}
                                     >
                                         {opt.label}
                                     </div>
@@ -331,6 +336,7 @@ export interface UsersTableProps {
 
 export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }) => {
     const [plans, setPlans] = useState<Plan[]>([]);
+    const [roles, setRoles] = useState<Role[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [usersTotal, setUsersTotal] = useState(0);
     const [usersLoading, setUsersLoading] = useState(true);
@@ -359,6 +365,18 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
         }
     };
 
+    const fetchRoles = async () => {
+        try {
+            const res = await fetch('http://localhost:8001/admin/roles');
+            if (res.ok) {
+                const data = await res.json();
+                setRoles(data || []);
+            }
+        } catch (err) {
+            console.error('Не удалось загрузить роли', err);
+        }
+    };
+
     const fetchUsers = async () => {
         usersLoading || setUsersLoading(true);
         try {
@@ -384,6 +402,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
 
     useEffect(() => {
         fetchPlans();
+        fetchRoles();
     }, []);
 
     useEffect(() => {
@@ -466,19 +485,19 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
         return customStyles;
     };
 
-    const handleUserUpdate = async (targetUserId: number, newRole: string, newPlanId: number, newIsActive: boolean) => {
+    const handleUserUpdate = async (targetUserId: number, newRoleId: number, newPlanId: number, newIsActive: boolean) => {
         try {
             const res = await fetch(`http://localhost:8001/admin/users/${targetUserId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ role: newRole, plan_id: newPlanId, is_active: newIsActive })
+                body: JSON.stringify({ role_id: newRoleId, plan_id: newPlanId, is_active: newIsActive })
             });
             if (!res.ok) {
                 const errData = await res.json();
                 throw new Error(errData.detail || 'Не удалось обновить пользователя');
             }
             setUsers(prev =>
-                prev.map(u => (u.user_id === targetUserId ? { ...u, role: newRole, plan_id: newPlanId, is_active: newIsActive } : u))
+                prev.map(u => (u.user_id === targetUserId ? { ...u, role_id: newRoleId, plan_id: newPlanId, is_active: newIsActive } : u))
             );
             showToast('Данные пользователя успешно обновлены!', 'success');
         } catch (err: any) {
@@ -629,7 +648,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                                                             padding: '4px 8px',
                                                             fontSize: '12px',
                                                             border: `1.5px solid ${COLORS.gray200}`,
-                                                            borderRadius: '6px',
+                                                            borderRadius: '0px',
                                                             outline: 'none',
                                                             fontFamily: 'inherit'
                                                         }}
@@ -641,7 +660,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                                                             background: COLORS.dark,
                                                             color: COLORS.white,
                                                             border: 'none',
-                                                            borderRadius: '4px',
+                                                            borderRadius: '0px',
                                                             cursor: 'pointer',
                                                             fontSize: '10px',
                                                             fontWeight: 600
@@ -656,7 +675,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                                                             background: '#f1f5f9',
                                                             color: '#334155',
                                                             border: 'none',
-                                                            borderRadius: '4px',
+                                                            borderRadius: '0px',
                                                             cursor: 'pointer',
                                                             fontSize: '10px',
                                                             fontWeight: 600
@@ -697,7 +716,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                                     <td style={getUserCellStyle('plan_id', { padding: '8px 16px', fontSize: '13px' })}>
                                         <CustomTableDropdown
                                             value={u.plan_id}
-                                            onChange={(newVal) => handleUserUpdate(u.user_id, u.role, newVal, u.is_active)}
+                                            onChange={(newVal) => handleUserUpdate(u.user_id, u.role_id, newVal, u.is_active)}
                                             options={plans.length > 0 ? (
                                                 plans.map(p => ({
                                                     value: p.plan_id,
@@ -717,7 +736,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                                         <CustomTableDropdown
                                             disabled={currentUser?.id === u.user_id}
                                             value={u.is_active}
-                                            onChange={(newVal) => handleUserUpdate(u.user_id, u.role, u.plan_id, newVal)}
+                                            onChange={(newVal) => handleUserUpdate(u.user_id, u.role_id, u.plan_id, newVal)}
                                             options={[
                                                 { value: true, label: 'Активен', color: '#137333', bg: '#e6f4ea', hoverBg: '#d7eedb' },
                                                 { value: false, label: 'Удален', color: '#c5221f', bg: '#fce8e6', hoverBg: '#fad2cf' }
@@ -731,18 +750,25 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                                             minWidth="130px"
                                         />
                                     </td>
-                                    <td style={getUserCellStyle('role', { padding: '8px 16px', fontSize: '13px' })}>
+                                    <td style={getUserCellStyle('role_id', { padding: '8px 16px', fontSize: '13px' })}>
                                         <CustomTableDropdown
                                             disabled={currentUser?.id === u.user_id}
-                                            value={u.role || 'user'}
+                                            value={u.role_id}
                                             onChange={(newVal) => handleUserUpdate(u.user_id, newVal, u.plan_id, u.is_active)}
-                                            options={[
-                                                { value: 'user', label: 'user', color: COLORS.gray700, hoverBg: '#f1f5f9' },
-                                                { value: 'admin', label: 'admin', color: COLORS.accent, hoverBg: '#f1f5f9' }
+                                            options={roles.length > 0 ? (
+                                                roles.map(r => ({
+                                                    value: r.role_id,
+                                                    label: `${r.role_id} - ${r.role}`,
+                                                    color: r.role_id === 2 ? COLORS.accent : COLORS.gray700,
+                                                    hoverBg: '#f1f5f9'
+                                                }))
+                                            ) : [
+                                                { value: 1, label: '1 - Пользователь', color: COLORS.gray700, hoverBg: '#f1f5f9' },
+                                                { value: 2, label: '2 - Админ', color: COLORS.accent, hoverBg: '#f1f5f9' }
                                             ]}
                                             buttonStyle={{
-                                                fontWeight: u.role === 'admin' ? 600 : 'normal',
-                                                color: u.role === 'admin' ? COLORS.accent : COLORS.gray700
+                                                fontWeight: u.role_id === 2 ? 600 : 'normal',
+                                                color: u.role_id === 2 ? COLORS.accent : COLORS.gray700
                                             }}
                                             minWidth="130px"
                                         />
@@ -768,8 +794,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                     </tbody>
                 </table>
             </div>
-
-            {/* Пагинация Пользователей */}
+            {/* Пагинация пользователей */}
             <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -788,12 +813,13 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                         disabled={usersPage === 1}
                         style={{
                             padding: '6px 12px',
-                            background: COLORS.white,
-                            border: `1px solid ${COLORS.gray300}`,
-                            borderRadius: '6px',
+                            background: 'var(--card-bg)',
+                            border: `1px solid var(--border-color)`,
+                            borderRadius: '0px',
                             cursor: 'pointer',
                             fontSize: '13px',
                             fontWeight: 500,
+                            color: 'var(--fg-color)',
                             opacity: usersPage === 1 ? 0.5 : 1
                         }}
                     >
@@ -804,19 +830,20 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                         disabled={usersPage === 1}
                         style={{
                             padding: '6px 12px',
-                            background: COLORS.white,
-                            border: `1px solid ${COLORS.gray300}`,
-                            borderRadius: '6px',
+                            background: 'var(--card-bg)',
+                            border: `1px solid var(--border-color)`,
+                            borderRadius: '0px',
                             cursor: 'pointer',
                             fontSize: '13px',
                             fontWeight: 500,
+                            color: 'var(--fg-color)',
                             opacity: usersPage === 1 ? 0.5 : 1
                         }}
                     >
                         Назад
                     </button>
 
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: COLORS.gray700, padding: '0 8px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--fg-color)', padding: '0 8px', fontFamily: 'var(--font-mono)' }}>
                         Страница {usersPage} из {totalUsersPages}
                     </span>
 
@@ -825,12 +852,13 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                         disabled={usersPage === totalUsersPages}
                         style={{
                             padding: '6px 12px',
-                            background: COLORS.white,
-                            border: `1px solid ${COLORS.gray300}`,
-                            borderRadius: '6px',
+                            background: 'var(--card-bg)',
+                            border: `1px solid var(--border-color)`,
+                            borderRadius: '0px',
                             cursor: 'pointer',
                             fontSize: '13px',
                             fontWeight: 500,
+                            color: 'var(--fg-color)',
                             opacity: usersPage === totalUsersPages ? 0.5 : 1
                         }}
                     >
@@ -841,12 +869,13 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                         disabled={usersPage === totalUsersPages}
                         style={{
                             padding: '6px 12px',
-                            background: COLORS.white,
-                            border: `1px solid ${COLORS.gray300}`,
-                            borderRadius: '6px',
+                            background: 'var(--card-bg)',
+                            border: `1px solid var(--border-color)`,
+                            borderRadius: '0px',
                             cursor: 'pointer',
                             fontSize: '13px',
                             fontWeight: 500,
+                            color: 'var(--fg-color)',
                             opacity: usersPage === totalUsersPages ? 0.5 : 1
                         }}
                     >

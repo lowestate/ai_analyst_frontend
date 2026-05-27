@@ -216,7 +216,26 @@ export const LLMRequestsTable: React.FC = () => {
                     {error}
                 </div>
             )}
-            <div className="table-wrapper" style={{ overflowX: 'auto', maxHeight: '60vh', WebkitOverflowScrolling: 'touch' }}>
+            <div className="table-wrapper" style={{ overflowX: 'auto', maxHeight: '60vh', WebkitOverflowScrolling: 'touch', position: 'relative' }}>
+                <style>{`
+                    @keyframes shimmer {
+                        0% { background-position: -200% 0; }
+                        100% { background-position: 200% 0; }
+                    }
+                `}</style>
+                {loading && requests.length > 0 && (
+                    <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '3px',
+                        background: 'linear-gradient(90deg, transparent, var(--primary-color), transparent)',
+                        backgroundSize: '200% 100%',
+                        animation: 'shimmer 1.5s infinite linear',
+                        zIndex: 10
+                    }} />
+                )}
                 <table className="sample-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                         <tr>
@@ -351,7 +370,7 @@ export const LLMRequestsTable: React.FC = () => {
                                                             padding: '4px 8px',
                                                             fontSize: '12px',
                                                             border: `1.5px solid ${COLORS.gray200}`,
-                                                            borderRadius: '6px',
+                                                            borderRadius: '0px',
                                                             outline: 'none',
                                                             fontFamily: 'inherit'
                                                         }}
@@ -363,7 +382,7 @@ export const LLMRequestsTable: React.FC = () => {
                                                             background: COLORS.dark,
                                                             color: COLORS.white,
                                                             border: 'none',
-                                                            borderRadius: '4px',
+                                                            borderRadius: '0px',
                                                             cursor: 'pointer',
                                                             fontSize: '10px',
                                                             fontWeight: 600
@@ -378,7 +397,7 @@ export const LLMRequestsTable: React.FC = () => {
                                                             background: '#f1f5f9',
                                                             color: '#334155',
                                                             border: 'none',
-                                                            borderRadius: '4px',
+                                                            borderRadius: '0px',
                                                             cursor: 'pointer',
                                                             fontSize: '10px',
                                                             fontWeight: 600
@@ -395,7 +414,7 @@ export const LLMRequestsTable: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? (
+                        {loading && requests.length === 0 ? (
                             <tr>
                                 <td colSpan={REQUEST_COLUMNS.length} style={{ textAlign: 'center', padding: '40px' }}>
                                     <div className="loading-text">Загрузка логов...</div>
@@ -409,7 +428,11 @@ export const LLMRequestsTable: React.FC = () => {
                             </tr>
                         ) : (
                             requests.map((req) => (
-                                <tr key={req.request_id}>
+                                <tr key={req.request_id} style={{ 
+                                    opacity: loading ? 0.6 : 1, 
+                                    pointerEvents: loading ? 'none' : 'auto',
+                                    transition: 'opacity 0.15s ease' 
+                                }}>
                                     <td style={getCellStyle('request_id', { padding: '12px 16px', fontSize: '13px', color: COLORS.gray600, fontFamily: 'monospace' })} title={req.request_id}>
                                         {req.request_id}
                                     </td>
@@ -438,7 +461,7 @@ export const LLMRequestsTable: React.FC = () => {
                                     <td style={getCellStyle('request_status', { padding: '12px 16px', fontSize: '13px', textAlign: 'center' })} title={String(req.request_status)}>
                                         <span style={{
                                             padding: '2px 8px',
-                                            borderRadius: '4px',
+                                            borderRadius: '0px',
                                             fontSize: '11px',
                                             fontWeight: 600,
                                             background: req.request_status === 200 ? '#e6f4ea' : '#fce8e6',
@@ -499,12 +522,13 @@ export const LLMRequestsTable: React.FC = () => {
                         disabled={page === 1}
                         style={{
                             padding: '6px 12px',
-                            background: COLORS.white,
-                            border: `1px solid ${COLORS.gray300}`,
-                            borderRadius: '6px',
+                            background: 'var(--card-bg)',
+                            border: `1px solid var(--border-color)`,
+                            borderRadius: '0px',
                             cursor: 'pointer',
                             fontSize: '13px',
                             fontWeight: 500,
+                            color: 'var(--fg-color)',
                             opacity: page === 1 ? 0.5 : 1
                         }}
                     >
@@ -515,19 +539,20 @@ export const LLMRequestsTable: React.FC = () => {
                         disabled={page === 1}
                         style={{
                             padding: '6px 12px',
-                            background: COLORS.white,
-                            border: `1px solid ${COLORS.gray300}`,
-                            borderRadius: '6px',
+                            background: 'var(--card-bg)',
+                            border: `1px solid var(--border-color)`,
+                            borderRadius: '0px',
                             cursor: 'pointer',
                             fontSize: '13px',
                             fontWeight: 500,
+                            color: 'var(--fg-color)',
                             opacity: page === 1 ? 0.5 : 1
                         }}
                     >
                         Назад
                     </button>
 
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: COLORS.gray700, padding: '0 8px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--fg-color)', padding: '0 8px', fontFamily: 'var(--font-mono)' }}>
                         Страница {page} из {totalPages}
                     </span>
 
@@ -536,12 +561,13 @@ export const LLMRequestsTable: React.FC = () => {
                         disabled={page === totalPages}
                         style={{
                             padding: '6px 12px',
-                            background: COLORS.white,
-                            border: `1px solid ${COLORS.gray300}`,
-                            borderRadius: '6px',
+                            background: 'var(--card-bg)',
+                            border: `1px solid var(--border-color)`,
+                            borderRadius: '0px',
                             cursor: 'pointer',
                             fontSize: '13px',
                             fontWeight: 500,
+                            color: 'var(--fg-color)',
                             opacity: page === totalPages ? 0.5 : 1
                         }}
                     >
@@ -552,12 +578,13 @@ export const LLMRequestsTable: React.FC = () => {
                         disabled={page === totalPages}
                         style={{
                             padding: '6px 12px',
-                            background: COLORS.white,
-                            border: `1px solid ${COLORS.gray300}`,
-                            borderRadius: '6px',
+                            background: 'var(--card-bg)',
+                            border: `1px solid var(--border-color)`,
+                            borderRadius: '0px',
                             cursor: 'pointer',
                             fontSize: '13px',
                             fontWeight: 500,
+                            color: 'var(--fg-color)',
                             opacity: page === totalPages ? 0.5 : 1
                         }}
                     >
@@ -575,8 +602,8 @@ export const LLMRequestsTable: React.FC = () => {
                 const isNumeric = ['input_tokens', 'output_tokens', 'duration_ms'].includes(colKey);
                 const colLabel = REQUEST_COLUMNS.find(c => c.key === colKey)?.label || '';
 
-                const top = rect.bottom + window.scrollY + 8;
-                const left = rect.left + window.scrollX + (rect.width / 2) - 130; 
+                const top = rect.bottom + window.scrollY / 4;
+                const left = rect.left + window.scrollX + (rect.width / 2) - 130;
 
                 const formatDurationStats = (ms: number): string => {
                     if (ms === 0) return '0 сек.';
@@ -607,50 +634,50 @@ export const LLMRequestsTable: React.FC = () => {
                         }}
                         style={{
                             position: 'absolute',
-                            top: `${top}px`,
+                            top: `250px`,
                             left: `${left}px`,
                             width: '260px',
-                            background: '#1e293b',
-                            color: '#f8fafc',
-                            borderRadius: '12px',
+                            background: 'var(--card-bg)',
+                            color: 'var(--fg-color)',
+                            borderRadius: '0px',
                             padding: '16px',
-                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4)',
-                            border: '1px solid #334155',
+                            boxShadow: 'var(--shadow-paper)',
+                            border: '1px solid var(--border-color)',
                             zIndex: 99999,
                             pointerEvents: 'auto',
-                            fontFamily: 'inherit',
+                            fontFamily: 'var(--font-mono)',
                             boxSizing: 'border-box'
                         }}>
                         {isNumeric ? (
                             <div>
-                                <div style={{ fontSize: '11px', fontWeight: 600, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--primary-color)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
                                     Статистика: {colLabel}
                                 </div>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '12px' }}>
                                     <tbody>
-                                        <tr style={{ borderBottom: '1px solid #334155' }}>
-                                            <td style={{ padding: '6px 0', color: '#94a3b8' }}>Среднее</td>
-                                            <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600 }}>
+                                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                            <td style={{ padding: '6px 0', color: 'var(--muted-fg)' }}>Среднее</td>
+                                            <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600, color: 'var(--fg-color)' }}>
                                                 {colKey === 'duration_ms' ? formatDurationStats(stats.mean) : stats.mean}
                                             </td>
                                         </tr>
-                                        <tr style={{ borderBottom: '1px solid #334155' }}>
-                                            <td style={{ padding: '6px 0', color: '#94a3b8' }}>Медиана</td>
-                                            <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600 }}>
+                                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                            <td style={{ padding: '6px 0', color: 'var(--muted-fg)' }}>Медиана</td>
+                                            <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600, color: 'var(--fg-color)' }}>
                                                 {colKey === 'duration_ms' ? formatDurationStats(stats.median) : stats.median}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '6px 0', color: '#94a3b8' }}>Станд. откл.</td>
-                                            <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600 }}>
+                                            <td style={{ padding: '6px 0', color: 'var(--muted-fg)' }}>Станд. откл.</td>
+                                            <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600, color: 'var(--fg-color)' }}>
                                                 {colKey === 'duration_ms' ? formatDurationStats(stats.std) : stats.std}
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
 
-                                <div style={{ borderTop: '1px solid #334155', paddingTop: '10px' }}>
-                                    <div style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '6px', fontWeight: 500 }}>
+                                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
+                                    <div style={{ fontSize: '10px', color: 'var(--muted-fg)', marginBottom: '6px', fontWeight: 500 }}>
                                         Распределение частот:
                                     </div>
                                     {stats.distribution && stats.distribution.length > 0 ? (() => {
@@ -675,35 +702,32 @@ export const LLMRequestsTable: React.FC = () => {
                                                                 width={barWidth}
                                                                 height={barHeight}
                                                                 fill="url(#accentGradient)"
-                                                                rx="1.5"
+                                                                rx="0"
                                                             />
                                                         );
                                                     })}
                                                     <defs>
                                                         <linearGradient id="accentGradient" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="0%" stopColor="#38bdf8" />
-                                                            <stop offset="100%" stopColor="#0284c7" />
+                                                            <stop offset="0%" stopColor="var(--primary-color)" />
+                                                            <stop offset="100%" stopColor="var(--accent-color)" />
                                                         </linearGradient>
                                                     </defs>
                                                 </svg>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#ffffff', marginTop: '4px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'var(--muted-fg)', marginTop: '4px' }}>
                                                     <span>{colKey === 'duration_ms' ? formatDurationStats(stats.distribution[0]?.bin_start) : stats.distribution[0]?.bin_start}</span>
                                                     <span>{colKey === 'duration_ms' ? formatDurationStats(stats.distribution[stats.distribution.length - 1]?.bin_end) : stats.distribution[stats.distribution.length - 1]?.bin_end}</span>
                                                 </div>
                                             </div>
                                         );
                                     })() : (
-                                        <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>Нет данных</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--muted-fg)', textAlign: 'center' }}>Нет данных</div>
                                     )}
                                 </div>
                             </div>
                         ) : (
                             <div>
-                                <div style={{ fontSize: '11px', fontWeight: 600, color: '#c084fc', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
+                                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent-color)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
                                     Анализ категорий: {colLabel}
-                                </div>
-                                <div style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '8px', fontWeight: 500 }}>
-                                    Распределение (по убыванию):
                                 </div>
                                 {stats && stats.length > 0 ? (() => {
                                     const counts = stats.map((c: any) => c.count);
@@ -714,15 +738,15 @@ export const LLMRequestsTable: React.FC = () => {
                                             {stats.slice(0, 5).map((item: any, idx: number) => {
                                                 const percentage = (item.count / maxCount) * 100;
                                                 return (
-                                                    <div key={idx} style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center', padding: '0 8px', borderRadius: '6px', overflow: 'hidden' }}>
+                                                    <div key={idx} style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center', padding: '0 8px', borderRadius: '0px', overflow: 'hidden' }}>
                                                         <div style={{
                                                             position: 'absolute',
                                                             left: 0,
                                                             top: 0,
                                                             bottom: 0,
                                                             width: `${percentage}%`,
-                                                            background: 'rgba(168, 85, 247, 0.15)',
-                                                            borderRadius: '4px',
+                                                            background: 'var(--primary-soft)',
+                                                            borderRadius: '0px',
                                                             zIndex: 1
                                                         }} />
 
@@ -734,10 +758,10 @@ export const LLMRequestsTable: React.FC = () => {
                                                             zIndex: 2,
                                                             position: 'relative'
                                                         }}>
-                                                            <span style={{ color: '#e2e8f0', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }} title={item.name}>
+                                                            <span style={{ color: 'var(--fg-color)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }} title={item.name}>
                                                                 {item.name}
                                                             </span>
-                                                            <span style={{ color: '#c084fc', fontWeight: 600 }}>
+                                                            <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
                                                                 {item.count}
                                                             </span>
                                                         </div>
@@ -745,14 +769,14 @@ export const LLMRequestsTable: React.FC = () => {
                                                 );
                                             })}
                                             {stats.length > 5 && (
-                                                <div style={{ fontSize: '10px', color: '#64748b', textAlign: 'center', marginTop: '4px' }}>
+                                                <div style={{ fontSize: '10px', color: 'var(--muted-fg)', textAlign: 'center', marginTop: '4px' }}>
                                                     + ещё {stats.length - 5} вариантов
                                                 </div>
                                             )}
                                         </div>
                                     );
                                 })() : (
-                                    <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>Нет данных</div>
+                                    <div style={{ fontSize: '11px', color: 'var(--muted-fg)', textAlign: 'center' }}>Нет данных</div>
                                 )}
                             </div>
                         )}

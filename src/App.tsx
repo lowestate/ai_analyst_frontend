@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 
 import { GLOBAL_STYLES } from "./globasStyles";
 import { Message, ChatSession, ChartData } from "./types";
@@ -62,6 +62,25 @@ function MainLayout({
         password: "",
     });
     const [currentView, setCurrentView] = useState<"chat" | "profile">("chat");
+    const location = useLocation();
+
+    const localLogout = async () => {
+        await handleLogout();
+        setCurrentView("chat");
+        setSessions([]);
+        setActiveChat(null);
+        setMessages([]);
+        setDbSchema(null);
+        setChartsPayload([]);
+        setLocalDataPool([]);
+        setSelectedChart(null);
+    };
+
+    useEffect(() => {
+        if (location.state && (location.state as any).view === "profile") {
+            setCurrentView("profile");
+        }
+    }, [location]);
     const allCharts = messages.flatMap((m) => m.charts || []);
     const uniqueCharts: ChartData[] = [];
     const seenKeys = new Set<string>();
@@ -151,6 +170,7 @@ function MainLayout({
                     const data = await res.json();
                     if (data.is_banned) {
                         setBanModalOpen(true);
+                        localLogout();
                     }
                     if (data.plan_name || data.role) {
                         setCurrentUser((prev) =>
@@ -501,6 +521,7 @@ function MainLayout({
                                 )
                             ) {
                                 setBanModalOpen(true);
+                                localLogout();
                             }
 
                             setMessages((prev) => [
@@ -570,17 +591,6 @@ function MainLayout({
         );
     };
 
-    const localLogout = async () => {
-        await handleLogout();
-        setCurrentView("chat");
-        setSessions([]);
-        setActiveChat(null);
-        setMessages([]);
-        setDbSchema(null);
-        setChartsPayload([]);
-        setLocalDataPool([]);
-        setSelectedChart(null);
-    };
 
     return (
         <>
@@ -713,12 +723,13 @@ function MainLayout({
                                     marginBottom: "20px",
                                 }}
                             >
-                                Ваш аккаунт заблокирован за опасные запросы
+                                Ваш аккаунт заблокирован. Если это ошибка, напишите на почту help@dataoffice.ru
                             </h2>
                             <button
                                 onClick={() => {
                                     setBanModalOpen(false);
-                                    handleLogout();
+                                    localLogout();
+                                    window.location.href = "/";
                                 }}
                                 className="btn-auth-submit"
                                 style={{ width: "150px", padding: "10px", fontSize: "14px" }}
@@ -771,22 +782,22 @@ function App() {
             <style>{GLOBAL_STYLES}</style>
             <Router>
                 <Routes>
-                    <Route 
-                        path="/" 
+                    <Route
+                        path="/"
                         element={
-                            <Homepage 
-                                currentUser={currentUser} 
-                                onOpenAuth={() => setIsAuthModalOpen(true)} 
+                            <Homepage
+                                currentUser={currentUser}
+                                onOpenAuth={() => setIsAuthModalOpen(true)}
                                 onLogout={handleLogout}
-                                onOpenProfile={() => {}}
+                                onOpenProfile={() => { }}
                             />
-                        } 
+                        }
                     />
-                    <Route 
-                        path="/analyze" 
+                    <Route
+                        path="/analyze"
                         element={
-                            <MainLayout 
-                                currentUser={currentUser} 
+                            <MainLayout
+                                currentUser={currentUser}
                                 setCurrentUser={setCurrentUser}
                                 isAuthModalOpen={isAuthModalOpen}
                                 setIsAuthModalOpen={setIsAuthModalOpen}
@@ -794,7 +805,7 @@ function App() {
                                 setBanModalOpen={setBanModalOpen}
                                 handleLogout={handleLogout}
                             />
-                        } 
+                        }
                     />
                     <Route path="/not-exist" element={<NotFound />} />
                     <Route path="/dashboard" element={<Dashboard />} />

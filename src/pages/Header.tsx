@@ -7,6 +7,7 @@ interface HeaderProps {
     onLogout: () => void;
     onOpenProfile: () => void;
     isChatMode?: boolean;
+    isAdminMode?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -15,6 +16,7 @@ export const Header: React.FC<HeaderProps> = ({
     onLogout,
     onOpenProfile,
     isChatMode = false,
+    isAdminMode = false,
 }) => {
     return (
         <header
@@ -91,8 +93,8 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                 </Link>
 
-                {/* Cabinet label if isChatMode is true */}
-                {isChatMode && (
+                {/* Cabinet label if isChatMode or isAdminMode is true */}
+                {(isChatMode || isAdminMode) && (
                     <div
                         className="font-mono"
                         style={{
@@ -105,15 +107,22 @@ export const Header: React.FC<HeaderProps> = ({
                             alignItems: "center",
                         }}
                     >
-                        <span>
-                            <span style={{ color: "var(--muted-fg)" }}>&gt; кабинет 301 </span>
-                            <span style={{ color: "var(--primary-color)" }}>Анализ данных</span>
-                        </span>
+                        {isAdminMode ? (
+                            <span>
+                                <span style={{ color: "var(--muted-fg)" }}>&gt; кабинет 507 </span>
+                                <span style={{ color: "var(--primary-color)" }}>Администрация</span>
+                            </span>
+                        ) : (
+                            <span>
+                                <span style={{ color: "var(--muted-fg)" }}>&gt; кабинет 301 </span>
+                                <span style={{ color: "var(--primary-color)" }}>Анализ данных</span>
+                            </span>
+                        )}
                     </div>
                 )}
 
-                {/* Navigation links if isChatMode is false */}
-                {!isChatMode && (
+                {/* Navigation links if isChatMode and isAdminMode are false */}
+                {!isChatMode && !isAdminMode && (
                     <nav
                         className="font-mono"
                         style={{
@@ -133,10 +142,10 @@ export const Header: React.FC<HeaderProps> = ({
 
                 {/* Right controls */}
                 <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                    {/* "Записаться" button if not in chat mode */}
-                    {!isChatMode && (
-                        <a
-                            href="#contact"
+                    {/* "Войти" button styled like "Записаться" if not logged in */}
+                    {!currentUser && !isChatMode && (
+                        <button
+                            onClick={onOpenAuth}
                             className="font-mono"
                             style={{
                                 display: "inline-flex",
@@ -146,59 +155,44 @@ export const Header: React.FC<HeaderProps> = ({
                                 color: "var(--bg-color)",
                                 padding: "8px 16px",
                                 fontSize: "13px",
-                                textDecoration: "none",
+                                border: "none",
+                                borderRadius: "0px",
                                 fontWeight: 500,
                                 transition: "background-color 0.2s",
+                                cursor: "pointer",
+                                fontFamily: "var(--font-mono)"
                             }}
                         >
-                            Записаться <span className="animate-blink">█</span>
-                        </a>
+                            Войти <span className="animate-blink">█</span>
+                        </button>
                     )}
 
                     {/* Authentication state triggers */}
-                    {!currentUser ? (
-                        <button
-                            className="btn-login-header"
-                            onClick={onOpenAuth}
-                            style={{
-                                backgroundColor: "var(--primary-color)",
-                                color: "var(--primary-fg)",
-                                border: "1px solid var(--primary-color)",
-                                padding: "8px 18px",
-                                borderRadius: "4px",
-                                fontFamily: "var(--font-mono)",
-                                fontWeight: 600,
-                                fontSize: "11px",
-                                cursor: "pointer",
-                                transition: "all 0.2s ease",
-                            }}
-                        >
-                            Войти
-                        </button>
-                    ) : (
+                    {currentUser && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            {currentUser.role === 'admin' && (
+                            {!isAdminMode && (currentUser.role === 'admin' || currentUser.role === 'Админ') && (
                                 <Link
                                     to="/admin"
                                     className="btn-admin-header"
                                     style={{
-                                        background: 'none',
-                                        border: `1px solid var(--fg-color)`,
-                                        borderRadius: '4px',
-                                        padding: '6px 12px',
-                                        fontSize: '11px',
-                                        fontFamily: 'var(--font-mono)',
+                                        backgroundColor: "var(--primary-color)",
+                                        color: "var(--primary-fg)",
+                                        padding: "8px 16px",
+                                        fontSize: "13px",
+                                        textDecoration: "none",
                                         fontWeight: 600,
-                                        color: 'var(--fg-color)',
-                                        textDecoration: 'none',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        transition: 'all 0.2s ease',
-                                        cursor: 'pointer'
+                                        fontFamily: "var(--font-mono)",
+                                        borderRadius: "0px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "8px",
+                                        transition: "all 0.2s ease",
+                                        cursor: "pointer",
+                                        border: "1px solid var(--border-color)",
+                                        boxShadow: "var(--shadow-paper)"
                                     }}
                                 >
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                                     </svg>

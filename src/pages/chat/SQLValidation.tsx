@@ -6,81 +6,100 @@ import { COLORS } from '../../globasStyles'
 const formatSql = (sql: string) => {
     if (!sql) return '';
 
-    // Нормализация пробелов
+    // 1. Нормализуем пробелы
     let str = sql.replace(/\s+/g, ' ').trim();
 
-    // Ключевые слова, которые всегда начинаются с новой строки
-    const rootKws = ['FROM', 'WHERE', 'INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'FULL JOIN', 'CROSS JOIN', 'JOIN', 'GROUP BY', 'ORDER BY', 'HAVING', 'LIMIT'];
-
-    // Приводим ключи к верхнему регистру для точного совпадения
-    rootKws.forEach(kw => {
-        str = str.replace(new RegExp(`\\b${kw}\\b`, 'gi'), kw.toUpperCase());
+    // Приводим ключевые слова к нижнему регистру для соответствия скриншоту
+    const keywords = [
+        'with', 'as', 'select', 'from', 'where', 
+        'inner join', 'left join', 'right join', 'full join', 'cross join', 'join', 'on',
+        'group by', 'order by', 'having', 'limit', 'union all', 'union', 'and', 'or'
+    ];
+    keywords.forEach(kw => {
+        str = str.replace(new RegExp(`\\b${kw}\\b`, 'gi'), kw.toLowerCase());
     });
-    str = str.replace(/\bSELECT\b/gi, 'SELECT');
 
     let result = '';
     let indent = 0;
-    const TAB = '        '; // 4 пробела (табуляция увеличена в 2 раза)
+    const TAB = '    '; // Табуляция в 4 пробела
     let inSelectClause = false;
     let parenLevel = 0;
-    let selectParenLevels: number[] = [];
+    let cteStartParenLevels: number[] = []; // Уровни скобок для CTE
 
     let i = 0;
     while (i < str.length) {
-        // 1. Обработка SELECT
-        if (str.startsWith('SELECT', i)) {
-            if (indent === 0) {
-                // Главный SELECT (начало запроса)
-                result += 'SELECT\n';
-                indent++;
-                result += TAB.repeat(indent);
-            } else {
-                // Вложенный SELECT (в подзапросе)
-                indent++;
-                if (i > 0 && !result.endsWith('\n') && !result.endsWith('\n' + TAB.repeat(indent))) {
-                    result += '\n' + TAB.repeat(indent);
-                }
-                result += 'SELECT ';
-                selectParenLevels.push(parenLevel); // Запоминаем уровень вложенности скобок
+        // Убираем лишние пробелы после переносов строк
+        if (str[i] === ' ' && (result.endsWith('\n') || result.endsWith(TAB))) {
+            i++;
+            continue;
+        }
+
+        // 1. Обработка WITH
+        if (str.toLowerCase().startsWith('with ', i)) {
+            result += 'with ';
+            i += 5;
+            continue;
+        }
+
+        // 2. Обработка AS
+        if (str.toLowerCase().startsWith('as ', i)) {
+            result = result.trimEnd();
+            result += ' as ';
+            i += 3;
+            continue;
+        }
+
+        // 3. Обработка SELECT
+        if (str.toLowerCase().startsWith('select', i) && (i === 0 || str[i-1] === ' ' || str[i-1] === '(')) {
+            if (!result.endsWith('\n') && result.length > 0 && !result.endsWith(' ')) {
+                result += '\n' + TAB.repeat(indent);
             }
+            result += 'select\n' + TAB.repeat(indent + 1);
             i += 6;
             if (str[i] === ' ') i++;
             inSelectClause = true;
             continue;
         }
 
-        // 2. Обработка корневых ключевых слов (FROM, JOIN, WHERE...)
-        let matchedRoot = false;
+        // 4. Обработка корневых ключевых слов (from, where, join...)
+        let matchedKw = false;
+        const rootKws = [
+            'from', 'where', 'inner join', 'left join', 'right join', 'full join', 
+            'cross join', 'join', 'group by', 'order by', 'having', 'limit', 'union all', 'union'
+        ];
         for (const kw of rootKws) {
-            if (str.startsWith(kw, i)) {
-                // Главный FROM сбрасывает отступ от главного SELECT
-                if (kw === 'FROM' && indent > 0 && parenLevel === 0) {
-                    indent--;
-                    inSelectClause = false;
-                }
-
-                // Аккуратно добавляем перенос строки и текущий отступ
-                result = result.replace(/[ \t]+$/, ''); // Убираем висячие пробелы
+            if (str.toLowerCase().startsWith(kw, i) && (i === 0 || str[i-1] === ' ')) {
+                result = result.trimEnd();
                 if (!result.endsWith('\n')) {
                     result += '\n';
                 }
                 result += TAB.repeat(indent) + kw + ' ';
-
                 i += kw.length;
                 if (str[i] === ' ') i++;
-                matchedRoot = true;
+                inSelectClause = false;
+                matchedKw = true;
                 break;
             }
         }
-        if (matchedRoot) continue;
+        if (matchedKw) continue;
 
-        // 3. Обработка запятых
+        // 5. Обработка ON
+        if (str.toLowerCase().startsWith('on ', i)) {
+            result = result.trimEnd() + ' on ';
+            i += 3;
+            continue;
+        }
+
+        // 6. Обработка запятых
         if (str[i] === ',') {
-            if (inSelectClause) {
-                // Внутри SELECT делаем перенос с отступом
+            result = result.trimEnd();
+            if (result.endsWith(')')) {
+                // Выравниваем запятую после закрывающей скобки CTE
                 result += ',\n' + TAB.repeat(indent);
+            } else if (inSelectClause && parenLevel === cteStartParenLevels.length) {
+                // Новая строка только для колонок верхнего уровня SELECT (не внутри функций вроде AVG/COALESCE)
+                result += ',\n' + TAB.repeat(indent + 1);
             } else {
-                // В GROUP BY или внутри IN (...) оставляем на одной строке
                 result += ', ';
             }
             i++;
@@ -88,22 +107,36 @@ const formatSql = (sql: string) => {
             continue;
         }
 
-        // 4. Отслеживание скобок (для корректной работы вложенных SELECT)
+        // 7. Отслеживание скобок
         if (str[i] === '(') {
-            result += '(';
             parenLevel++;
+            const trailing = result.trimEnd();
+            // Проверяем начало CTE: "as ("
+            if (trailing.toLowerCase().endsWith(' as')) {
+                cteStartParenLevels.push(parenLevel);
+                result = trailing + ' (\n';
+                indent++;
+                result += TAB.repeat(indent);
+            } else {
+                result += '(';
+            }
             i++;
             continue;
         }
 
         if (str[i] === ')') {
-            // Если мы закрыли скобку, в которой открывали вложенный SELECT
-            if (selectParenLevels.length > 0 && selectParenLevels[selectParenLevels.length - 1] === parenLevel) {
-                selectParenLevels.pop();
-                indent--; // Возвращаем отступ назад
+            if (cteStartParenLevels.length > 0 && cteStartParenLevels[cteStartParenLevels.length - 1] === parenLevel) {
+                cteStartParenLevels.pop();
+                indent--;
+                result = result.trimEnd();
+                if (!result.endsWith('\n')) {
+                    result += '\n';
+                }
+                result += TAB.repeat(indent) + ')';
+            } else {
+                result += ')';
             }
             parenLevel--;
-            result += ')';
             i++;
             continue;
         }
@@ -112,8 +145,8 @@ const formatSql = (sql: string) => {
         i++;
     }
 
-    // Финальная очистка случайных двойных пробелов перед переносами
-    return result.replace(/ +\n/g, '\n').trim();
+    // Финальная очистка пробелов и пустых переносов
+    return result.replace(/ +\n/g, '\n').replace(/\n\s*\n/g, '\n').trim();
 };
 
 export const SqlValidationBlock = ({ text, onAction }: { text: string, onAction: (action: 'approve' | 'reject', feedback?: string, editedQuery?: string) => void }) => {

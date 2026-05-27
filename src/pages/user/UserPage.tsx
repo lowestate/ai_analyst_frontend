@@ -103,19 +103,6 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
 
     return (
         <div className="user-page-wrapper" onClick={handleBackgroundClick}>
-            <button
-                className="btn-back-chat"
-                onClick={(e) => {
-                    e.stopPropagation(); // Останавливаем клик, чтобы не дергать фон
-                    onBack();
-                }}
-            >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-                Вернуться к чатам
-            </button>
 
             <div className="profile-header">
                 {/* Берем первую букву имени для аватарки */}
@@ -137,7 +124,7 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
                     width: '100%',
                     boxShadow: '0 4px 12px rgba(250, 173, 20, 0.1)'
                 }}>
-                    Ваш аккаунт заблокирован.<br/>Все действия по анализу данных ограничены.
+                    Ваш аккаунт заблокирован.<br />Все действия по анализу данных ограничены.
                 </div>
             )}
 

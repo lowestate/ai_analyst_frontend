@@ -453,7 +453,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 <div className="input-container" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', width: '100%', gap: '25px' }}>
 
                     {/* Левая часть - 10% */}
-                    <div style={{ width: '10%', marginTop: '10px', minWidth: '130px', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
+                    <div style={{ width: '10%', marginTop: '10px', minWidth: '150px', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
 
                         {/* 3 строка - удаление столбцов */}
                         {allColumns.length > 0 && (
