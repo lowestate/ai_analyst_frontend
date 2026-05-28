@@ -15,6 +15,7 @@ import { Dashboard } from "./pages/dashboard/Dashboard";
 import { AdminPanel } from "./pages/admin_panel/AdminPanel";
 import { AuthModal } from "./pages/user/LoginOrRegister";
 import { UserPage } from "./pages/user/UserPage";
+import { CabinetPage } from "./pages/user/CabinetPage";
 import { UploadModal } from "./pages/upload_data/UploadData";
 import { Homepage } from "./pages/Homepage";
 import { NotFound } from "./pages/NotFound";
@@ -77,8 +78,14 @@ function MainLayout({
     };
 
     useEffect(() => {
-        if (location.state && (location.state as any).view === "profile") {
-            setCurrentView("profile");
+        if (location.state) {
+            const state = location.state as any;
+            if (state.view === "profile") {
+                setCurrentView("profile");
+            }
+            if (state.activeChatId) {
+                handleSelectChat(state.activeChatId);
+            }
         }
     }, [location]);
     const allCharts = messages.flatMap((m) => m.charts || []);
@@ -192,7 +199,7 @@ function MainLayout({
     }, [currentUser?.id]);
 
     useEffect(() => {
-        if (currentUser?.plan_name !== "pro") return;
+        if (currentUser?.plan_name !== "middle") return;
         const interval = setInterval(() => {
             const now = Date.now();
             setAiRequests((prev) => prev.filter((t) => now - t < 60000));
@@ -416,7 +423,7 @@ function MainLayout({
         const isDbMode = !!dbSchema;
         const aiActuallyUsed = isDbMode || useAiFlag;
 
-        if (currentUser?.plan_name === "pro" && aiActuallyUsed) {
+        if (currentUser?.plan_name === "middle" && aiActuallyUsed) {
             // Clean up old before checking
             const now = Date.now();
             const validRequests = aiRequests.filter((t) => now - t < 60000);
@@ -599,90 +606,79 @@ function MainLayout({
                     currentUser={currentUser}
                     onOpenAuth={() => setIsAuthModalOpen(true)}
                     onLogout={localLogout}
-                    onOpenProfile={() => setCurrentView("profile")}
+                    onOpenProfile={() => { }}
                     isChatMode={true}
+                    activeChatId={activeChat}
                 />
-                {currentView === "chat" ? (
-                    <div
-                        className={`app-layout ${isSidebarHidden ? "sidebar-hidden" : ""}`}
-                    >
-                        <LeftSidebar
-                            sessions={sessions}
-                            activeChat={activeChat}
-                            onSelectChat={handleSelectChat}
-                            onOpenUploadModal={() => setIsUploadModalOpen(true)}
-                            onDeleteChat={handleDeleteChat}
-                            isSidebarHidden={isSidebarHidden}
-                            onToggleSidebar={() => setIsSidebarHidden((prev) => !prev)}
-                            isBanned={banModalOpen}
-                        />
-
-                        <ChatArea
-                            activeChat={activeChat}
-                            messages={messages}
-                            loading={loading}
-                            loadingPhrase={loadingPhrase}
-                            input={input}
-                            setInput={setInput}
-                            onSendMessage={sendMessage}
-                            localDataPool={localDataPool}
-                            dbSchema={dbSchema}
-                            onRefreshSchema={handleRefreshSchema}
-                            initialCharts={chartsPayload}
-                            onRetry={handleRetryMessage}
-                            currentUser={currentUser}
-                            aiRequests={aiRequests}
-                            isBanned={banModalOpen}
-                        />
-
-                        <RightSidebar
-                            charts={uniqueCharts}
-                            onSelectChart={setSelectedChart}
-                            isDatasetLoaded={!!activeChat && activeChat !== "temp_loading"}
-                            isBanned={banModalOpen}
-                        />
-
-                        {selectedChart && (
-                            <div
-                                className="modal-overlay"
-                                onClick={() => setSelectedChart(null)}
-                            >
-                                <div
-                                    className="modal-content"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    <DataCharts charts={[selectedChart]} preview={false} />
-                                </div>
-                            </div>
-                        )}
-
-                        <UploadModal
-                            isOpen={isUploadModalOpen}
-                            onClose={() => setIsUploadModalOpen(false)}
-                            uploadTab={uploadTab}
-                            setUploadTab={setUploadTab}
-                            selectedFile={selectedFile}
-                            setSelectedFile={setSelectedFile}
-                            dbCreds={dbCreds}
-                            onDbCredsChange={handleDbCredsChange}
-                            onSubmit={handleDataSubmit}
-                            isSubmitDisabled={isSubmitDisabled}
-                            currentUser={currentUser}
-                            isBanned={banModalOpen}
-                        />
-                    </div>
-                ) : (
-                    <UserPage
-                        currentUser={currentUser!}
-                        onBack={() => setCurrentView("chat")}
-                        onPlanChange={(newPlan) =>
-                            setCurrentUser((prev) =>
-                                prev ? { ...prev, plan_name: newPlan } : null,
-                            )
-                        }
+                <div
+                    className={`app-layout ${isSidebarHidden ? "sidebar-hidden" : ""}`}
+                >
+                    <LeftSidebar
+                        sessions={sessions}
+                        activeChat={activeChat}
+                        onSelectChat={handleSelectChat}
+                        onOpenUploadModal={() => setIsUploadModalOpen(true)}
+                        onDeleteChat={handleDeleteChat}
+                        isSidebarHidden={isSidebarHidden}
+                        onToggleSidebar={() => setIsSidebarHidden((prev) => !prev)}
                         isBanned={banModalOpen}
                     />
-                )}
+
+                    <ChatArea
+                        activeChat={activeChat}
+                        messages={messages}
+                        loading={loading}
+                        loadingPhrase={loadingPhrase}
+                        input={input}
+                        setInput={setInput}
+                        onSendMessage={sendMessage}
+                        localDataPool={localDataPool}
+                        dbSchema={dbSchema}
+                        onRefreshSchema={handleRefreshSchema}
+                        initialCharts={chartsPayload}
+                        onRetry={handleRetryMessage}
+                        currentUser={currentUser}
+                        aiRequests={aiRequests}
+                        isBanned={banModalOpen}
+                    />
+
+                    <RightSidebar
+                        charts={uniqueCharts}
+                        onSelectChart={setSelectedChart}
+                        isDatasetLoaded={!!activeChat && activeChat !== "temp_loading"}
+                        isBanned={banModalOpen}
+                        activeChatId={activeChat}
+                    />
+
+                    {selectedChart && (
+                        <div
+                            className="modal-overlay"
+                            onClick={() => setSelectedChart(null)}
+                        >
+                            <div
+                                className="modal-content"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <DataCharts charts={[selectedChart]} preview={false} />
+                            </div>
+                        </div>
+                    )}
+
+                    <UploadModal
+                        isOpen={isUploadModalOpen}
+                        onClose={() => setIsUploadModalOpen(false)}
+                        uploadTab={uploadTab}
+                        setUploadTab={setUploadTab}
+                        selectedFile={selectedFile}
+                        setSelectedFile={setSelectedFile}
+                        dbCreds={dbCreds}
+                        onDbCredsChange={handleDbCredsChange}
+                        onSubmit={handleDataSubmit}
+                        isSubmitDisabled={isSubmitDisabled}
+                        currentUser={currentUser}
+                        isBanned={banModalOpen}
+                    />
+                </div>
 
                 {isAuthModalOpen && (
                     <AuthModal
@@ -810,6 +806,17 @@ function App() {
                     <Route path="/not-exist" element={<NotFound />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/admin" element={<AdminPanel />} />
+                    <Route
+                        path="/cabinet"
+                        element={
+                            <CabinetPage
+                                currentUser={currentUser}
+                                setCurrentUser={setCurrentUser}
+                                banModalOpen={banModalOpen}
+                                handleLogout={handleLogout}
+                            />
+                        }
+                    />
                 </Routes>
             </Router>
             {isAuthModalOpen && (

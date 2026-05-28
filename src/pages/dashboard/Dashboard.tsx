@@ -8,6 +8,7 @@ import { DataCharts } from "../chat/Charts";
 import { DashboardWidgetPlot } from "./WidgetPlot";
 import { COLORS } from "../../globasStyles";
 import { FOLDERS, getChartInfo } from "../chat/RightSidebar";
+import { Header } from "../Header";
 
 const GRID_SIZE = 10;
 const snapToGrid = (val: number) => Math.round(val / GRID_SIZE) * GRID_SIZE;
@@ -81,11 +82,29 @@ export const Dashboard: React.FC = () => {
     const navigate = useNavigate();
     const canvasRef = useRef<HTMLDivElement>(null);
 
+    const storedUser = localStorage.getItem('currentUser');
+    const currentUser = storedUser ? JSON.parse(storedUser) : null;
+
+    const handleLogout = async () => {
+        if (!currentUser) return;
+        try {
+            await fetch(`http://localhost:8001/logout?user_id=${currentUser.id}`, {
+                method: "POST",
+            });
+        } catch (err) {
+            console.error("Ошибка при выходе из системы", err);
+        }
+        localStorage.removeItem("currentUser");
+        navigate('/');
+    };
+
     const state = location.state as {
         charts: ChartData[];
         folders: FolderData[];
+        activeChatId?: string | null;
     } | null;
     const charts = state?.charts || [];
+    const activeChatId = state?.activeChatId || null;
     const folders = state?.folders || FOLDERS;
 
     const [dashItems, setDashItems] = useState<DashboardItem[]>([]);
@@ -373,655 +392,680 @@ export const Dashboard: React.FC = () => {
             }
         `}</style>
 
-            <div
-                onMouseDown={() => setActiveSettingsMenu(null)} // <-- ЗАКРЫВАЕТ МЕНЮ ПРИ КЛИКЕ МИМО
-                style={{
-                    position: "fixed",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    display: "flex",
-                    backgroundColor: COLORS.white,
-                    overflow: "hidden",
-                    fontFamily:
-                        "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                    pointerEvents: isExporting ? "none" : "auto",
-                }}
-            >
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', overflow: 'hidden' }}>
+                <Header
+                    currentUser={currentUser}
+                    onOpenAuth={() => { }}
+                    onLogout={handleLogout}
+                    onOpenProfile={() => navigate('/analyze', { state: { view: 'profile' } })}
+                    isDashboardMode={true}
+                    activeChatId={activeChatId}
+                />
+
                 <div
+                    onMouseDown={() => setActiveSettingsMenu(null)} // <-- ЗАКРЫВАЕТ МЕНЮ ПРИ КЛИКЕ МИМО
                     style={{
-                        flex: 6,
+                        flex: 1,
                         display: "flex",
-                        flexDirection: "column",
-                        height: "100%",
+                        backgroundColor: COLORS.white,
                         overflow: "hidden",
+                        fontFamily:
+                            "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                        pointerEvents: isExporting ? "none" : "auto",
+                        position: "relative",
                     }}
                 >
                     <div
                         style={{
-                            height: "48px",
-                            background: COLORS.white,
-                            borderBottom: `1px solid ${COLORS.gray200}`,
+                            flex: 6,
                             display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            padding: "0 20px",
-                            flexShrink: 0,
-                            zIndex: 10,
+                            flexDirection: "column",
+                            height: "100%",
+                            overflow: "hidden",
                         }}
                     >
-                        <h2
-                            style={{
-                                margin: 0,
-                                color: COLORS.gray800,
-                                fontSize: "16px",
-                                fontWeight: 600,
-                            }}
+                        <div
+                            ref={canvasRef}
+                            className="dashboard-canvas thin-scroll"
+                            style={{ flex: 1, overflow: "auto", position: "relative" }}
+                            onDrop={handleDrop}
+                            onDragOver={(e) => e.preventDefault()}
                         >
-                            Дашборд
-                        </h2>
-                        <div style={{ display: "flex", gap: "8px" }}>
-                            <button
-                                onClick={exportPNG}
-                                disabled={!!isExporting}
-                                style={btnStyle}
-                            >
-                                {isExporting === "png" ? (
-                                    <>
-                                        <span className="export-spinner"></span>Сохранение...
-                                    </>
-                                ) : (
-                                    "PNG"
-                                )}
-                            </button>
-                            <button
-                                onClick={exportPDF}
-                                disabled={!!isExporting}
-                                style={btnStyle}
-                            >
-                                {isExporting === "pdf" ? (
-                                    <>
-                                        <span className="export-spinner"></span>Сохранение...
-                                    </>
-                                ) : (
-                                    "PDF"
-                                )}
-                            </button>
-                            <button
-                                onClick={() => navigate("/")}
-                                style={{
-                                    ...btnStyle,
-                                    backgroundColor: COLORS.white,
-                                    color: COLORS.dark,
-                                    border: `1px solid ${COLORS.gray300}`,
-                                }}
-                            >
-                                Закрыть
-                            </button>
-                        </div>
-                    </div>
+                            {folders.map((folder: FolderData) => {
+                                const folderItems = dashItems.filter(
+                                    (i) => i.folderId === folder.id,
+                                );
+                                if (folderItems.length === 0) return null;
 
-                    <div
-                        ref={canvasRef}
-                        className="dashboard-canvas thin-scroll"
-                        style={{ flex: 1, overflow: "auto", position: "relative" }}
-                        onDrop={handleDrop}
-                        onDragOver={(e) => e.preventDefault()}
-                    >
-                        {folders.map((folder: FolderData) => {
-                            const folderItems = dashItems.filter(
-                                (i) => i.folderId === folder.id,
-                            );
-                            if (folderItems.length === 0) return null;
+                                const bounds = groupBounds[folder.id];
 
-                            const bounds = groupBounds[folder.id];
+                                return (
+                                    <Rnd
+                                        key={folder.id}
+                                        size={{ width: bounds.w, height: bounds.h }}
+                                        position={{ x: bounds.x, y: bounds.y }}
+                                        onDragStop={(e, d) =>
+                                            updateGroup(folder.id, { x: d.x, y: d.y })
+                                        }
+                                        onResizeStop={(e, dir, ref, delta, position) => {
+                                            updateGroup(folder.id, {
+                                                w: parseInt(ref.style.width, 10),
+                                                h: parseInt(ref.style.height, 10),
+                                                ...position,
+                                            });
+                                        }}
+                                        onResize={(e, dir, ref) => {
+                                            const newW = parseInt(ref.style.width, 10);
+                                            const newH = parseInt(ref.style.height, 10);
 
-                            return (
-                                <Rnd
-                                    key={folder.id}
-                                    size={{ width: bounds.w, height: bounds.h }}
-                                    position={{ x: bounds.x, y: bounds.y }}
-                                    onDragStop={(e, d) =>
-                                        updateGroup(folder.id, { x: d.x, y: d.y })
-                                    }
-                                    onResizeStop={(e, dir, ref, delta, position) => {
-                                        updateGroup(folder.id, {
-                                            w: parseInt(ref.style.width, 10),
-                                            h: parseInt(ref.style.height, 10),
-                                            ...position,
-                                        });
-                                    }}
-                                    onResize={(e, dir, ref) => {
-                                        const newW = parseInt(ref.style.width, 10);
-                                        const newH = parseInt(ref.style.height, 10);
-
-                                        setDashItems((prev) =>
-                                            prev.map((item) => {
-                                                if (item.folderId === folder.id) {
-                                                    let iw = item.w;
-                                                    let ih = item.h;
-                                                    if (item.x + iw > newW - 5)
-                                                        iw = Math.max(100, newW - item.x - 5);
-                                                    if (item.y + ih > newH - 29)
-                                                        ih = Math.max(80, newH - item.y - 29);
-                                                    if (iw !== item.w || ih !== item.h)
-                                                        return { ...item, w: iw, h: ih };
-                                                }
-                                                return item;
-                                            }),
-                                        );
-                                    }}
-                                    dragGrid={[GRID_SIZE, GRID_SIZE]}
-                                    resizeGrid={[GRID_SIZE, GRID_SIZE]}
-                                    dragHandleClassName="group-drag-handle"
-                                    style={{
-                                        background: "#f4f8fb",
-                                        borderRadius: "8px",
-                                        border: `1px solid ${COLORS.accent_ligher}`,
-                                        boxShadow: `0 4px 12px rgba(51, 153, 255, 0.1)`,
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        position: "absolute",
-                                        zIndex: activeGroupId === folder.id ? 100 : 1, // ВЫВОДИМ ГРУППУ НА ПЕРЕДНИЙ ПЛАН
-                                    }}
-                                >
-                                    <div
-                                        className="group-drag-handle"
+                                            setDashItems((prev) =>
+                                                prev.map((item) => {
+                                                    if (item.folderId === folder.id) {
+                                                        let iw = item.w;
+                                                        let ih = item.h;
+                                                        if (item.x + iw > newW - 5)
+                                                            iw = Math.max(100, newW - item.x - 5);
+                                                        if (item.y + ih > newH - 29)
+                                                            ih = Math.max(80, newH - item.y - 29);
+                                                        if (iw !== item.w || ih !== item.h)
+                                                            return { ...item, w: iw, h: ih };
+                                                    }
+                                                    return item;
+                                                }),
+                                            );
+                                        }}
+                                        dragGrid={[GRID_SIZE, GRID_SIZE]}
+                                        resizeGrid={[GRID_SIZE, GRID_SIZE]}
+                                        dragHandleClassName="group-drag-handle"
                                         style={{
-                                            padding: "2px 8px",
-                                            fontSize: "14px",
-                                            fontWeight: 600,
-                                            color: COLORS.accent_brighter,
-                                            borderBottom: `1px solid ${COLORS.gray200}`,
-                                            height: "24px",
-                                            boxSizing: "border-box",
-                                            cursor: "grab",
-                                            background: COLORS.white,
-                                            borderRadius: "7px 7px 0 0",
+                                            background: "#f4f8fb",
+                                            borderRadius: "8px",
+                                            border: `1px solid ${COLORS.accent_ligher}`,
+                                            boxShadow: `0 4px 12px rgba(51, 153, 255, 0.1)`,
                                             display: "flex",
-                                            alignItems: "center",
+                                            flexDirection: "column",
+                                            position: "absolute",
+                                            zIndex: activeGroupId === folder.id ? 100 : 1, // ВЫВОДИМ ГРУППУ НА ПЕРЕДНИЙ ПЛАН
                                         }}
                                     >
-                                        {folder.title}
-                                    </div>
+                                        <div
+                                            className="group-drag-handle"
+                                            style={{
+                                                padding: "2px 8px",
+                                                fontSize: "14px",
+                                                fontWeight: 600,
+                                                color: COLORS.accent_brighter,
+                                                borderBottom: `1px solid ${COLORS.gray200}`,
+                                                height: "24px",
+                                                boxSizing: "border-box",
+                                                cursor: "grab",
+                                                background: COLORS.white,
+                                                borderRadius: "7px 7px 0 0",
+                                                display: "flex",
+                                                alignItems: "center",
+                                            }}
+                                        >
+                                            {folder.title}
+                                        </div>
 
-                                    <div style={{ position: "relative", width: "100%", flex: 1 }}>
-                                        {folderItems.map((item) => {
-                                            const settings =
-                                                chartSettings[item.id] || DEFAULT_SETTINGS;
+                                        <div style={{ position: "relative", width: "100%", flex: 1 }}>
+                                            {folderItems.map((item) => {
+                                                const settings =
+                                                    chartSettings[item.id] || DEFAULT_SETTINGS;
 
-                                            return (
-                                                <Rnd
-                                                    key={item.id}
-                                                    bounds="parent"
-                                                    size={{ width: item.w, height: item.h }}
-                                                    position={{ x: item.x, y: item.y }}
-                                                    onDragStop={(e, d) =>
-                                                        updateItem(item.id, folder.id, { x: d.x, y: d.y })
-                                                    }
-                                                    onResizeStop={(e, dir, ref, delta, position) => {
-                                                        updateItem(item.id, folder.id, {
-                                                            w: parseInt(ref.style.width, 10),
-                                                            h: parseInt(ref.style.height, 10),
-                                                            ...position,
-                                                        });
-                                                    }}
-                                                    dragGrid={[GRID_SIZE, GRID_SIZE]}
-                                                    resizeGrid={[GRID_SIZE, GRID_SIZE]}
-                                                    dragHandleClassName="chart-drag-handle"
-                                                    style={{
-                                                        border: `1px solid ${COLORS.gray300}`,
-                                                        borderRadius: "6px",
-                                                        background: COLORS.white,
-                                                        boxShadow: `0 2px 6px ${COLORS.shadowLight05}`,
-                                                        display: "flex",
-                                                        flexDirection: "column",
-                                                        position: "absolute",
-                                                        zIndex: activeSettingsMenu === item.id ? 100 : 1, // ВЫВОДИМ ГРАФИК НА ПЕРЕДНИЙ ПЛАН
-                                                    }}
-                                                >
-                                                    <div
-                                                        className="chart-drag-handle"
+                                                return (
+                                                    <Rnd
+                                                        key={item.id}
+                                                        bounds="parent"
+                                                        size={{ width: item.w, height: item.h }}
+                                                        position={{ x: item.x, y: item.y }}
+                                                        onDragStop={(e, d) =>
+                                                            updateItem(item.id, folder.id, { x: d.x, y: d.y })
+                                                        }
+                                                        onResizeStop={(e, dir, ref, delta, position) => {
+                                                            updateItem(item.id, folder.id, {
+                                                                w: parseInt(ref.style.width, 10),
+                                                                h: parseInt(ref.style.height, 10),
+                                                                ...position,
+                                                            });
+                                                        }}
+                                                        dragGrid={[GRID_SIZE, GRID_SIZE]}
+                                                        resizeGrid={[GRID_SIZE, GRID_SIZE]}
+                                                        dragHandleClassName="chart-drag-handle"
                                                         style={{
-                                                            width: "100%",
-                                                            height: "100%",
+                                                            border: `1px solid ${COLORS.gray300}`,
+                                                            borderRadius: "6px",
+                                                            background: COLORS.white,
+                                                            boxShadow: `0 2px 6px ${COLORS.shadowLight05}`,
                                                             display: "flex",
                                                             flexDirection: "column",
-                                                            cursor: "grab",
+                                                            position: "absolute",
+                                                            zIndex: activeSettingsMenu === item.id ? 100 : 1, // ВЫВОДИМ ГРАФИК НА ПЕРЕДНИЙ ПЛАН
                                                         }}
                                                     >
                                                         <div
+                                                            className="chart-drag-handle"
                                                             style={{
+                                                                width: "100%",
+                                                                height: "100%",
                                                                 display: "flex",
-                                                                justifyContent: "space-between",
-                                                                alignItems: "center",
-                                                                padding: "1px 6px",
-                                                                background: COLORS.gray50,
-                                                                borderBottom: `1px solid ${COLORS.gray200}`,
-                                                                height: "22px",
+                                                                flexDirection: "column",
+                                                                cursor: "grab",
                                                             }}
                                                         >
-                                                            <span
-                                                                style={{
-                                                                    fontSize: "12px",
-                                                                    fontWeight: 600,
-                                                                    color: COLORS.gray700,
-                                                                    whiteSpace: "nowrap",
-                                                                    overflow: "hidden",
-                                                                    textOverflow: "ellipsis",
-                                                                }}
-                                                            >
-                                                                {[
-                                                                    "category_count",
-                                                                    "numeric_hist",
-                                                                    "outliers",
-                                                                ].includes(item.chart.type) ? (
-                                                                    getChartInfo(item.chart).columnName
-                                                                ) : (
-                                                                    <>
-                                                                        {getChartInfo(item.chart).title}{" "}
-                                                                        <span
-                                                                            style={{
-                                                                                fontWeight: 400,
-                                                                                color: COLORS.gray500,
-                                                                            }}
-                                                                        >
-                                                                            {getChartInfo(item.chart).columnName}
-                                                                        </span>
-                                                                    </>
-                                                                )}
-                                                            </span>
                                                             <div
                                                                 style={{
                                                                     display: "flex",
+                                                                    justifyContent: "space-between",
                                                                     alignItems: "center",
-                                                                    gap: "4px",
-                                                                    position: "relative",
+                                                                    padding: "1px 6px",
+                                                                    background: COLORS.gray50,
+                                                                    borderBottom: `1px solid ${COLORS.gray200}`,
+                                                                    height: "22px",
                                                                 }}
                                                             >
-                                                                <button
-                                                                    onMouseDown={(e) => e.stopPropagation()}
-                                                                    onClick={() =>
-                                                                        setActiveSettingsMenu(
-                                                                            activeSettingsMenu === item.id
-                                                                                ? null
-                                                                                : item.id,
-                                                                        )
-                                                                    }
+                                                                <span
                                                                     style={{
-                                                                        background: "transparent",
-                                                                        border: "none",
-                                                                        cursor: "pointer",
-                                                                        display: "flex",
-                                                                        alignItems: "center",
-                                                                        padding: "2px",
-                                                                        opacity:
-                                                                            activeSettingsMenu === item.id ? 1 : 0.6,
+                                                                        fontSize: "12px",
+                                                                        fontWeight: 600,
+                                                                        color: COLORS.gray700,
+                                                                        whiteSpace: "nowrap",
+                                                                        overflow: "hidden",
+                                                                        textOverflow: "ellipsis",
                                                                     }}
                                                                 >
-                                                                    <svg
-                                                                        width="14"
-                                                                        height="14"
-                                                                        viewBox="0 0 24 24"
-                                                                        fill="none"
-                                                                        stroke="#18181b"
-                                                                        strokeWidth="2"
-                                                                        strokeLinecap="round"
-                                                                        strokeLinejoin="round"
-                                                                    >
-                                                                        <circle cx="12" cy="12" r="3"></circle>
-                                                                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                                                                    </svg>
-                                                                </button>
-
-                                                                <button
-                                                                    onMouseDown={(e) => e.stopPropagation()}
-                                                                    onClick={() => removeItem(item.id)}
-                                                                    style={{
-                                                                        background: "transparent",
-                                                                        border: "none",
-                                                                        cursor: "pointer",
-                                                                        display: "flex",
-                                                                        alignItems: "center",
-                                                                        padding: "2px",
-                                                                        opacity: 0.6,
-                                                                    }}
-                                                                >
-                                                                    <svg
-                                                                        width="14"
-                                                                        height="14"
-                                                                        viewBox="0 0 24 24"
-                                                                        fill="none"
-                                                                        stroke="#18181b"
-                                                                        strokeWidth="2.5"
-                                                                        strokeLinecap="round"
-                                                                        strokeLinejoin="round"
-                                                                    >
-                                                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                                                    </svg>
-                                                                </button>
-
-                                                                {activeSettingsMenu === item.id &&
-                                                                    !isExporting && (
-                                                                        <div
-                                                                            onMouseDown={(e) => e.stopPropagation()}
-                                                                            style={{
-                                                                                position: "absolute",
-                                                                                top: "0",
-                                                                                left: "calc(100% + 8px)",
-                                                                                background: COLORS.white,
-                                                                                border: `1px solid ${COLORS.gray200}`,
-                                                                                borderRadius: "8px",
-                                                                                padding: "12px",
-                                                                                boxShadow: `0 4px 16px ${COLORS.shadowDark30}`,
-                                                                                zIndex: 9999,
-                                                                                width: "180px",
-                                                                                cursor: "default",
-                                                                            }}
-                                                                        >
-                                                                            <div
+                                                                    {[
+                                                                        "category_count",
+                                                                        "numeric_hist",
+                                                                        "outliers",
+                                                                    ].includes(item.chart.type) ? (
+                                                                        getChartInfo(item.chart).columnName
+                                                                    ) : (
+                                                                        <>
+                                                                            {getChartInfo(item.chart).title}{" "}
+                                                                            <span
                                                                                 style={{
-                                                                                    fontSize: "11px",
-                                                                                    fontWeight: 600,
-                                                                                    marginBottom: "8px",
-                                                                                    color: COLORS.gray700,
+                                                                                    fontWeight: 400,
+                                                                                    color: COLORS.gray500,
                                                                                 }}
                                                                             >
-                                                                                Настройки подписей
-                                                                            </div>
-
-                                                                            <label
-                                                                                style={{
-                                                                                    display: "flex",
-                                                                                    alignItems: "center",
-                                                                                    gap: "6px",
-                                                                                    fontSize: "11px",
-                                                                                    cursor: "pointer",
-                                                                                    marginBottom: "10px",
-                                                                                }}
-                                                                            >
-                                                                                <input
-                                                                                    type="checkbox"
-                                                                                    checked={settings.showLabels}
-                                                                                    onChange={(e) =>
-                                                                                        updateSettings(item.id, {
-                                                                                            showLabels: e.target.checked,
-                                                                                        })
-                                                                                    }
-                                                                                />
-                                                                                Отображать оси
-                                                                            </label>
-
-                                                                            <div
-                                                                                style={{
-                                                                                    opacity: settings.showLabels
-                                                                                        ? 1
-                                                                                        : 0.5,
-                                                                                    pointerEvents: settings.showLabels
-                                                                                        ? "auto"
-                                                                                        : "none",
-                                                                                }}
-                                                                            >
-                                                                                <div
-                                                                                    style={{
-                                                                                        fontSize: "10px",
-                                                                                        color: COLORS.gray500,
-                                                                                        display: "flex",
-                                                                                        justifyContent: "space-between",
-                                                                                    }}
-                                                                                >
-                                                                                    <span>Угол: {settings.angle}°</span>
-                                                                                </div>
-                                                                                <input
-                                                                                    type="range"
-                                                                                    className="settings-slider"
-                                                                                    min="0"
-                                                                                    max="90"
-                                                                                    step="15"
-                                                                                    value={settings.angle}
-                                                                                    onChange={(e) =>
-                                                                                        updateSettings(item.id, {
-                                                                                            angle: parseInt(e.target.value),
-                                                                                        })
-                                                                                    }
-                                                                                />
-
-                                                                                <div
-                                                                                    style={{
-                                                                                        fontSize: "10px",
-                                                                                        color: COLORS.gray500,
-                                                                                        display: "flex",
-                                                                                        justifyContent: "space-between",
-                                                                                        marginTop: "6px",
-                                                                                    }}
-                                                                                >
-                                                                                    <span>
-                                                                                        Размер: {settings.fontSize}px
-                                                                                    </span>
-                                                                                </div>
-                                                                                <input
-                                                                                    type="range"
-                                                                                    className="settings-slider"
-                                                                                    min="8"
-                                                                                    max="14"
-                                                                                    step="1"
-                                                                                    value={settings.fontSize}
-                                                                                    onChange={(e) =>
-                                                                                        updateSettings(item.id, {
-                                                                                            fontSize: parseInt(
-                                                                                                e.target.value,
-                                                                                            ),
-                                                                                        })
-                                                                                    }
-                                                                                />
-                                                                            </div>
-                                                                        </div>
+                                                                                {getChartInfo(item.chart).columnName}
+                                                                            </span>
+                                                                        </>
                                                                     )}
+                                                                </span>
+                                                                <div
+                                                                    style={{
+                                                                        display: "flex",
+                                                                        alignItems: "center",
+                                                                        gap: "4px",
+                                                                        position: "relative",
+                                                                    }}
+                                                                >
+                                                                    <button
+                                                                        onMouseDown={(e) => e.stopPropagation()}
+                                                                        onClick={() =>
+                                                                            setActiveSettingsMenu(
+                                                                                activeSettingsMenu === item.id
+                                                                                    ? null
+                                                                                    : item.id,
+                                                                            )
+                                                                        }
+                                                                        style={{
+                                                                            background: "transparent",
+                                                                            border: "none",
+                                                                            cursor: "pointer",
+                                                                            display: "flex",
+                                                                            alignItems: "center",
+                                                                            padding: "2px",
+                                                                            opacity:
+                                                                                activeSettingsMenu === item.id ? 1 : 0.6,
+                                                                        }}
+                                                                    >
+                                                                        <svg
+                                                                            width="14"
+                                                                            height="14"
+                                                                            viewBox="0 0 24 24"
+                                                                            fill="none"
+                                                                            stroke="#18181b"
+                                                                            strokeWidth="2"
+                                                                            strokeLinecap="round"
+                                                                            strokeLinejoin="round"
+                                                                        >
+                                                                            <circle cx="12" cy="12" r="3"></circle>
+                                                                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                                                        </svg>
+                                                                    </button>
+
+                                                                    <button
+                                                                        onMouseDown={(e) => e.stopPropagation()}
+                                                                        onClick={() => removeItem(item.id)}
+                                                                        style={{
+                                                                            background: "transparent",
+                                                                            border: "none",
+                                                                            cursor: "pointer",
+                                                                            display: "flex",
+                                                                            alignItems: "center",
+                                                                            padding: "2px",
+                                                                            opacity: 0.6,
+                                                                        }}
+                                                                    >
+                                                                        <svg
+                                                                            width="14"
+                                                                            height="14"
+                                                                            viewBox="0 0 24 24"
+                                                                            fill="none"
+                                                                            stroke="#18181b"
+                                                                            strokeWidth="2.5"
+                                                                            strokeLinecap="round"
+                                                                            strokeLinejoin="round"
+                                                                        >
+                                                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                                        </svg>
+                                                                    </button>
+
+                                                                    {activeSettingsMenu === item.id &&
+                                                                        !isExporting && (
+                                                                            <div
+                                                                                onMouseDown={(e) => e.stopPropagation()}
+                                                                                style={{
+                                                                                    position: "absolute",
+                                                                                    top: "0",
+                                                                                    left: "calc(100% + 8px)",
+                                                                                    background: COLORS.white,
+                                                                                    border: `1px solid ${COLORS.gray200}`,
+                                                                                    borderRadius: "8px",
+                                                                                    padding: "12px",
+                                                                                    boxShadow: `0 4px 16px ${COLORS.shadowDark30}`,
+                                                                                    zIndex: 9999,
+                                                                                    width: "180px",
+                                                                                    cursor: "default",
+                                                                                }}
+                                                                            >
+                                                                                <div
+                                                                                    style={{
+                                                                                        fontSize: "11px",
+                                                                                        fontWeight: 600,
+                                                                                        marginBottom: "8px",
+                                                                                        color: COLORS.gray700,
+                                                                                    }}
+                                                                                >
+                                                                                    Настройки подписей
+                                                                                </div>
+
+                                                                                <label
+                                                                                    style={{
+                                                                                        display: "flex",
+                                                                                        alignItems: "center",
+                                                                                        gap: "6px",
+                                                                                        fontSize: "11px",
+                                                                                        cursor: "pointer",
+                                                                                        marginBottom: "10px",
+                                                                                    }}
+                                                                                >
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        checked={settings.showLabels}
+                                                                                        onChange={(e) =>
+                                                                                            updateSettings(item.id, {
+                                                                                                showLabels: e.target.checked,
+                                                                                            })
+                                                                                        }
+                                                                                    />
+                                                                                    Отображать оси
+                                                                                </label>
+
+                                                                                <div
+                                                                                    style={{
+                                                                                        opacity: settings.showLabels
+                                                                                            ? 1
+                                                                                            : 0.5,
+                                                                                        pointerEvents: settings.showLabels
+                                                                                            ? "auto"
+                                                                                            : "none",
+                                                                                    }}
+                                                                                >
+                                                                                    <div
+                                                                                        style={{
+                                                                                            fontSize: "10px",
+                                                                                            color: COLORS.gray500,
+                                                                                            display: "flex",
+                                                                                            justifyContent: "space-between",
+                                                                                        }}
+                                                                                    >
+                                                                                        <span>Угол: {settings.angle}°</span>
+                                                                                    </div>
+                                                                                    <input
+                                                                                        type="range"
+                                                                                        className="settings-slider"
+                                                                                        min="0"
+                                                                                        max="90"
+                                                                                        step="15"
+                                                                                        value={settings.angle}
+                                                                                        onChange={(e) =>
+                                                                                            updateSettings(item.id, {
+                                                                                                angle: parseInt(e.target.value),
+                                                                                            })
+                                                                                        }
+                                                                                    />
+
+                                                                                    <div
+                                                                                        style={{
+                                                                                            fontSize: "10px",
+                                                                                            color: COLORS.gray500,
+                                                                                            display: "flex",
+                                                                                            justifyContent: "space-between",
+                                                                                            marginTop: "6px",
+                                                                                        }}
+                                                                                    >
+                                                                                        <span>
+                                                                                            Размер: {settings.fontSize}px
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    <input
+                                                                                        type="range"
+                                                                                        className="settings-slider"
+                                                                                        min="8"
+                                                                                        max="14"
+                                                                                        step="1"
+                                                                                        value={settings.fontSize}
+                                                                                        onChange={(e) =>
+                                                                                            updateSettings(item.id, {
+                                                                                                fontSize: parseInt(
+                                                                                                    e.target.value,
+                                                                                                ),
+                                                                                            })
+                                                                                        }
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                className="force-chart-height"
+                                                                style={{ flex: 1, overflow: "hidden" }}
+                                                            >
+                                                                <DashboardWidgetPlot
+                                                                    chart={item.chart}
+                                                                    settings={settings}
+                                                                />
                                                             </div>
                                                         </div>
-                                                        <div
-                                                            className="force-chart-height"
-                                                            style={{ flex: 1, overflow: "hidden" }}
-                                                        >
-                                                            <DashboardWidgetPlot
-                                                                chart={item.chart}
-                                                                settings={settings}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </Rnd>
-                                            );
-                                        })}
-                                    </div>
-                                </Rnd>
-                            );
-                        })}
+                                                    </Rnd>
+                                                );
+                                            })}
+                                        </div>
+                                    </Rnd>
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
 
-                {/* ПРАВАЯ ПАНЕЛЬ С КАРТОЧКАМИ */}
-                <div
-                    className="thin-scroll"
-                    style={{
-                        flex: 1,
-                        height: "100%",
-                        overflowY: "auto",
-                        background: COLORS.gray50,
-                        borderLeft: `1px solid ${COLORS.gray200}`,
-                        zIndex: 10,
-                    }}
-                >
-                    {folders.map((folder: FolderData) => {
-                        const folderCharts = charts.filter((c: ChartData) =>
-                            folder.types.includes(c.type),
-                        );
-                        const isExpanded = expandedFolders[folder.id];
-
-                        return (
-                            <div
-                                key={folder.id}
-                                style={{
-                                    width: "100%",
-                                    borderBottom: `1px solid ${COLORS.gray200}`,
-                                    flexShrink: 0,
-                                }}
+                    {/* ПРАВАЯ ПАНЕЛЬ С КАРТОЧКАМИ */}
+                    <div
+                        className="thin-scroll"
+                        style={{
+                            flex: 1,
+                            height: "100%",
+                            overflowY: "auto",
+                            background: COLORS.gray50,
+                            borderLeft: `1px solid ${COLORS.gray200}`,
+                            zIndex: 10,
+                        }}
+                    >
+                        {/* КНОПКИ ЭКСПОРТА И УПРАВЛЕНИЯ */}
+                        <div style={{
+                            padding: "16px",
+                            display: "flex",
+                            flexDirection: "row",
+                            gap: "10px",
+                            borderBottom: `1px solid ${COLORS.gray200}`,
+                            background: COLORS.white,
+                            boxSizing: "border-box"
+                        }}>
+                            <button
+                                onClick={exportPNG}
+                                disabled={isExporting !== null}
+                                style={{ ...btnStyle, flex: 1 }}
                             >
+                                {isExporting === "png" ? (
+                                    <span className="export-spinner" />
+                                ) : (
+                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" style={{ display: 'inline-block', shapeRendering: 'crispEdges' }}>
+                                        {/* Outer Outline */}
+                                        <rect x="0" y="0" width="14" height="1" />
+                                        <rect x="14" y="0" width="1" height="1" />
+                                        <rect x="15" y="1" width="1" height="1" />
+                                        <rect x="16" y="2" width="1" height="1" />
+                                        <rect x="17" y="3" width="1" height="1" />
+                                        <rect x="18" y="4" width="1" height="1" />
+                                        <rect x="19" y="5" width="1" height="1" />
+                                        <rect x="19" y="6" width="1" height="14" />
+                                        <rect x="0" y="19" width="20" height="1" />
+                                        <rect x="0" y="0" width="1" height="19" />
+
+                                        {/* Sliding Cover (solid block) */}
+                                        <rect x="3" y="1" width="9" height="7" />
+                                        {/* Sliding Cover cutout */}
+                                        <rect x="5" y="2" width="5" height="4" fill="var(--fg-color)" />
+
+                                        {/* Center Circle Hub */}
+                                        <rect x="8" y="10" width="4" height="1" />
+                                        <rect x="7" y="11" width="6" height="4" />
+                                        <rect x="8" y="15" width="4" height="1" />
+                                    </svg>
+                                )}
+                                PNG
+                            </button>
+
+                            <button
+                                onClick={exportPDF}
+                                disabled={isExporting !== null}
+                                style={{ ...btnStyle, flex: 1 }}
+                            >
+                                {isExporting === "pdf" ? (
+                                    <span className="export-spinner" />
+                                ) : (
+                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" style={{ display: 'inline-block', shapeRendering: 'crispEdges' }}>
+                                        {/* Outer Outline */}
+                                        <rect x="0" y="0" width="14" height="1" />
+                                        <rect x="14" y="0" width="1" height="1" />
+                                        <rect x="15" y="1" width="1" height="1" />
+                                        <rect x="16" y="2" width="1" height="1" />
+                                        <rect x="17" y="3" width="1" height="1" />
+                                        <rect x="18" y="4" width="1" height="1" />
+                                        <rect x="19" y="5" width="1" height="1" />
+                                        <rect x="19" y="6" width="1" height="14" />
+                                        <rect x="0" y="19" width="20" height="1" />
+                                        <rect x="0" y="0" width="1" height="19" />
+
+                                        {/* Sliding Cover (solid block) */}
+                                        <rect x="3" y="1" width="9" height="7" />
+                                        {/* Sliding Cover cutout */}
+                                        <rect x="5" y="2" width="5" height="4" fill="var(--fg-color)" />
+
+                                        {/* Center Circle Hub */}
+                                        <rect x="8" y="10" width="4" height="1" />
+                                        <rect x="7" y="11" width="6" height="4" />
+                                        <rect x="8" y="15" width="4" height="1" />
+                                    </svg>
+                                )}
+                                PDF
+                            </button>
+                        </div>
+
+                        {folders.map((folder: FolderData) => {
+                            const folderCharts = charts.filter((c: ChartData) =>
+                                folder.types.includes(c.type),
+                            );
+                            const isExpanded = expandedFolders[folder.id];
+
+                            return (
                                 <div
-                                    onClick={() => toggleFolder(folder.id)}
+                                    key={folder.id}
                                     style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        cursor: "pointer",
-                                        padding: "14px 16px",
-                                        userSelect: "none",
-                                        transition: "background 0.2s",
-                                        background: COLORS.white,
+                                        width: "100%",
+                                        borderBottom: `1px solid ${COLORS.gray200}`,
+                                        flexShrink: 0,
                                     }}
-                                    onMouseEnter={(e) =>
-                                        (e.currentTarget.style.background = "#f8f9fa")
-                                    }
-                                    onMouseLeave={(e) =>
-                                        (e.currentTarget.style.background = COLORS.white)
-                                    }
                                 >
                                     <div
+                                        onClick={() => toggleFolder(folder.id)}
                                         style={{
-                                            transition: "transform 0.3s ease",
-                                            transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
-                                            marginRight: "12px",
                                             display: "flex",
                                             alignItems: "center",
-                                            color: "#666",
+                                            cursor: "pointer",
+                                            padding: "14px 16px",
+                                            userSelect: "none",
+                                            transition: "background 0.2s",
+                                            background: COLORS.white,
                                         }}
+                                        onMouseEnter={(e) =>
+                                            (e.currentTarget.style.background = "#f8f9fa")
+                                        }
+                                        onMouseLeave={(e) =>
+                                            (e.currentTarget.style.background = COLORS.white)
+                                        }
                                     >
-                                        <svg
-                                            width="18"
-                                            height="18"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        >
-                                            <polyline points="9 18 15 12 9 6"></polyline>
-                                        </svg>
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontWeight: 600,
-                                            color: "#333",
-                                            fontSize: "14px",
-                                            flex: 1,
-                                        }}
-                                    >
-                                        {folder.title}
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontSize: "12px",
-                                            fontWeight: 600,
-                                            color: folderCharts.length > 0 ? "#4a90e2" : "#aaa",
-                                            background:
-                                                folderCharts.length > 0 ? "#e0f0ff" : "#f0f0f0",
-                                            padding: "2px 8px",
-                                            borderRadius: "12px",
-                                        }}
-                                    >
-                                        {folderCharts.length}
-                                    </div>
-                                </div>
-
-                                <div
-                                    style={{
-                                        display: "grid",
-                                        gridTemplateRows: isExpanded ? "1fr" : "0fr",
-                                        transition: "grid-template-rows 0.3s ease-in-out",
-                                        background: "#fafbfc",
-                                    }}
-                                >
-                                    <div style={{ overflow: "hidden" }}>
                                         <div
                                             style={{
+                                                transition: "transform 0.3s ease",
+                                                transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                                                marginRight: "12px",
                                                 display: "flex",
-                                                flexDirection: "column",
-                                                padding: folderCharts.length > 0 ? "12px" : "0",
-                                                gap: "12px",
+                                                alignItems: "center",
+                                                color: "#666",
                                             }}
                                         >
-                                            {folderCharts.length === 0 ? (
-                                                <div
-                                                    style={{
-                                                        color: "#aaa",
-                                                        fontStyle: "italic",
-                                                        fontSize: "13px",
-                                                        padding: "15px 0",
-                                                        textAlign: "center",
-                                                    }}
-                                                >
-                                                    Пусто
-                                                </div>
-                                            ) : (
-                                                [...folderCharts].reverse().map((c, i) => (
+                                            <svg
+                                                width="18"
+                                                height="18"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            >
+                                                <polyline points="9 18 15 12 9 6"></polyline>
+                                            </svg>
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontWeight: 600,
+                                                color: "#333",
+                                                fontSize: "14px",
+                                                flex: 1,
+                                            }}
+                                        >
+                                            {folder.title}
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontSize: "12px",
+                                                fontWeight: 600,
+                                                color: folderCharts.length > 0 ? "#4a90e2" : "#aaa",
+                                                background:
+                                                    folderCharts.length > 0 ? "#e0f0ff" : "#f0f0f0",
+                                                padding: "2px 8px",
+                                                borderRadius: "12px",
+                                            }}
+                                        >
+                                            {folderCharts.length}
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        style={{
+                                            display: "grid",
+                                            gridTemplateRows: isExpanded ? "1fr" : "0fr",
+                                            transition: "grid-template-rows 0.3s ease-in-out",
+                                            background: "#fafbfc",
+                                        }}
+                                    >
+                                        <div style={{ overflow: "hidden" }}>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    padding: folderCharts.length > 0 ? "12px" : "0",
+                                                    gap: "12px",
+                                                }}
+                                            >
+                                                {folderCharts.length === 0 ? (
                                                     <div
-                                                        key={i}
-                                                        draggable
-                                                        onDragStart={(e) =>
-                                                            handleDragStart(e, c, folder.id)
-                                                        }
-                                                        className="chart-preview-box"
                                                         style={{
-                                                            width: "100%",
-                                                            boxSizing: "border-box",
-                                                            padding: "16px",
-                                                            cursor: "grab",
-                                                            background: COLORS.white,
-                                                            border: `1px solid ${COLORS.gray200}`,
-                                                            borderRadius: "12px",
-                                                            boxShadow: `0 2px 4px ${COLORS.shadowLight05}`,
+                                                            color: "#aaa",
+                                                            fontStyle: "italic",
+                                                            fontSize: "13px",
+                                                            padding: "15px 0",
+                                                            textAlign: "center",
                                                         }}
                                                     >
+                                                        Пусто
+                                                    </div>
+                                                ) : (
+                                                    [...folderCharts].reverse().map((c, i) => (
                                                         <div
+                                                            key={i}
+                                                            draggable
+                                                            onDragStart={(e) =>
+                                                                handleDragStart(e, c, folder.id)
+                                                            }
+                                                            className="chart-preview-box"
                                                             style={{
-                                                                fontSize: "13px",
-                                                                fontWeight: 600,
-                                                                color: "#444",
-                                                                textAlign: "left",
                                                                 width: "100%",
-                                                                whiteSpace: "normal",
-                                                                wordBreak: "break-word",
-                                                                lineHeight: "1.3",
-                                                                marginBottom: "12px",
+                                                                boxSizing: "border-box",
+                                                                padding: "16px",
+                                                                cursor: "grab",
+                                                                background: COLORS.white,
+                                                                border: `1px solid ${COLORS.gray200}`,
+                                                                borderRadius: "12px",
+                                                                boxShadow: `0 2px 4px ${COLORS.shadowLight05}`,
                                                             }}
                                                         >
-                                                            {getChartInfo(c).title} <br />
-                                                            <span
+                                                            <div
                                                                 style={{
-                                                                    fontWeight: 400,
-                                                                    color: COLORS.gray600,
+                                                                    fontSize: "13px",
+                                                                    fontWeight: 600,
+                                                                    color: "#444",
+                                                                    textAlign: "left",
+                                                                    width: "100%",
+                                                                    whiteSpace: "normal",
+                                                                    wordBreak: "break-word",
+                                                                    lineHeight: "1.3",
+                                                                    marginBottom: "12px",
                                                                 }}
                                                             >
-                                                                {getChartInfo(c)
-                                                                    .columnName?.split("_")
-                                                                    .join("\u200B_")}
-                                                            </span>
+                                                                {getChartInfo(c).title} <br />
+                                                                <span
+                                                                    style={{
+                                                                        fontWeight: 400,
+                                                                        color: COLORS.gray600,
+                                                                    }}
+                                                                >
+                                                                    {getChartInfo(c)
+                                                                        .columnName?.split("_")
+                                                                        .join("\u200B_")}
+                                                                </span>
+                                                            </div>
+                                                            <div
+                                                                style={{ pointerEvents: "none", width: "100%" }}
+                                                            >
+                                                                <DataCharts charts={[c]} preview={true} />
+                                                            </div>
                                                         </div>
-                                                        <div
-                                                            style={{ pointerEvents: "none", width: "100%" }}
-                                                        >
-                                                            <DataCharts charts={[c]} preview={true} />
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            )}
+                                                    ))
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         </>
@@ -1029,17 +1073,19 @@ export const Dashboard: React.FC = () => {
 };
 
 const btnStyle = {
-    padding: "6px 14px",
-    backgroundColor: COLORS.accent,
-    color: COLORS.white,
-    border: "none",
-    borderRadius: "6px",
+    padding: "8px 16px",
+    backgroundColor: "var(--fg-color)",
+    color: "var(--bg-color)",
+    border: "1px solid var(--border-color)",
+    borderRadius: "0px",
     cursor: "pointer",
-    fontWeight: 600,
-    fontSize: "12px",
-    transition: "opacity 0.2s",
+    fontWeight: "bold",
+    fontSize: "13px",
+    fontFamily: "var(--font-mono)",
+    boxShadow: "var(--shadow-paper)",
+    transition: "all 0.2s ease",
     display: "flex",
     alignItems: "center",
-    minWidth: "60px",
     justifyContent: "center",
+    gap: "6px",
 };

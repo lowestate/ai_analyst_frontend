@@ -8,6 +8,9 @@ interface HeaderProps {
     onOpenProfile: () => void;
     isChatMode?: boolean;
     isAdminMode?: boolean;
+    isDashboardMode?: boolean;
+    isCabinetMode?: boolean;
+    activeChatId?: string | null;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -17,6 +20,9 @@ export const Header: React.FC<HeaderProps> = ({
     onOpenProfile,
     isChatMode = false,
     isAdminMode = false,
+    isDashboardMode = false,
+    isCabinetMode = false,
+    activeChatId = null,
 }) => {
     return (
         <header
@@ -93,8 +99,8 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                 </Link>
 
-                {/* Cabinet label if isChatMode or isAdminMode is true */}
-                {(isChatMode || isAdminMode) && (
+                {/* Cabinet label if isChatMode or isAdminMode or isDashboardMode or isCabinetMode is true */}
+                {(isChatMode || isAdminMode || isDashboardMode || isCabinetMode) && (
                     <div
                         className="font-mono"
                         style={{
@@ -112,17 +118,53 @@ export const Header: React.FC<HeaderProps> = ({
                                 <span style={{ color: "var(--muted-fg)" }}>&gt; кабинет 507 </span>
                                 <span style={{ color: "var(--primary-color)" }}>Администрация</span>
                             </span>
+                        ) : isDashboardMode ? (
+                            <span>
+                                <span style={{ color: "var(--muted-fg)" }}>&gt; </span>
+                                <Link
+                                    to="/analyze"
+                                    state={{ activeChatId }}
+                                    style={{
+                                        textDecoration: "underline dashed var(--muted-fg)",
+                                        textUnderlineOffset: "3px",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    <span style={{ color: "var(--muted-fg)" }}>кабинет 301 </span>
+                                    <span style={{ color: "var(--primary-color)" }}>Аналитик данных</span>
+                                </Link>
+                                <span style={{ color: "var(--muted-fg)" }}> &gt; кабинет 412 </span>
+                                <span style={{ color: "var(--primary-color)" }}>Отдел визуализации</span>
+                            </span>
+                        ) : isCabinetMode ? (
+                            <span>
+                                <span style={{ color: "var(--muted-fg)" }}>&gt; </span>
+                                <Link
+                                    to="/analyze"
+                                    state={{ activeChatId }}
+                                    style={{
+                                        textDecoration: "underline dashed var(--muted-fg)",
+                                        textUnderlineOffset: "3px",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    <span style={{ color: "var(--muted-fg)" }}>кабинет 301 </span>
+                                    <span style={{ color: "var(--primary-color)" }}>Аналитик данных</span>
+                                </Link>
+                                <span style={{ color: "var(--muted-fg)" }}> &gt; кабинет 108 </span>
+                                <span style={{ color: "var(--primary-color)" }}>Личный кабинет</span>
+                            </span>
                         ) : (
                             <span>
                                 <span style={{ color: "var(--muted-fg)" }}>&gt; кабинет 301 </span>
-                                <span style={{ color: "var(--primary-color)" }}>Анализ данных</span>
+                                <span style={{ color: "var(--primary-color)" }}>Аналитик данных</span>
                             </span>
                         )}
                     </div>
                 )}
 
-                {/* Navigation links if isChatMode and isAdminMode are false */}
-                {!isChatMode && !isAdminMode && (
+                {/* Navigation links if isChatMode, isAdminMode, isDashboardMode and isCabinetMode are false */}
+                {!isChatMode && !isAdminMode && !isDashboardMode && !isCabinetMode && (
                     <nav
                         className="font-mono"
                         style={{
@@ -199,20 +241,22 @@ export const Header: React.FC<HeaderProps> = ({
                                     Админка
                                 </Link>
                             )}
-                            <div
+                            <Link
+                                to="/cabinet"
+                                state={{ activeChatId }}
                                 className="header-username"
-                                onClick={onOpenProfile}
                                 title="Личный кабинет"
                                 style={{
                                     fontFamily: 'var(--font-mono)',
                                     fontWeight: 600,
                                     color: 'var(--fg-color)',
                                     cursor: 'pointer',
-                                    fontSize: '13px'
+                                    fontSize: '13px',
+                                    textDecoration: "none"
                                 }}
                             >
                                 {currentUser.username}
-                            </div>
+                            </Link>
                             <button
                                 onClick={onLogout}
                                 title="Выйти"

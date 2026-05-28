@@ -119,6 +119,184 @@ export const DashboardWidgetPlot: React.FC<{ chart: ChartData, settings: ChartSe
                     plotLayout.xaxis.ticktext = chart.data.ivl;
                 }
                 break;
+            case 'cash_flow_chart': {
+                const colors = chart.data.values.map((v: number) => v >= 0 ? '#3cb44b' : '#e6194b');
+                plotData = [{
+                    x: chart.data.labels,
+                    y: chart.data.values,
+                    type: 'bar',
+                    marker: { color: colors }
+                }];
+                plotLayout.xaxis.type = 'category';
+                break;
+            }
+            case 'pnl_report':
+                plotData = [{
+                    type: 'waterfall',
+                    x: ['Доходы', 'Расходы', 'Чистая прибыль'],
+                    y: [
+                        chart.data.total_income,
+                        -chart.data.total_expense,
+                        chart.data.net_profit,
+                    ],
+                    measure: ['relative', 'relative', 'total'],
+                    text: [
+                        chart.data.total_income,
+                        -chart.data.total_expense,
+                        chart.data.net_profit,
+                    ].map((v) => String(v.toLocaleString())),
+                    textposition: 'outside',
+                    connector: {
+                        line: { color: 'rgb(63, 63, 63)', width: 1, dash: 'dot' }
+                    },
+                    decreasing: { marker: { color: '#e6194b' } },
+                    increasing: { marker: { color: '#3cb44b' } },
+                    totals: {
+                        marker: {
+                            color: chart.data.net_profit >= 0 ? '#3cb44b' : '#e6194b'
+                        }
+                    }
+                }];
+                break;
+            case 'expense_pie_chart':
+                plotData = [{
+                    labels: chart.data.categories,
+                    values: chart.data.amounts,
+                    type: 'pie',
+                    hole: 0.45,
+                    textinfo: 'percent',
+                    marker: {
+                        colors: [
+                            '#4a90e2', '#e6194b', '#3cb44b', '#ffe119', '#f58231',
+                            '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe'
+                        ]
+                    }
+                }];
+                plotLayout.xaxis.visible = false;
+                plotLayout.yaxis.visible = false;
+                plotLayout.showlegend = true;
+                plotLayout.legend = { orientation: 'h', y: -0.2 };
+                break;
+            case 'abc_analysis':
+                plotData = [
+                    {
+                        x: chart.data.categories,
+                        y: chart.data.amounts,
+                        type: 'bar',
+                        name: 'Выручка',
+                        marker: { color: '#4a90e2' }
+                    },
+                    {
+                        x: chart.data.categories,
+                        y: chart.data.cum_percent,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        yaxis: 'y2',
+                        name: '% нарастающим итогом',
+                        line: { color: '#e6194b', width: 3 }
+                    }
+                ];
+                plotLayout.yaxis2 = {
+                    overlaying: 'y',
+                    side: 'right',
+                    range: [0, 105],
+                    showgrid: false
+                };
+                plotLayout.margin.r = settings.showLabels ? 35 : 5;
+                plotLayout.showlegend = true;
+                plotLayout.legend = { orientation: 'h', y: -0.2 };
+                break;
+            case 'unit_economics':
+                plotData = [
+                    {
+                        x: chart.data.sources,
+                        y: chart.data.arpu,
+                        type: 'bar',
+                        name: 'LTV',
+                        marker: { color: '#3cb44b' }
+                    },
+                    {
+                        x: chart.data.sources,
+                        y: chart.data.cac,
+                        type: 'bar',
+                        name: 'CAC',
+                        marker: { color: '#e6194b' }
+                    },
+                    {
+                        x: chart.data.sources,
+                        y: chart.data.romi,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'ROMI',
+                        yaxis: 'y2',
+                        line: { color: '#f58231', width: 2 },
+                        marker: { size: 6 }
+                    }
+                ];
+                plotLayout.barmode = 'group';
+                plotLayout.yaxis2 = {
+                    overlaying: 'y',
+                    side: 'right',
+                    showgrid: false
+                };
+                plotLayout.margin.r = settings.showLabels ? 35 : 5;
+                plotLayout.showlegend = true;
+                plotLayout.legend = { orientation: 'h', y: -0.2 };
+                break;
+            case 'revenue_forecast':
+                plotData = [
+                    {
+                        x: chart.data.hist_dates,
+                        y: chart.data.hist_values,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Факт',
+                        line: { color: '#4a90e2', width: 2 }
+                    },
+                    {
+                        x: chart.data.forecast_dates,
+                        y: chart.data.forecast_upper,
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: { width: 0 },
+                        showlegend: false
+                    },
+                    {
+                        x: chart.data.forecast_dates,
+                        y: chart.data.forecast_lower,
+                        type: 'scatter',
+                        mode: 'lines',
+                        fill: 'tonexty',
+                        fillcolor: 'rgba(245, 130, 49, 0.15)',
+                        line: { width: 0 },
+                        showlegend: false
+                    },
+                    {
+                        x: chart.data.forecast_dates,
+                        y: chart.data.forecast_values,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Прогноз',
+                        line: { color: '#f58231', width: 2, dash: 'dash' }
+                    }
+                ];
+                plotLayout.xaxis.type = 'date';
+                plotLayout.showlegend = true;
+                plotLayout.legend = { orientation: 'h', y: -0.2 };
+                break;
+            case 'cohort_analysis':
+                plotData = [{
+                    z: chart.data.z,
+                    x: chart.data.periods,
+                    y: chart.data.cohorts,
+                    text: chart.data.text,
+                    type: 'heatmap',
+                    colorscale: 'Blues',
+                    showscale: false,
+                    texttemplate: '%{text}'
+                }];
+                plotLayout.yaxis.autorange = 'reversed';
+                break;
         }
     } catch (e) { console.error("Plot error", e); }
 

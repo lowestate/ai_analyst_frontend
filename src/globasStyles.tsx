@@ -73,7 +73,7 @@ export const GLOBAL_STYLES = `
     .app-layout.sidebar-hidden {
         --col-left-flex: 3;
         --col-center-flex: 54;
-        --col-right-flex: 12;
+        --col-right-flex: 11;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-display); }
@@ -350,13 +350,13 @@ export const GLOBAL_STYLES = `
     .plan-desc { font-size: 13px; color: var(--fg-color); line-height: 1.5; flex: 1; }
     .plan-badge { position: absolute; top: -12px; right: 24px; padding: 4px 12px; border-radius: 12px; font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--primary-fg); background: var(--primary-color); }
 
-    .plan-card.tier-free.active { border-color: var(--border-color); background: var(--secondary-color); }
-    .plan-card.tier-pro .plan-name { color: var(--primary-color); }
-    .plan-card.tier-pro.active { background: var(--secondary-color); }
+    .plan-card.tier-junior.active { border-color: var(--border-color); background: var(--secondary-color); }
+    .plan-card.tier-middle .plan-name { color: var(--primary-color); }
+    .plan-card.tier-middle.active { background: var(--secondary-color); }
     
-    .plan-card.tier-ultra { border-color: var(--accent-color); }
-    .plan-card.tier-ultra .plan-name { color: var(--accent-color); }
-    .plan-card.tier-ultra.active { background: var(--secondary-color); }
+    .plan-card.tier-senior { border-color: var(--accent-color); }
+    .plan-card.tier-senior .plan-name { color: var(--accent-color); }
+    .plan-card.tier-senior.active { background: var(--secondary-color); }
 
     .header-username { font-family: var(--font-mono); cursor: pointer; transition: color 0.2s; padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 13px; }
     .header-username:hover { color: var(--primary-color) !important; background: var(--secondary-color); }

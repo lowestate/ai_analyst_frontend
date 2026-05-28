@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
-// Если COLORS лежат в другом файле, импортируй их:
-// import { COLORS } from './styles'; 
+import { OfficeWall } from './OfficeWall';
 
 interface UserPageProps {
     currentUser: { username: string; id: number; plan_name?: string };
@@ -10,168 +8,817 @@ interface UserPageProps {
     isBanned?: boolean;
 }
 
-const PLANS_DATA = [
+const CHECK = () => (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M3.5 9.5L7 13L14.5 5.5" stroke="#3399FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+const CROSS = () => (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M5 5L13 13M13 5L5 13" stroke="#e05252" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+);
+
+const DASH = () => (
+    <span style={{ color: 'var(--muted-fg)', fontSize: 18, lineHeight: 1 }}>—</span>
+);
+
+type CellValue = 'check' | 'cross' | string;
+
+interface GradeRow {
+    grade: string;
+    label: string;
+    isCurrentPlan?: boolean;
+    badge?: { text: string; color: string };
+    commands: CellValue;
+    files: CellValue;
+    ai: CellValue;
+    limits: CellValue;
+    bd: CellValue;
+    dashboard: CellValue;
+    price: string;
+    priceLabel?: string;
+}
+
+const renderCell = (val: CellValue) => {
+    if (val === 'check') return <CHECK />;
+    if (val === 'cross') return <CROSS />;
+    if (val === 'dash') return <DASH />;
+    return <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted-fg)' }}>{val}</span>;
+};
+
+const WHY_CARDS = [
     {
-        id: 'free',
-        name: 'Free',
-        price: 'Бесплатно',
-        desc: 'Базовый доступ к анализу данных с помощью команд. Работа только с файлами',
-        tierClass: 'tier-free'
+        num: '01',
+        title: 'Инфраструктура',
+        text: 'Старшие грейды используют GPU-инстансы для AutoML — мощное железо + 24/7 аптайм.'
     },
     {
-        id: 'pro',
-        name: 'Pro',
-        price: '99 руб. / месяц',
-        desc: 'Продвинутая аналитика с помощью AI. Расширяет возможности анализа и добавляет интерпретируемость результатов',
-        tierClass: 'tier-pro',
-        badge: 'Популярный',
-        badgeColor: '#3399FF' // COLORS.accent
+        num: '02',
+        title: 'AI-токены',
+        text: 'Каждый AI-запрос — вызов внешних LLM. Senior снимает лимиты, что увеличивает расходы провайдеру.'
     },
     {
-        id: 'ultra',
-        name: 'Ultra',
-        price: '199 руб. / месяц',
-        desc: 'Максимальный доступ к анализу, добавляющий возможность работать с БД PostgreSQL. Агент сам пишет запросы, Вы их подтверждаете',
-        tierClass: 'tier-ultra',
-        badge: 'Максимум',
-        badgeColor: '#000000' // Золотой
+        num: '03',
+        title: 'Поддержка специалиста',
+        text: 'Маргарет, Боб и Сэм резервируют часы под ваши задачи. Чем выше грейд — тем больше слот.'
     }
 ];
 
 export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanChange, isBanned }) => {
-    const [currentPlan, setCurrentPlan] = useState<string | null>('free'); // По умолчанию free
+    const [currentPlan, setCurrentPlan] = useState<string>('junior');
     const [isLoading, setIsLoading] = useState(true);
     const [localBanned, setLocalBanned] = useState(isBanned || false);
+    const [upgrading, setUpgrading] = useState(false);
 
     useEffect(() => {
-        // Запрашиваем текущую инфу о юзере (чтобы получить актуальный план)
         const fetchUserData = async () => {
             try {
                 const res = await fetch(`http://localhost:8001/users/${currentUser.id}`);
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.plan_name) {
-                        setCurrentPlan(data.plan_name.toLowerCase());
-                    }
-                    if (data.is_banned !== undefined) {
-                        setLocalBanned(data.is_banned);
-                    }
+                    if (data.plan_name) setCurrentPlan(data.plan_name.toLowerCase());
+                    if (data.is_banned !== undefined) setLocalBanned(data.is_banned);
                 }
             } catch (err) {
-                console.error("Ошибка загрузки профиля", err);
+                console.error('Ошибка загрузки профиля', err);
             } finally {
                 setIsLoading(false);
             }
         };
-
         fetchUserData();
     }, [currentUser.id]);
 
     const handlePlanChange = async (targetPlan: string) => {
-        if (targetPlan === currentPlan) return;
-
+        if (targetPlan === currentPlan || localBanned) return;
+        setUpgrading(true);
         try {
             const res = await fetch('http://localhost:8001/change_subscription', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: currentUser.id,
-                    target_plan: targetPlan
-                })
+                body: JSON.stringify({ user_id: currentUser.id, target_plan: targetPlan })
             });
-
             if (!res.ok) throw new Error('Ошибка при смене тарифа');
-
             const data = await res.json();
             if (data.status === 'success') {
-                setCurrentPlan(data.plan_name); // Обновляем UI
+                setCurrentPlan(data.plan_name.toLowerCase());
                 if (onPlanChange) onPlanChange(data.plan_name.toLowerCase());
             }
         } catch (err) {
             console.error(err);
-            alert("Не удалось изменить подписку.");
+            alert('Не удалось изменить подписку.');
+        } finally {
+            setUpgrading(false);
         }
     };
 
-    const handleBackgroundClick = () => {
-        setCurrentPlan(null);
+    const getNextPlan = () => {
+        if (currentPlan === 'junior') return 'middle';
+        if (currentPlan === 'middle') return 'senior';
+        return null;
     };
 
+    const getNextPlanLabel = () => {
+        const next = getNextPlan();
+        if (next === 'middle') return 'Повысить до Middle →';
+        if (next === 'senior') return 'Повысить до Senior →';
+        return null;
+    };
+
+    const GRADE_ROWS: GradeRow[] = [
+        {
+            grade: 'Junior',
+            label: 'Бесплатный',
+            commands: 'check',
+            files: 'check',
+            ai: 'cross',
+            limits: 'dash',
+            bd: 'cross',
+            dashboard: 'check',
+            price: '0₽',
+            priceLabel: ''
+        },
+        {
+            grade: 'Middle',
+            label: 'Базово',
+            commands: 'check',
+            files: 'check',
+            ai: 'check',
+            limits: '3/мин',
+            bd: 'cross',
+            dashboard: 'check',
+            price: '99₽',
+            priceLabel: '/мес'
+        },
+        {
+            grade: 'Senior',
+            label: 'Расширенный',
+            commands: 'check',
+            files: 'check',
+            ai: 'check',
+            limits: 'dash',
+            bd: 'check',
+            dashboard: 'check',
+            price: '199₽',
+            priceLabel: '/мес'
+        }
+    ];
+
     if (isLoading) {
-        return <div className="user-page-wrapper"><div className="loading-text">Загрузка профиля...</div></div>;
+        return (
+            <div style={styles.wrapper}>
+                <div style={styles.loadingText}>Загрузка профиля...</div>
+            </div>
+        );
     }
 
+    const nextPlan = getNextPlan();
+    const nextPlanLabel = getNextPlanLabel();
+
     return (
-        <div className="user-page-wrapper" onClick={handleBackgroundClick}>
+        <div style={styles.wrapper}>
+            {/* blink animation for online dot */}
+            <style>{`@keyframes blink-dot { 0%,100%{opacity:1} 50%{opacity:0.2} }`}</style>
 
-            <div className="profile-header">
-                {/* Берем первую букву имени для аватарки */}
-                <div className="profile-avatar">{currentUser.username.charAt(0).toUpperCase()}</div>
-                <div className="profile-username">{currentUser.username}</div>
-            </div>
+            {/* OFFICE WALL BACKGROUND */}
+            <OfficeWall />
 
-            {localBanned && (
-                <div style={{
-                    backgroundColor: '#fffbe6', // Бледно-желтый фон
-                    border: '1px solid #faad14', // Желтая обводка
-                    borderRadius: '12px',
-                    padding: '16px 24px',
-                    marginBottom: '32px',
-                    color: '#d48806', // Темно-желтый/оранжевый текст для читаемости
-                    textAlign: 'center',
-                    fontWeight: 600,
-                    maxWidth: '500px',
-                    width: '100%',
-                    boxShadow: '0 4px 12px rgba(250, 173, 20, 0.1)'
-                }}>
-                    Ваш аккаунт заблокирован.<br />Все действия по анализу данных ограничены.
-                </div>
-            )}
+            {/* CONTENT LAYER — sits above the wall */}
+            <div style={styles.contentLayer}>
 
-            <div className="plans-title">Ваша подписка</div>
+                {/* MONITOR OUTER WRAPPER — bezel + card + stand */}
+                <div style={styles.monitorOuter}>
 
-            <div className="plans-container">
-                {PLANS_DATA.map((plan) => {
-                    const isActive = currentPlan === plan.id;
+                    {/* MONITOR BEZEL TOP */}
+                    <div style={styles.monitorBezel}>
+                        {/* traffic lights */}
+                        <div style={styles.trafficLights}>
+                            <span style={{ ...styles.dot, background: '#ff5f57' }} />
+                            <span style={{ ...styles.dot, background: '#febc2e' }} />
+                            <span style={{ ...styles.dot, background: '#28c840' }} />
+                        </div>
+                        {/* session label center */}
+                        <span style={styles.sessionLabel}>account.dataoffice / session #{currentUser.id.toString().padStart(4, '0')}</span>
+                        <div style={{ width: 52 }} />{/* spacer to balance traffic lights */}
+                    </div>
 
-                    return (
-                        <div
-                            key={plan.id}
-                            className={`plan-card ${plan.tierClass} ${isActive ? 'active' : ''}`}
-                            onClick={(e) => {
-                                e.stopPropagation(); // Останавливаем всплытие до фона
-                                if (localBanned) return;
-                                handlePlanChange(plan.id);
-                            }}
-                            style={{
-                                opacity: localBanned && !isActive ? 0.6 : 1,
-                                cursor: localBanned ? 'not-allowed' : (isActive ? 'default' : 'pointer')
-                            }}
-                        >
-                            {plan.badge && (
-                                <div className="plan-badge" style={{ backgroundColor: plan.badgeColor }}>
-                                    {plan.badge}
+                    {/* MAIN CARD */}
+                    <div style={styles.mainCard}>
+
+                        {/* PROFILE SECTION */}
+                        <div style={styles.profileSection}>
+                            <div style={styles.avatarBox}>
+                                <span style={styles.avatarLetter}>{currentUser.username.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <div style={styles.profileInfo}>
+                                <div style={styles.usernameLabel}>USERNAME</div>
+                                <div style={styles.usernameRow}>
+                                    <span style={styles.username}>@{currentUser.username}</span>
+                                    <span style={styles.onlineIndicator}>
+                                        <span style={{ ...styles.onlineDot, animation: 'blink-dot 2s ease-in-out infinite' }} />
+                                        ONLINE
+                                    </span>
                                 </div>
-                            )}
-                            <div className="plan-name">{plan.name}</div>
-                            <div className="plan-price">{plan.price}</div>
-                            <div className="plan-desc">{plan.desc}</div>
-
-                            <div style={{
-                                marginTop: 'auto', // Автоматически прижимает надпись к самому низу карточки
-                                paddingTop: '20px',
-                                fontWeight: isActive ? 700 : 600,
-                                color: isActive
-                                    ? (plan.id === 'ultra' ? '#343434' : '#3399FF')
-                                    : (localBanned ? '#a1a1aa' : '#a1a1aa'), // Серый цвет для неактивных тарифов
-                                transition: 'color 0.2s'
-                            }}>
-                                {isActive ? 'Текущий тариф' : (localBanned ? 'Недоступно' : 'Выбрать тариф')}
+                                <div style={styles.roleRow}>
+                                    Должность:{' '}
+                                    <span style={styles.roleText}>
+                                        {currentPlan === 'junior' ? 'Junior Data Analyst' :
+                                            currentPlan === 'middle' ? 'Middle Data Analyst' :
+                                                'Senior Data Analyst'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div style={styles.currentPlanBadge}>
+                                {currentPlan.toUpperCase()}
                             </div>
                         </div>
-                    );
-                })}
-            </div>
+
+                        {localBanned && (
+                            <div style={styles.banBanner}>
+                                Ваш аккаунт заблокирован. Все действия ограничены.
+                            </div>
+                        )}
+
+                        {/* GRADE LADDER TABLE */}
+                        <div style={styles.tableSection}>
+                            <div style={styles.tableSectionHeader}>
+                                <span style={styles.tableSectionTitle}>HR · GRADE LADDER</span>
+                                <span style={styles.effectiveDate}>EFFECTIVE 01.06.2026</span>
+                            </div>
+
+                            <table style={styles.gradeTable}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ ...styles.th, ...styles.thGrade }}>ГРЕЙД</th>
+                                        <th style={styles.th}>КОМАНДЫ</th>
+                                        <th style={styles.th}>РАБОТА С ФАЙЛАМИ</th>
+                                        <th style={styles.th}>AI</th>
+                                        <th style={styles.th}>ЛИМИТ AI</th>
+                                        <th style={styles.th}>РАБОТА С БД</th>
+                                        <th style={styles.th}>ДАШБОРДЫ</th>
+                                        <th style={{ ...styles.th, textAlign: 'right' }}>ЦЕНА</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {GRADE_ROWS.map((row) => {
+                                        const isActive = currentPlan === row.grade.toLowerCase();
+                                        return (
+                                            <tr
+                                                key={row.grade}
+                                                style={{
+                                                    ...styles.tr,
+                                                    ...(isActive ? styles.trActive : {}),
+                                                    cursor: (!isActive && !localBanned) ? 'pointer' : 'default'
+                                                }}
+                                                onClick={() => !isActive && !localBanned && handlePlanChange(row.grade.toLowerCase())}
+                                            >
+                                                <td style={styles.tdGrade}>
+                                                    <div style={styles.gradeNameRow}>
+                                                        <span style={{
+                                                            ...styles.gradeName,
+                                                            color: row.grade === 'Middle' ? 'var(--primary-color)' :
+                                                                row.grade === 'Senior' ? 'var(--accent-color)' : 'var(--fg-color)'
+                                                        }}>
+                                                            {row.grade}
+                                                        </span>
+                                                        {isActive && (
+                                                            <span style={styles.activeBadge}>●</span>
+                                                        )}
+                                                    </div>
+                                                    <div style={styles.gradeLabel}>{row.label}</div>
+                                                </td>
+                                                <td style={styles.td}>{renderCell(row.commands)}</td>
+                                                <td style={styles.td}>{renderCell(row.files)}</td>
+                                                <td style={styles.td}>{renderCell(row.ai)}</td>
+                                                <td style={styles.td}>{renderCell(row.limits)}</td>
+                                                <td style={styles.td}>{renderCell(row.bd)}</td>
+                                                <td style={styles.td}>{renderCell(row.dashboard)}</td>
+                                                <td style={{ ...styles.td, textAlign: 'right' }}>
+                                                    <span style={styles.priceValue}>{row.price}</span>
+                                                    {row.priceLabel && (
+                                                        <span style={styles.priceLabel}>{row.priceLabel}</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* WHY UPGRADE CARDS — below the table */}
+                        <div style={styles.whySection}>
+                            <div style={styles.whyTabsRow}>
+                                <span style={styles.whyTabActive}>ПОЧЕМУ ПОВЫШЕНИЕ ПЛАТНОЕ?</span>
+                            </div>
+
+                            <div style={styles.whyCardsGrid}>
+                                {WHY_CARDS.map((card) => (
+                                    <div key={card.num} style={styles.whyCard}>
+                                        <div style={styles.whyCardNum}>{card.num}</div>
+                                        <div style={styles.whyCardTitle}>{card.title}</div>
+                                        <div style={styles.whyCardText}>{card.text}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* FOOTER with upgrade button */}
+                        {nextPlan && nextPlanLabel && !localBanned && (
+                            <div style={styles.footer}>
+                                <span style={styles.footerNote}>↑ к 2026</span>
+                                <div style={{ display: 'flex', gap: 10 }}>
+                                    <button
+                                        style={{
+                                            ...styles.upgradeBtn,
+                                            opacity: upgrading ? 0.7 : 1,
+                                            cursor: upgrading ? 'wait' : 'pointer'
+                                        }}
+                                        onClick={() => handlePlanChange(nextPlan)}
+                                        disabled={upgrading}
+                                    >
+                                        {upgrading ? 'Обновляем...' : nextPlanLabel}
+                                    </button>
+                                    {currentPlan === 'junior' && (
+                                        <button
+                                            style={{
+                                                ...styles.upgradeBtn,
+                                                background: 'var(--accent-color)',
+                                                opacity: upgrading ? 0.7 : 1,
+                                                cursor: upgrading ? 'wait' : 'pointer'
+                                            }}
+                                            onClick={() => handlePlanChange('senior')}
+                                            disabled={upgrading}
+                                        >
+                                            {upgrading ? 'Обновляем...' : '★ Повысить до Senior'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {currentPlan === 'senior' && !localBanned && (
+                            <div style={styles.footer}>
+                                <span style={styles.footerNote}>Максимальный грейд достигнут</span>
+                                <span style={{ ...styles.footerNote, color: 'var(--accent-color)', fontWeight: 700 }}>★ SENIOR</span>
+                            </div>
+                        )}
+                    </div>{/* /mainCard */}
+
+                    {/* MONITOR STAND */}
+                    <div style={styles.monitorNeck} />
+                    <div style={styles.monitorBase} />
+
+                </div>{/* /monitorOuter */}
+
+                {/* WOODEN DESK SURFACE */}
+                <div style={styles.deskSurface} />
+
+            </div>{/* /contentLayer */}
         </div>
     );
+};
+
+/* ─── Inline styles ─── */
+const styles: Record<string, React.CSSProperties> = {
+    wrapper: {
+        flex: 1,
+        position: 'relative',
+        overflow: 'hidden',
+        minHeight: 0,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column'
+    },
+    contentLayer: {
+        position: 'relative',
+        zIndex: 1,
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '28px 0 0 0',
+        alignItems: 'center',
+        overflow: 'hidden',
+        minHeight: 0
+    },
+    loadingText: {
+        margin: 'auto',
+        fontFamily: 'var(--font-mono)',
+        color: 'var(--muted-fg)',
+        fontSize: 13
+    },
+    topBar: {
+        display: 'none'
+    },
+    sessionLabel: {
+        fontFamily: 'var(--font-mono)',
+        fontSize: 11,
+        color: '#aaa',
+        letterSpacing: '0.04em'
+    },
+    onlineIndicator: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        fontFamily: 'var(--font-mono)',
+        fontSize: 11,
+        fontWeight: 700,
+        color: 'oklch(0.55 0.16 145)',
+        letterSpacing: '0.08em'
+    },
+    onlineDot: {
+        width: 7,
+        height: 7,
+        borderRadius: '50%',
+        background: 'oklch(0.6 0.2 145)',
+        boxShadow: '0 0 6px oklch(0.6 0.2 145)',
+        display: 'inline-block'
+    },
+
+    /* MONITOR FRAME */
+    monitorOuter: {
+        width: '78%',
+        maxWidth: 1200,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        /* leave room for desk (20px) + a little breathing space (16px) */
+        flex: '1 1 0',
+        minHeight: 0,
+        overflow: 'hidden'
+    },
+    monitorBezel: {
+        width: '100%',
+        background: '#1e1e1e',
+        borderRadius: '12px 12px 0 0',
+        padding: '10px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexShrink: 0,
+        borderBottom: '2px solid #111'
+    },
+    trafficLights: {
+        display: 'flex',
+        gap: 7,
+        alignItems: 'center'
+    },
+    dot: {
+        display: 'inline-block',
+        width: 12,
+        height: 12,
+        borderRadius: '50%'
+    },
+    monitorNeck: {
+        width: 48,
+        height: 28,
+        background: 'linear-gradient(180deg, #2a2a2a 0%, #3a3a3a 100%)',
+        flexShrink: 0
+    },
+    monitorBase: {
+        width: 180,
+        height: 14,
+        background: 'linear-gradient(180deg, #2a2a2a 0%, #404040 100%)',
+        borderRadius: '0 0 10px 10px',
+        flexShrink: 0,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.35)'
+    },
+
+    /* MAIN CARD */
+    mainCard: {
+        width: '100%',
+        flex: 1,
+        background: 'var(--card-bg)',
+        borderLeft: '6px solid #1e1e1e',
+        borderRight: '6px solid #1e1e1e',
+        borderBottom: '6px solid #1e1e1e',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflowY: 'auto',
+        minHeight: 0
+    },
+
+    /* DESK SURFACE */
+    deskSurface: {
+        width: '100%',
+        height: 20,
+        flexShrink: 0,
+        background: `
+            repeating-linear-gradient(
+                90deg,
+                rgba(0,0,0,0) 0px,
+                rgba(0,0,0,0) 18px,
+                rgba(0,0,0,0.06) 18px,
+                rgba(0,0,0,0.06) 19px,
+                rgba(255,255,255,0.04) 19px,
+                rgba(255,255,255,0.04) 36px
+            ),
+            linear-gradient(180deg, #9B7050 0%, #8B6040 30%, #7A5230 60%, #6A4525 100%)
+        `,
+        boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.18), 0 6px 20px rgba(0,0,0,0.5)',
+        position: 'relative',
+        overflow: 'hidden',
+        zIndex: 2
+    },
+
+    /* PROFILE */
+    profileSection: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 20,
+        padding: '20px 28px',
+        borderBottom: '1px solid var(--border-color)',
+        flexShrink: 0
+    },
+    avatarBox: {
+        width: 52,
+        height: 52,
+        border: '2px solid var(--border-color)',
+        borderRadius: 6,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--secondary-color)',
+        flexShrink: 0
+    },
+    avatarLetter: {
+        fontFamily: 'var(--font-mono)',
+        fontWeight: 800,
+        fontSize: 22,
+        color: 'var(--primary-color)'
+    },
+    profileInfo: {
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3
+    },
+    usernameLabel: {
+        fontFamily: 'var(--font-mono)',
+        fontSize: 10,
+        fontWeight: 600,
+        color: 'var(--muted-fg)',
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase'
+    },
+    username: {
+        fontFamily: 'var(--font-mono)',
+        fontSize: 28,
+        fontWeight: 800,
+        color: 'var(--fg-color)',
+        letterSpacing: '-0.01em'
+    },
+    usernameRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12
+    },
+    roleRow: {
+        fontFamily: 'var(--font-display)',
+        fontSize: 12,
+        color: 'var(--muted-fg)'
+    },
+    roleText: {
+        color: 'var(--primary-color)',
+        fontWeight: 600
+    },
+    roleLink: {
+        color: 'var(--primary-color)',
+        textDecoration: 'underline',
+        cursor: 'pointer'
+    },
+    currentPlanBadge: {
+        fontFamily: 'var(--font-mono)',
+        fontWeight: 800,
+        fontSize: 14,
+        letterSpacing: '0.12em',
+        padding: '5px 14px',
+        border: '2px solid var(--primary-color)',
+        borderRadius: 4,
+        color: 'var(--primary-color)',
+        background: 'var(--primary-soft)',
+        flexShrink: 0
+    },
+    banBanner: {
+        margin: '0 28px 0 28px',
+        marginTop: 12,
+        background: 'oklch(0.98 0.03 80)',
+        border: '1px solid oklch(0.85 0.12 80)',
+        borderRadius: 6,
+        padding: '10px 18px',
+        color: 'oklch(0.4 0.1 80)',
+        fontFamily: 'var(--font-mono)',
+        fontSize: 12,
+        fontWeight: 600,
+        textAlign: 'center'
+    },
+
+    /* TABLE SECTION */
+    tableSection: {
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '0 0 0 0',
+        minHeight: 0
+    },
+    tableSectionHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '10px 28px 8px 28px',
+        borderBottom: '1px solid var(--border-color)'
+    },
+    tableSectionTitle: {
+        fontFamily: 'var(--font-mono)',
+        fontSize: 12,
+        fontWeight: 700,
+        color: 'var(--muted-fg)',
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase'
+    },
+    effectiveDate: {
+        fontFamily: 'var(--font-mono)',
+        fontSize: 12,
+        color: 'var(--muted-fg)',
+        letterSpacing: '0.06em'
+    },
+    gradeTable: {
+        width: '100%',
+        borderCollapse: 'collapse',
+        tableLayout: 'fixed'
+    },
+    th: {
+        padding: '10px 14px',
+        borderBottom: '1px solid var(--border-color)',
+        fontFamily: 'var(--font-mono)',
+        fontSize: 14,
+        fontWeight: 700,
+        color: 'var(--muted-fg)',
+        letterSpacing: '0.1em',
+        textAlign: 'center',
+        background: 'var(--secondary-color)',
+        whiteSpace: 'nowrap'
+    },
+    thGrade: {
+        textAlign: 'left',
+        paddingLeft: 28,
+        width: '10%'
+    },
+    tr: {
+        borderBottom: '1px solid var(--border-color)',
+        transition: 'background 0.15s ease'
+    },
+    trActive: {
+        background: 'var(--primary-soft)'
+    },
+    td: {
+        padding: '12px 14px',
+        textAlign: 'center',
+        verticalAlign: 'middle'
+    },
+    tdGrade: {
+        padding: '12px 14px 12px 28px',
+        verticalAlign: 'middle'
+    },
+    gradeNameRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 2
+    },
+    gradeName: {
+        fontFamily: 'var(--font-mono)',
+        fontWeight: 800,
+        fontSize: 16
+    },
+    gradeBadge: {
+        fontFamily: 'var(--font-mono)',
+        fontSize: 12,
+        fontWeight: 800,
+        color: '#fff',
+        padding: '2px 6px',
+        borderRadius: 3,
+        letterSpacing: '0.05em'
+    },
+    activeBadge: {
+        color: 'var(--primary-color)',
+        fontSize: 12,
+        marginLeft: 2
+    },
+    gradeLabel: {
+        fontFamily: 'var(--font-display)',
+        fontSize: 12,
+        color: 'var(--muted-fg)'
+    },
+    priceValue: {
+        fontFamily: 'var(--font-mono)',
+        fontSize: 18,
+        fontWeight: 800,
+        color: 'var(--fg-color)'
+    },
+    priceLabel: {
+        fontFamily: 'var(--font-mono)',
+        fontSize: 16,
+        color: 'var(--muted-fg)',
+        marginLeft: 2
+    },
+
+    /* WHY SECTION */
+    whySection: {
+        padding: '16px 28px 20px 28px'
+    },
+    whyTabsRow: {
+        display: 'flex',
+        gap: 6,
+        marginBottom: 14,
+        flexWrap: 'wrap'
+    },
+    whyTabActive: {
+        fontFamily: 'var(--font-mono)',
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: '0.1em',
+        padding: '3px 10px',
+        background: 'var(--primary-color)',
+        color: '#fff',
+        borderRadius: 3
+    },
+    whyTab: {
+        fontFamily: 'var(--font-mono)',
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: '0.1em',
+        padding: '3px 10px',
+        background: 'var(--secondary-color)',
+        color: 'var(--muted-fg)',
+        borderRadius: 3,
+        border: '1px solid var(--border-color)'
+    },
+    whyCardsGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: 16
+    },
+    whyCard: {
+        background: 'var(--bg-color)',
+        border: '1px solid var(--border-color)',
+        borderRadius: 6,
+        padding: '14px 18px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6
+    },
+    whyCardNum: {
+        fontFamily: 'var(--font-mono)',
+        fontSize: 10,
+        fontWeight: 700,
+        color: 'var(--primary-color)',
+        letterSpacing: '0.1em'
+    },
+    whyCardTitle: {
+        fontFamily: 'var(--font-display)',
+        fontSize: 14,
+        fontWeight: 700,
+        color: 'var(--fg-color)'
+    },
+    whyCardText: {
+        fontFamily: 'var(--font-display)',
+        fontSize: 12,
+        color: 'var(--muted-fg)',
+        lineHeight: 1.5
+    },
+
+    /* FOOTER */
+    footer: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '12px 28px',
+        borderTop: '1px solid var(--border-color)',
+        background: 'var(--secondary-color)',
+        flexShrink: 0,
+        minHeight: '61px'
+    },
+    footerNote: {
+        fontFamily: 'var(--font-mono)',
+        fontSize: 11,
+        color: 'var(--muted-fg)',
+        letterSpacing: '0.05em'
+    },
+    upgradeBtn: {
+        background: 'var(--fg-color)',
+        color: '#fff',
+        border: 'none',
+        borderRadius: 6,
+        padding: '9px 22px',
+        fontFamily: 'var(--font-mono)',
+        fontWeight: 700,
+        fontSize: 13,
+        cursor: 'pointer',
+        letterSpacing: '0.03em',
+        transition: 'opacity 0.2s, transform 0.15s',
+        boxShadow: 'var(--shadow-paper)'
+    }
 };

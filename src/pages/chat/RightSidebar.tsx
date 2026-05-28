@@ -8,6 +8,7 @@ interface RightSidebarProps {
     onSelectChart: (chart: ChartData) => void;
     isDatasetLoaded: boolean;
     isBanned?: boolean;
+    activeChatId?: string | null;
 }
 
 export const COLORS = {
@@ -87,7 +88,7 @@ export const getChartInfo = (chart: ChartData) => {
     return { title: 'График', columnName: null, subtitle: null };
 };
 
-export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChart, isDatasetLoaded, isBanned = false }) => {
+export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChart, isDatasetLoaded, isBanned = false, activeChatId }) => {
     const navigate = useNavigate();
 
     const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -154,7 +155,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
             {isDatasetLoaded && hasCharts && (
                 <button 
                     disabled={isBanned}
-                    onClick={() => { if (!isBanned) navigate('/dashboard', { state: { charts, folders: FOLDERS } }); }}
+                    onClick={() => { if (!isBanned) navigate('/dashboard', { state: { charts, folders: FOLDERS, activeChatId } }); }}
                     style={{
                         width: '100%',
                         marginBottom: '20px', padding: '10px 16px',

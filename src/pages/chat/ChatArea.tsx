@@ -69,15 +69,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const [showAiWarning, setShowAiWarning] = useState(false);
     const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
 
-    // Стейт для тултипа "Только для pro / ultra"
+    // Стейт для тултипа "Только для middle / senior"
     const [isHoveredAi, setIsHoveredAi] = useState(false);
     const [isHoveredLimit, setIsHoveredLimit] = useState(false);
 
-    const planName = currentUser?.plan_name || 'free';
+    const planName = currentUser?.plan_name || 'junior';
 
     // Умный обработчик клика по тумблеру
     const handleAiToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (planName === 'free') return;
+        if (planName === 'junior') return;
 
         if (isDbMode) {
             setShowAiWarning(true);
@@ -261,7 +261,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     ].filter(row => row.items.length > 0); // Оставляем только те, где есть подсказки
 
     const renderProgressBar = () => {
-        if (planName !== 'pro') return null;
+        if (planName !== 'middle') return null;
 
         const count = aiRequests.length;
         let color = '#4caf50'; // green
@@ -278,7 +278,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             >
                 {isHoveredLimit && (
                     <div className="ai-db-tooltip" style={{ width: '220px', left: '-10px', bottom: 'calc(100% + 5px)', animation: 'none', opacity: 1, zIndex: 1000 }}>
-                        Для подписки pro ограничение 3 запросов в минуту - для безлимита нужна подписка ultra
+                        Для подписки middle ограничение 3 запросов в минуту - для безлимита нужна подписка senior
                     </div>
                 )}
                 <div style={{ fontSize: '11px', color: '#666', marginRight: '6px', whiteSpace: 'nowrap', userSelect: 'none', transform: 'translateY(-2px)' }}>
@@ -612,18 +612,18 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                     </div>
                                 )}
 
-                                {isHoveredAi && planName === 'free' && !showAiWarning && (
+                                {isHoveredAi && planName === 'junior' && !showAiWarning && (
                                     <div className="ai-db-tooltip">
-                                        Только для pro / ultra
+                                        Только для middle / senior
                                     </div>
                                 )}
 
-                                <div className={`toggle-switch ${showAiWarning ? 'shake-animation' : ''} ${planName === 'free' ? 'disabled' : ''}`} style={{ margin: 0 }}>
+                                <div className={`toggle-switch ${showAiWarning ? 'shake-animation' : ''} ${planName === 'junior' ? 'disabled' : ''}`} style={{ margin: 0 }}>
                                     <input
                                         type="checkbox"
                                         checked={isDbMode || useAi}
                                         onChange={handleAiToggle}
-                                        disabled={loading || planName === 'free'}
+                                        disabled={loading || planName === 'junior'}
                                     />
                                     <span className="toggle-slider"></span>
                                 </div>

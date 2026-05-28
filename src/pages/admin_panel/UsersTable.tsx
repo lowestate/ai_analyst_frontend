@@ -39,7 +39,7 @@ export const formatLocalDate = (dateStr: string | undefined | null): string => {
     try {
         const date = new Date(dateStr);
         if (isNaN(date.getTime())) return dateStr;
-        
+
         const pad = (n: number) => String(n).padStart(2, '0');
         const yyyy = date.getFullYear();
         const mm = pad(date.getMonth() + 1);
@@ -47,7 +47,7 @@ export const formatLocalDate = (dateStr: string | undefined | null): string => {
         const hh = pad(date.getHours());
         const mi = pad(date.getMinutes());
         const ss = pad(date.getSeconds());
-        
+
         return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
     } catch {
         return dateStr;
@@ -725,9 +725,9 @@ export const UsersTable: React.FC<UsersTableProps> = ({ currentUser, showToast }
                                                     hoverBg: '#f1f5f9'
                                                 }))
                                             ) : [
-                                                { value: 1, label: '1 - free', color: COLORS.gray700, hoverBg: '#f1f5f9' },
-                                                { value: 2, label: '2 - pro', color: COLORS.gray700, hoverBg: '#f1f5f9' },
-                                                { value: 3, label: '3 - ultra', color: COLORS.gray700, hoverBg: '#f1f5f9' }
+                                                { value: 1, label: '1 - junior', color: COLORS.gray700, hoverBg: '#f1f5f9' },
+                                                { value: 2, label: '2 - middle', color: COLORS.gray700, hoverBg: '#f1f5f9' },
+                                                { value: 3, label: '3 - senior', color: COLORS.gray700, hoverBg: '#f1f5f9' }
                                             ]}
                                             minWidth="160px"
                                         />

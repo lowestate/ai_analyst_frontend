@@ -235,7 +235,7 @@ export function NotFound() {
                             }}
                             className="animate-pulse"
                         ></span>
-                        <span>SYSTEM WAITING FOR THREAD FREE...</span>
+                        <span>SYSTEM WAITING FOR THREAD junior...</span>
                     </div>
                 </div>
 
