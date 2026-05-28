@@ -111,15 +111,19 @@ export const LeftSidebar: React.FC<SidebarProps> = ({
                     )}
                 </button>
                 <button
-                    className="btn-upload"
+                    className="btn-unified"
                     onClick={() => { if (!isBanned) onOpenUploadModal(); }}
                     disabled={isBanned}
                     style={{
-                        opacity: isBanned ? 0.5 : 1,
-                        cursor: isBanned ? 'not-allowed' : 'pointer'
+                        width: isSidebarHidden ? '36px' : '100%',
+                        height: '36px',
+                        padding: isSidebarHidden ? '0' : '8px 16px',
                     }}
                 >
-                    {isSidebarHidden ? '+' : 'Новый анализ'}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    {!isSidebarHidden && <span>Новый анализ</span>}
                 </button>
             </div>
 

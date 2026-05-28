@@ -215,23 +215,12 @@ export const Header: React.FC<HeaderProps> = ({
                             {!isAdminMode && (currentUser.role === 'admin' || currentUser.role === 'Админ') && (
                                 <Link
                                     to="/admin"
-                                    className="btn-admin-header"
+                                    className="btn-unified"
                                     style={{
-                                        backgroundColor: "var(--primary-color)",
-                                        color: "var(--primary-fg)",
-                                        padding: "8px 16px",
                                         fontSize: "13px",
-                                        textDecoration: "none",
-                                        fontWeight: 600,
-                                        fontFamily: "var(--font-mono)",
-                                        borderRadius: "0px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "8px",
+                                        fontWeight: "bold",
                                         transition: "all 0.2s ease",
                                         cursor: "pointer",
-                                        border: "1px solid var(--border-color)",
-                                        boxShadow: "var(--shadow-paper)"
                                     }}
                                 >
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

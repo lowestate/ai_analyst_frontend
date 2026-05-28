@@ -234,34 +234,50 @@ export function Homepage({ currentUser, onOpenAuth, onLogout, onOpenProfile }: H
                             }}
                         >
                             <a
-                                href="#modules"
+                                href="#team"
                                 style={{
                                     backgroundColor: "var(--primary-color)",
                                     color: "var(--primary-fg)",
                                     padding: "12px 24px",
-                                    fontWeight: 500,
+                                    fontWeight: "bold",
                                     textDecoration: "none",
                                     transition: "background-color 0.2s",
                                     display: "flex",
                                     alignItems: "center",
                                     gap: "8px",
+                                    fontFamily: "var(--font-mono)"
                                 }}
                             >
-                                Открыть модули <span>→</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                                Сотрудники
                             </a>
                             <a
-                                href="#team"
+                                href="#modules"
                                 style={{
                                     border: "1px solid var(--border-color)",
                                     backgroundColor: "var(--card-bg)",
                                     color: "var(--fg-color)",
                                     padding: "12px 24px",
-                                    fontWeight: 500,
+                                    fontWeight: "bold",
                                     textDecoration: "none",
                                     transition: "background-color 0.2s",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    fontFamily: "var(--font-mono)"
                                 }}
                             >
-                                Познакомиться с командой
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                    <polyline points="2 17 12 22 22 17"></polyline>
+                                    <polyline points="2 12 12 17 22 12"></polyline>
+                                </svg>
+                                Возможности
                             </a>
                         </div>
 
@@ -292,246 +308,318 @@ export function Homepage({ currentUser, onOpenAuth, onLogout, onOpenProfile }: H
                             gap: "32px",
                         }}
                     >
-                        {/* Dashboard Card */}
+                        {/* Dashboard Card Mockup from screenshot */}
                         <div
-                            className="paper-card animate-float"
+                            className="animate-float"
                             style={{
-                                width: "100%",
-                                padding: "24px",
-                                borderRadius: "0px",
+                                width: "115%",
+                                background: "#f8fafd",
+                                border: "1px solid var(--border-color)",
+                                borderRadius: "16px",
+                                padding: "18px",
+                                marginTop: "50px",
+                                marginLeft: "70px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "16px",
+                                boxSizing: "border-box",
+                                boxShadow: "0 10px 30px rgba(51, 153, 255, 0.08)",
+                                position: "relative",
                             }}
                         >
-                            {/* Card Header */}
+                            {/* Card Header (three dots + dashboard.dataoffice) */}
                             <div
                                 style={{
                                     display: "flex",
                                     justifyContent: "space-between",
                                     alignItems: "center",
-                                    marginBottom: "16px",
-                                    borderBottom:
-                                        "1px solid var(--border-color)",
-                                    paddingBottom: "12px",
+                                    padding: "2px 4px 4px 4px",
+                                    boxSizing: "border-box",
+                                }}
+                            >
+                                <div style={{ display: "flex", gap: "8px" }}>
+                                    <span style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ff605c" }}></span>
+                                    <span style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#40a0ff" }}></span>
+                                    <span style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#6a8dcd" }}></span>
+                                </div>
+                                <span
+                                    className="font-mono"
+                                    style={{
+                                        fontSize: "12px",
+                                        color: "#718096",
+                                        letterSpacing: "0.02em",
+                                    }}
+                                >
+                                    dashboard.dataoffice
+                                </span>
+                            </div>
+
+                            {/* Main Q3 Revenue Panel */}
+                            <div
+                                style={{
+                                    background: "#ffffff",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: "12px",
+                                    padding: "16px",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "12px",
+                                    boxSizing: "border-box",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <span
+                                        className="font-mono"
+                                        style={{
+                                            fontSize: "13px",
+                                            fontWeight: 600,
+                                            color: "#718096",
+                                        }}
+                                    >
+                                        Q3 REVENUE
+                                    </span>
+                                    <span
+                                        className="font-mono"
+                                        style={{
+                                            fontSize: "13px",
+                                            fontWeight: 600,
+                                            color: "#1a68bf",
+                                        }}
+                                    >
+                                        +24.8%
+                                    </span>
+                                </div>
+
+                                {/* Line Chart SVG */}
+                                <div
+                                    style={{
+                                        height: "140px",
+                                        position: "relative",
+                                        overflow: "hidden",
+                                        width: "100%",
+                                    }}
+                                >
+                                    <svg
+                                        width="100%"
+                                        height="100%"
+                                        viewBox="0 0 500 140"
+                                        preserveAspectRatio="none"
+                                        style={{ display: "block" }}
+                                    >
+                                        <defs>
+                                            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#1a68bf" stopOpacity="0.2" />
+                                                <stop offset="100%" stopColor="#1a68bf" stopOpacity="0.0" />
+                                            </linearGradient>
+                                        </defs>
+
+                                        {/* Grid lines */}
+                                        <line x1="0" y1="35" x2="500" y2="35" stroke="#edf2f7" strokeDasharray="4 4" strokeWidth="1.5" />
+                                        <line x1="0" y1="70" x2="500" y2="70" stroke="#edf2f7" strokeDasharray="4 4" strokeWidth="1.5" />
+                                        <line x1="0" y1="105" x2="500" y2="105" stroke="#edf2f7" strokeDasharray="4 4" strokeWidth="1.5" />
+
+                                        {/* Gradient area */}
+                                        <path
+                                            d="M 20 140 L 20 110 L 80 90 L 140 100 L 200 75 L 260 85 L 320 60 L 380 68 L 440 38 L 480 20 L 480 140 Z"
+                                            fill="url(#chartGradient)"
+                                        />
+
+                                        {/* Line path */}
+                                        <path
+                                            d="M 20 110 L 80 90 L 140 100 L 200 75 L 260 85 L 320 60 L 380 68 L 440 38 L 480 20"
+                                            fill="none"
+                                            stroke="#1a68bf"
+                                            strokeWidth="3.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+
+                                        {/* Dots */}
+                                        <circle cx="20" cy="110" r="4" fill="#ffffff" stroke="#1a68bf" strokeWidth="2.5" />
+                                        <circle cx="80" cy="90" r="4" fill="#ffffff" stroke="#1a68bf" strokeWidth="2.5" />
+                                        <circle cx="140" cy="100" r="4" fill="#ffffff" stroke="#1a68bf" strokeWidth="2.5" />
+                                        <circle cx="200" cy="75" r="4" fill="#ffffff" stroke="#1a68bf" strokeWidth="2.5" />
+                                        <circle cx="260" cy="85" r="4" fill="#ffffff" stroke="#1a68bf" strokeWidth="2.5" />
+                                        <circle cx="320" cy="60" r="4" fill="#ffffff" stroke="#1a68bf" strokeWidth="2.5" />
+                                        <circle cx="380" cy="68" r="4" fill="#ffffff" stroke="#1a68bf" strokeWidth="2.5" />
+                                        <circle cx="440" cy="38" r="4" fill="#ffffff" stroke="#1a68bf" strokeWidth="2.5" />
+                                        <circle cx="480" cy="20" r="4" fill="#ffffff" stroke="#1a68bf" strokeWidth="2.5" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Bottom row grid (SEGMENTS & MODEL ACC.) */}
+                            <div
+                                style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "1fr 1fr",
+                                    gap: "16px",
+                                    boxSizing: "border-box",
+                                }}
+                            >
+                                {/* SEGMENTS Panel */}
+                                <div
+                                    style={{
+                                        background: "#ffffff",
+                                        border: "1px solid #e2e8f0",
+                                        borderRadius: "12px",
+                                        padding: "16px",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "14px",
+                                        boxSizing: "border-box",
+                                    }}
+                                >
+                                    <span
+                                        className="font-mono"
+                                        style={{
+                                            fontSize: "11px",
+                                            fontWeight: 600,
+                                            color: "#718096",
+                                        }}
+                                    >
+                                        SEGMENTS
+                                    </span>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "flex-end",
+                                            justifyContent: "space-between",
+                                            height: "70px",
+                                            padding: "0 4px",
+                                            boxSizing: "border-box",
+                                        }}
+                                    >
+                                        {/* Heights: 30%, 55%, 35%, 65%, 50%, 85%, 70% */}
+                                        <div style={{ width: "10%", height: "30%", background: "#1d5ea8" }}></div>
+                                        <div style={{ width: "10%", height: "55%", background: "#3399FF" }}></div>
+                                        <div style={{ width: "10%", height: "35%", background: "#1d5ea8" }}></div>
+                                        <div style={{ width: "10%", height: "65%", background: "#3399FF" }}></div>
+                                        <div style={{ width: "10%", height: "50%", background: "#1d5ea8" }}></div>
+                                        <div style={{ width: "10%", height: "85%", background: "#3399FF" }}></div>
+                                        <div style={{ width: "10%", height: "70%", background: "#1d5ea8" }}></div>
+                                    </div>
+                                </div>
+
+                                {/* MODEL ACC. Panel */}
+                                <div
+                                    style={{
+                                        background: "#ffffff",
+                                        border: "1px solid #e2e8f0",
+                                        borderRadius: "12px",
+                                        padding: "16px",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "8px",
+                                        boxSizing: "border-box",
+                                    }}
+                                >
+                                    <span
+                                        className="font-mono"
+                                        style={{
+                                            fontSize: "11px",
+                                            fontWeight: 600,
+                                            color: "#718096",
+                                        }}
+                                    >
+                                        MODEL ACC.
+                                    </span>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            justifyContent: "center",
+                                            flexGrow: 1,
+                                            gap: "2px",
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                fontFamily: "var(--font-display), sans-serif",
+                                                fontWeight: 800,
+                                                fontSize: "32px",
+                                                color: "#101827",
+                                                lineHeight: 1,
+                                                transform: 'scale(1.7)',
+                                                marginLeft: '57px'
+                                            }}
+                                        >
+                                            0.987
+                                        </span>
+                                        <span
+                                            className="font-mono"
+                                            style={{
+                                                fontSize: "11px",
+                                                fontWeight: 600,
+                                                color: "#1a68bf",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "4px",
+                                                marginTop: "4px",
+                                            }}
+                                        >
+                                            ▲ 0.012
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Absolute Positioned Sticker (Заметка от Боба) popping out right and bottom */}
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    bottom: "-35px",
+                                    right: "-30px",
+                                    width: "190px",
+                                    background: "#fff4b8",
+                                    border: "1px solid rgba(0,0,0,0.06)",
+                                    boxShadow: "5px 10px 20px rgba(0, 0, 0, 0.15)",
+                                    padding: "14px",
+                                    transform: "rotate(-2.5deg)",
+                                    zIndex: 10,
+                                    boxSizing: "border-box",
+                                    textAlign: "left",
                                 }}
                             >
                                 <div
                                     className="font-mono"
                                     style={{
-                                        fontSize: "11px",
+                                        fontSize: "10px",
+                                        color: "#7f8c8d",
                                         fontWeight: "bold",
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.05em",
                                     }}
                                 >
-                                    ◇ DATA STREAMS
-                                </div>
-                                <div style={{ display: "flex", gap: "6px" }}>
-                                    <button
-                                        onClick={() =>
-                                            setActiveChartTab("streams")
-                                        }
-                                        className="font-mono"
-                                        style={{
-                                            fontSize: "9px",
-                                            padding: "2px 6px",
-                                            border: "1px solid var(--border-color)",
-                                            background:
-                                                activeChartTab === "streams"
-                                                    ? "var(--fg-color)"
-                                                    : "var(--card-bg)",
-                                            color:
-                                                activeChartTab === "streams"
-                                                    ? "var(--bg-color)"
-                                                    : "var(--fg-color)",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        STREAMS
-                                    </button>
-                                    <button
-                                        onClick={() =>
-                                            setActiveChartTab("queries")
-                                        }
-                                        className="font-mono"
-                                        style={{
-                                            fontSize: "9px",
-                                            padding: "2px 6px",
-                                            border: "1px solid var(--border-color)",
-                                            background:
-                                                activeChartTab === "queries"
-                                                    ? "var(--fg-color)"
-                                                    : "var(--card-bg)",
-                                            color:
-                                                activeChartTab === "queries"
-                                                    ? "var(--bg-color)"
-                                                    : "var(--fg-color)",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        QUERIES
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Chart body */}
-                            <div
-                                style={{
-                                    height: "140px",
-                                    position: "relative",
-                                    overflow: "hidden",
-                                }}
-                            >
-                                {activeChartTab === "streams" ? (
-                                    <svg
-                                        width="100%"
-                                        height="100%"
-                                        viewBox="0 0 380 100"
-                                        preserveAspectRatio="none"
-                                    >
-                                        <path
-                                            d={linePoints}
-                                            fill="rgba(112, 72, 232, 0.08)"
-                                        />
-                                        <path
-                                            d={linePath}
-                                            fill="none"
-                                            stroke="var(--primary-color)"
-                                            strokeWidth="2.5"
-                                        />
-                                        {/* Glowing endpoint dots */}
-                                        <circle
-                                            cx="370"
-                                            cy="50"
-                                            r="4"
-                                            fill="var(--primary-color)"
-                                        />
-                                    </svg>
-                                ) : (
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "end",
-                                            justifyContent: "space-between",
-                                            height: "100%",
-                                            paddingTop: "20px",
-                                        }}
-                                    >
-                                        {[
-                                            65, 45, 85, 30, 95, 75, 55, 80, 40,
-                                            90,
-                                        ].map((h, i) => (
-                                            <div
-                                                key={i}
-                                                style={{
-                                                    width: "8%",
-                                                    height: `${h}%`,
-                                                    backgroundColor:
-                                                        "var(--accent-color)",
-                                                    transformOrigin: "bottom",
-                                                    animation:
-                                                        "bar-grow 0.5s ease-out forwards",
-                                                }}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Card Footer Info */}
-                            <div
-                                style={{
-                                    marginTop: "16px",
-                                    borderTop: "1px solid var(--border-color)",
-                                    paddingTop: "12px",
-                                    display: "grid",
-                                    gridTemplateColumns: "repeat(3, 1fr)",
-                                    textAlign: "center",
-                                }}
-                            >
-                                <div>
-                                    <div
-                                        className="font-mono"
-                                        style={{
-                                            fontSize: "9px",
-                                            color: "var(--muted-fg)",
-                                        }}
-                                    >
-                                        CPU LOAD
-                                    </div>
-                                    <div
-                                        className="font-mono"
-                                        style={{
-                                            fontSize: "13px",
-                                            fontWeight: "bold",
-                                            marginTop: "2px",
-                                        }}
-                                    >
-                                        14.2%
-                                    </div>
+                                    Заметка от Боба:
                                 </div>
                                 <div
                                     style={{
-                                        borderLeft:
-                                            "1px solid var(--border-color)",
-                                        borderRight:
-                                            "1px solid var(--border-color)",
+                                        fontFamily: "system-ui, -apple-system, sans-serif",
+                                        fontSize: "13px",
+                                        fontWeight: 600,
+                                        color: "#2c3e50",
+                                        lineHeight: 1.35,
+                                        marginTop: "6px",
+                                        wordBreak: "break-word",
                                     }}
                                 >
-                                    <div
-                                        className="font-mono"
-                                        style={{
-                                            fontSize: "9px",
-                                            color: "var(--muted-fg)",
-                                        }}
-                                    >
-                                        ACTIVE USER
-                                    </div>
-                                    <div
-                                        className="font-mono"
-                                        style={{
-                                            fontSize: "13px",
-                                            fontWeight: "bold",
-                                            marginTop: "2px",
-                                        }}
-                                    >
-                                        BOB
-                                    </div>
-                                </div>
-                                <div>
-                                    <div
-                                        className="font-mono"
-                                        style={{
-                                            fontSize: "9px",
-                                            color: "var(--muted-fg)",
-                                        }}
-                                    >
-                                        STATUS
-                                    </div>
-                                    <div
-                                        className="font-mono"
-                                        style={{
-                                            fontSize: "13px",
-                                            fontWeight: "bold",
-                                            color: "var(--primary-color)",
-                                            marginTop: "2px",
-                                        }}
-                                    >
-                                        ONLINE
-                                    </div>
+                                    «Цифры за Q3 выглядят отлично — нужно повторить»
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* TEAM ROOM DIRECTORY SECTION */}
-            <section
-                id="team"
-                style={{
-                    borderTop: "1px solid var(--border-color)",
-                    borderBottom: "1px solid var(--border-color)",
-                    backgroundColor: "rgba(241, 243, 245, 0.3)",
-                    padding: "80px 0",
-                }}
-            >
+            < section id="team">
                 <div
                     style={{
                         maxWidth: "1280px",
@@ -679,13 +767,13 @@ export function Homepage({ currentUser, onOpenAuth, onLogout, onOpenProfile }: H
                         />
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* PROCESS WORKFLOW MODULES SECTION */}
-            <section
+            < section
                 id="modules"
                 style={{
-                    padding: "80px 0",
+                    padding: "60px 0",
                     borderBottom: "1px solid var(--border-color)",
                 }}
             >
@@ -903,15 +991,15 @@ export function Homepage({ currentUser, onOpenAuth, onLogout, onOpenProfile }: H
                         </div>
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* FOOTER SECTION */}
-            <footer
+            < footer
                 id="contact"
                 style={{
                     backgroundColor: "var(--card-bg)",
                     borderTop: "1px solid var(--border-color)",
-                    padding: "64px 0 0 0",
+                    padding: "30px 0 0 0",
                 }}
             >
                 <div
@@ -1069,7 +1157,7 @@ export function Homepage({ currentUser, onOpenAuth, onLogout, onOpenProfile }: H
                         </span>
                     </div>
                 </div>
-            </footer>
+            </footer >
         </div >
     );
 }

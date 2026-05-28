@@ -79,32 +79,12 @@ export const AdminPanel: React.FC = () => {
                         href="http://localhost:3001/d/ai-analyst-logs/ai-analyst-logs?orgId=1&var-container=ai_analyst-backend-1&var-container=ai_analyst-db-1&var-container=ai_analyst-frontend-1&var-container=ai_analyst-minio-1&var-container=ai_analyst_redis&var-level=INFO&refresh=5s"
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '8px 16px',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            fontFamily: 'var(--font-mono)',
-                            fontWeight: 'bold',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: '0px',
-                            background: 'var(--card-bg)',
-                            color: 'var(--fg-color)',
-                            transition: 'all 0.2s ease',
-                            userSelect: 'none',
-                            textDecoration: 'none',
-                        }}
-                        onMouseEnter={e => {
-                            (e.currentTarget as HTMLAnchorElement).style.background = 'var(--fg-color)';
-                            (e.currentTarget as HTMLAnchorElement).style.color = 'var(--bg-color)';
-                        }}
-                        onMouseLeave={e => {
-                            (e.currentTarget as HTMLAnchorElement).style.background = 'var(--card-bg)';
-                            (e.currentTarget as HTMLAnchorElement).style.color = 'var(--fg-color)';
-                        }}
+                        className="btn-unified"
                     >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                            <polyline points="4 17 10 11 4 5"></polyline>
+                            <line x1="12" y1="19" x2="20" y2="19"></line>
+                        </svg>
                         Логи
                     </a>
                 </div>
@@ -125,23 +105,11 @@ export const AdminPanel: React.FC = () => {
                 }}>
                     <button
                         onClick={() => setActiveTab('llm_requests')}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '8px 16px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontFamily: 'var(--font-mono)',
-                            fontWeight: 'bold',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: '0px',
-                            background: activeTab === 'llm_requests' ? 'var(--fg-color)' : 'var(--card-bg)',
-                            color: activeTab === 'llm_requests' ? 'var(--bg-color)' : 'var(--fg-color)',
-                            transition: 'all 0.2s ease',
-                            userSelect: 'none',
-                            outline: 'none'
-                        }}
+                        className="btn-unified"
+                        style={activeTab === 'llm_requests' ? {
+                            backgroundColor: 'var(--fg-color)',
+                            color: 'var(--bg-color)',
+                        } : {}}
                     >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0 }}>
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -151,23 +119,11 @@ export const AdminPanel: React.FC = () => {
 
                     <button
                         onClick={() => setActiveTab('users')}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '8px 16px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontFamily: 'var(--font-mono)',
-                            fontWeight: 'bold',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: '0px',
-                            background: activeTab === 'users' ? 'var(--fg-color)' : 'var(--card-bg)',
-                            color: activeTab === 'users' ? 'var(--bg-color)' : 'var(--fg-color)',
-                            transition: 'all 0.2s ease',
-                            userSelect: 'none',
-                            outline: 'none'
-                        }}
+                        className="btn-unified"
+                        style={activeTab === 'users' ? {
+                            backgroundColor: 'var(--fg-color)',
+                            color: 'var(--bg-color)',
+                        } : {}}
                     >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0 }}>
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>

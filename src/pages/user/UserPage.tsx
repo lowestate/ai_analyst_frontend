@@ -435,7 +435,13 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
         },
         thAI: {
             textAlign: 'center',
-            paddingLeft: 70
+            paddingLeft: 70,
+            width: '9%'
+        },
+        thPrice: {
+            textAlign: 'center',
+            paddingLeft: 10,
+            width: '9%'
         },
         tr: {
             borderBottom: '1px solid var(--border-color)',
@@ -465,7 +471,6 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
             padding: '8px 12px',
             textAlign: 'center',
             verticalAlign: 'middle',
-            border: 'none',
             width: 110
         },
         actionBtn: {
@@ -474,7 +479,6 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
             fontWeight: 700,
             letterSpacing: '0.04em',
             padding: '6px 14px',
-            border: 'none',
             borderRadius: 0,
             cursor: 'pointer',
             transition: 'opacity 0.15s',
@@ -736,7 +740,7 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
                                         <th style={styles.th}>ЛИМИТ AI</th>
                                         <th style={styles.th}>РАБОТА С БД</th>
                                         <th style={styles.th}>ДАШБОРДЫ</th>
-                                        <th style={{ ...styles.th, textAlign: 'right' }}>СТОИМОСТЬ</th>
+                                        <th style={{ ...styles.th, ...styles.thPrice }}>СТОИМОСТЬ</th>
                                         <th style={{ ...styles.th, textAlign: 'center', border: 'none' }}>ЗАПРОСИТЬ</th>
                                     </tr>
                                 </thead>
@@ -787,33 +791,37 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
                                                 <td style={styles.tdAction}>
                                                     {isAbove && !localBanned && (
                                                         <button
+                                                            className="btn-unified"
                                                             style={{
-                                                                ...styles.actionBtn,
-                                                                background: 'var(--fg-color)',
-                                                                color: '#fff',
                                                                 opacity: upgrading ? 0.6 : 1,
-                                                                cursor: upgrading ? 'wait' : 'pointer'
+                                                                cursor: upgrading ? 'wait' : 'pointer',
+                                                                gap: '0px'
                                                             }}
                                                             disabled={upgrading}
                                                             onClick={() => handlePlanChange(row.grade.toLowerCase())}
                                                         >
-                                                            ПОВЫШЕНИЕ
+                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                                                                <polygon points="12 2 15 9 22 9 17 14 19 21 12 17 5 21 7 14 2 9 9 9 12 2"></polygon>
+                                                            </svg>
+                                                            Повышение
                                                         </button>
                                                     )}
                                                     {isBelow && !localBanned && (
                                                         <button
+                                                            className="btn-unified"
                                                             style={{
-                                                                ...styles.actionBtn,
-                                                                background: 'transparent',
-                                                                color: 'var(--muted-fg)',
-                                                                border: '1px solid var(--border-color)',
                                                                 opacity: upgrading ? 0.6 : 1,
-                                                                cursor: upgrading ? 'wait' : 'pointer'
+                                                                cursor: upgrading ? 'wait' : 'pointer',
+                                                                gap: '0px'
                                                             }}
                                                             disabled={upgrading}
                                                             onClick={() => handlePlanChange(row.grade.toLowerCase())}
                                                         >
-                                                            ПОНИЖЕНИЕ
+                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                                                                <circle cx="12" cy="12" r="10"></circle>
+                                                                <line x1="8" y1="12" x2="16" y2="12"></line>
+                                                            </svg>
+                                                            Понижение
                                                         </button>
                                                     )}
                                                 </td>

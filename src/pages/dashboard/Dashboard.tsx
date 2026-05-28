@@ -828,33 +828,16 @@ export const Dashboard: React.FC = () => {
                             <button
                                 onClick={exportPNG}
                                 disabled={isExporting !== null}
-                                style={{ ...btnStyle, flex: 1 }}
+                                className="btn-unified"
+                                style={{ flex: 1 }}
                             >
                                 {isExporting === "png" ? (
                                     <span className="export-spinner" />
                                 ) : (
-                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" style={{ display: 'inline-block', shapeRendering: 'crispEdges' }}>
-                                        {/* Outer Outline */}
-                                        <rect x="0" y="0" width="14" height="1" />
-                                        <rect x="14" y="0" width="1" height="1" />
-                                        <rect x="15" y="1" width="1" height="1" />
-                                        <rect x="16" y="2" width="1" height="1" />
-                                        <rect x="17" y="3" width="1" height="1" />
-                                        <rect x="18" y="4" width="1" height="1" />
-                                        <rect x="19" y="5" width="1" height="1" />
-                                        <rect x="19" y="6" width="1" height="14" />
-                                        <rect x="0" y="19" width="20" height="1" />
-                                        <rect x="0" y="0" width="1" height="19" />
-
-                                        {/* Sliding Cover (solid block) */}
-                                        <rect x="3" y="1" width="9" height="7" />
-                                        {/* Sliding Cover cutout */}
-                                        <rect x="5" y="2" width="5" height="4" fill="var(--fg-color)" />
-
-                                        {/* Center Circle Hub */}
-                                        <rect x="8" y="10" width="4" height="1" />
-                                        <rect x="7" y="11" width="6" height="4" />
-                                        <rect x="8" y="15" width="4" height="1" />
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                                        <rect x="3" y="3" width="18" height="18"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
                                     </svg>
                                 )}
                                 PNG
@@ -863,33 +846,17 @@ export const Dashboard: React.FC = () => {
                             <button
                                 onClick={exportPDF}
                                 disabled={isExporting !== null}
-                                style={{ ...btnStyle, flex: 1 }}
+                                className="btn-unified"
+                                style={{ flex: 1 }}
                             >
                                 {isExporting === "pdf" ? (
                                     <span className="export-spinner" />
                                 ) : (
-                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" style={{ display: 'inline-block', shapeRendering: 'crispEdges' }}>
-                                        {/* Outer Outline */}
-                                        <rect x="0" y="0" width="14" height="1" />
-                                        <rect x="14" y="0" width="1" height="1" />
-                                        <rect x="15" y="1" width="1" height="1" />
-                                        <rect x="16" y="2" width="1" height="1" />
-                                        <rect x="17" y="3" width="1" height="1" />
-                                        <rect x="18" y="4" width="1" height="1" />
-                                        <rect x="19" y="5" width="1" height="1" />
-                                        <rect x="19" y="6" width="1" height="14" />
-                                        <rect x="0" y="19" width="20" height="1" />
-                                        <rect x="0" y="0" width="1" height="19" />
-
-                                        {/* Sliding Cover (solid block) */}
-                                        <rect x="3" y="1" width="9" height="7" />
-                                        {/* Sliding Cover cutout */}
-                                        <rect x="5" y="2" width="5" height="4" fill="var(--fg-color)" />
-
-                                        {/* Center Circle Hub */}
-                                        <rect x="8" y="10" width="4" height="1" />
-                                        <rect x="7" y="11" width="6" height="4" />
-                                        <rect x="8" y="15" width="4" height="1" />
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                                        <path d="M14 2H6v20h12V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
                                     </svg>
                                 )}
                                 PDF

@@ -102,9 +102,37 @@ export const GLOBAL_STYLES = `
     .btn-login-header {
         background: var(--primary-color); color: var(--primary-fg); border: 1px solid var(--primary-color);
         padding: 8px 18px; border-radius: 4px; font-family: var(--font-mono); font-weight: 600; font-size: 11px;
-        cursor: pointer; transition: all 0.2s ease;
     }
     .btn-login-header:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* --- ЕДИНЫЙ СТИЛЬ КНОПОК --- */
+    .btn-unified {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background-color: var(--primary-color);
+        color: #ffffff;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: bold;
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        box-sizing: border-box;
+        box-shadow: var(--shadow-paper);
+    }
+    .btn-unified:hover {
+        background-color: var(--fg-color);
+        color: var(--bg-color);
+    }
+    .btn-unified:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
 
     /* --- ЛЕВАЯ КОЛОНКА --- */
     .col-left { flex: var(--col-left-flex); background: var(--bg-color); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 18px 12px; overflow-y: hidden; transition: flex 0.3s ease, padding 0.3s ease; }
@@ -190,7 +218,7 @@ export const GLOBAL_STYLES = `
     .sample-table tr:hover td { background: var(--secondary-color); }
 
     /* --- ПРАВАЯ КОЛОНКА --- */
-    .col-right { flex: var(--col-right-flex); background: var(--bg-color); border-left: 1px solid var(--border-color); overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 20px; min-width: 0; transition: flex 0.3s ease; }
+    .col-right { flex: var(--col-right-flex); background: var(--bg-color); border-left: 1px solid var(--border-color); overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 20px; min-width: 0; transition: flex 0.3s ease; }
     .col-right::-webkit-scrollbar { width: 4px; }
     .col-right::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
     .chart-preview-box { width: 85%; aspect-ratio: 4/3; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius); box-shadow: var(--shadow-paper); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; color: var(--fg-color); font-family: var(--font-mono); font-size: 11px; font-weight: 500; text-align: center; }

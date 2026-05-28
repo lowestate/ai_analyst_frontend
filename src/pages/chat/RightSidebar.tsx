@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChartData } from '../types';
 import { DataCharts } from './Charts';
+import { ChartData } from '../../types';
 
 interface RightSidebarProps {
     charts: ChartData[];
@@ -28,18 +28,19 @@ export const FOLDERS = [
         types: ['cash_flow_chart', 'pnl_report', 'expense_pie_chart',
             'abc_analysis', 'unit_economics', 'revenue_forecast', 'cohort_analysis']
     },
-    { 
+    {
         id: 'relations', title: 'Связи в данных',
         types: ['correlation', 'dependency', 'pairplot', 'feature_importances', 'feature_tree']
     },
-    { 
-        id: 'distributions', title: 'Распределения признаков',
-        types: ['category_count', 'numeric_hist'] },
-    { 
+    {
+        id: 'distributions', title: 'Распределения',
+        types: ['category_count', 'numeric_hist']
+    },
+    {
         id: 'anomalies', title: 'Аномалии',
         types: ['outliers']
     },
-    { 
+    {
         id: 'trends', title: 'Тренды',
         types: ['trend_line']
     },
@@ -54,27 +55,27 @@ export const getChartInfo = (chart: ChartData) => {
     if (chart.type === 'dependency') {
         const sub = chart.data?.sub_type;
         const subtitle = sub === 'scatter' ? 'График рассеяния' : sub === 'box' ? 'Ящик с усами' : 'Матрица сопряженности';
-        return { 
-            title: 'Зависимость:', 
-            columnName: `${chart.data?.col1} vs ${chart.data?.col2}`, 
-            subtitle 
+        return {
+            title: 'Зависимость:',
+            columnName: `${chart.data?.col1} vs ${chart.data?.col2}`,
+            subtitle
         };
     };
     if (chart.type === 'pairplot') {
-        return { 
-            title: 'Зависимости признаков', 
-            subtitle: 'Pairplot' 
+        return {
+            title: 'Зависимости признаков',
+            subtitle: 'Pairplot'
         };
     }
     if (chart.type === 'feature_importances') {
-        return { 
+        return {
             title: 'Важность признаков для',
             columnName: chart.data?.target || 'Unknown', // Используем target из данных бэкенда
             subtitle: 'Горизонтальный барчарт' // Исправили подпись
         };
     }
     if (chart.type === 'feature_tree') {
-        return { 
+        return {
             title: 'Дерево признаков',
         };
     }
@@ -105,7 +106,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
 
     // Состояние для хранения ID папок, которые сейчас "мигают"
     const [highlightedFolders, setHighlightedFolders] = useState<Record<string, boolean>>({});
-    
+
     // Реф для хранения предыдущего количества графиков в каждой папке
     const prevCounts = useRef<Record<string, number>>({});
 
@@ -145,137 +146,272 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ charts, onSelectChar
 
     return (
         <>
-        <style>{`
+            <style>{`
             .hide-scroll::-webkit-scrollbar { display: none; }
             .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+            .thin-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+            .thin-scroll::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
         `}</style>
 
-        <div className="col-right hide-scroll" style={{ padding: '15px 15px', display: 'block', overflowY: 'auto' }}>
-            {/* КНОПКА ДАШБОРДА */}
-            {isDatasetLoaded && hasCharts && (
-                <button 
-                    disabled={isBanned}
-                    onClick={() => { if (!isBanned) navigate('/dashboard', { state: { charts, folders: FOLDERS, activeChatId } }); }}
-                    style={{
-                        width: '100%',
-                        marginBottom: '20px', padding: '10px 16px',
-                        backgroundColor: COLORS.white, 
-                        color: COLORS.accent,
-                        border: `1.5px solid ${COLORS.accent}`, 
-                        borderRadius: '12px', cursor: 'pointer',
-                        fontWeight: 600, fontSize: '14px',
-                        transition: 'all 0.2s ease',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                        boxShadow: `0 2px 0 ${COLORS.shadowLight05}`,
-                        opacity: isBanned ? 0.6 : 1,
-                        cursor: isBanned ? 'not-allowed' : 'pointer'
-                    }}
-                    onMouseEnter={e => { if (!isBanned) e.currentTarget.style.backgroundColor = COLORS.gray100; }}
-                    onMouseLeave={e => { if (!isBanned) e.currentTarget.style.backgroundColor = COLORS.white; }}
-                    onMouseDown={e => { if (!isBanned) e.currentTarget.style.transform = 'translateY(2px)'; }}
-                    onMouseUp={e => { if (!isBanned) e.currentTarget.style.transform = 'none'; }}
-                >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="3" y1="9" x2="21" y2="9"></line>
-                        <line x1="9" y1="21" x2="9" y2="9"></line>
-                    </svg>
-                    Создать дашборд
-                </button>
-            )}
-
-            {isDatasetLoaded ? (
-                FOLDERS.map(folder => {
-                    const folderCharts = charts.filter(c => folder.types.includes(c.type));
-                    const isExpanded = expanded[folder.id];
-                    const isHighlighted = highlightedFolders[folder.id];
-
-                    return (
-                        <div key={folder.id} style={{ 
-                            marginBottom: '15px', width: '100%',
-                            background: '#ffffff', 
-                            borderRadius: '10px', 
-                            // Динамический бордер
-                            border: isHighlighted ? '1px solid #000000' : '1px solid #e0e0e0',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                            overflow: 'hidden',
-                            // Анимация: если подсвечено — мгновенно, если возвращается — 0.5с
-                            transition: isHighlighted ? 'none' : 'border-color 1.5s ease-out'
-                        }}>
-                            {/* Заголовок папки */}
-                            <div 
-                                onClick={() => toggleFolder(folder.id)}
-                                style={{
-                                    display: 'flex', alignItems: 'center', cursor: 'pointer',
-                                    padding: '14px 16px',
-                                    userSelect: 'none', transition: 'background 0.2s',
-                                    borderBottom: isExpanded ? '1px solid #f0f0f0' : '1px solid transparent'
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = '#f8f9fa'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            <div
+                className="col-right thin-scroll"
+                style={{
+                    display: "block",
+                    overflowY: "auto",
+                    background: COLORS.gray50,
+                    borderLeft: `1px solid ${COLORS.gray200}`,
+                    height: "100%",
+                }}
+            >
+                {/* КНОПКА ДАШБОРДА */}
+                {isDatasetLoaded && hasCharts && (
+                    <div
+                        style={{
+                            padding: "0 12px 12px 12px",
+                            display: "flex",
+                            flexDirection: "row",
+                            gap: "10px",
+                            borderBottom: `1px solid ${COLORS.gray200}`,
+                            background: COLORS.white,
+                            boxSizing: "border-box",
+                        }}
+                    >
+                        <button
+                            disabled={isBanned}
+                            className="btn-unified"
+                            onClick={() => {
+                                if (!isBanned)
+                                    navigate("/dashboard", {
+                                        state: { charts, folders: FOLDERS, activeChatId },
+                                    });
+                            }}
+                            style={{
+                                flex: 1,
+                            }}
+                        >
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                                style={{ display: "inline-block", shapeRendering: "crispEdges", marginRight: "6px" }}
                             >
-                                <div style={{
-                                    transition: 'transform 0.3s ease',
-                                    transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-                                    marginRight: '6px', display: 'flex', alignItems: 'center', color: '#666'
-                                }}>
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <polyline points="9 18 15 12 9 6"></polyline>
-                                    </svg>
-                                </div>
-                                <div style={{ fontWeight: 600, color: '#333', fontSize: '14px', flex: 1 }}>{folder.title}</div>
-                                <div style={{ 
-                                    fontSize: '12px', fontWeight: 600, color: folderCharts.length > 0 ? '#4a90e2' : '#aaa', 
-                                    background: folderCharts.length > 0 ? '#e0f0ff' : '#f0f0f0', 
-                                    padding: '2px 8px', borderRadius: '12px' 
-                                }}>
-                                    {folderCharts.length}
-                                </div>
-                            </div>
+                                <rect x="1" y="1" width="8" height="8" />
+                                <rect x="11" y="1" width="8" height="8" />
+                                <rect x="1" y="11" width="8" height="8" />
+                                <rect x="11" y="11" width="8" height="8" fill="var(--bg-color)" />
+                                <rect x="12" y="12" width="6" height="6" />
+                            </svg>
+                            ДАШБОРД
+                        </button>
+                    </div>
+                )}
 
-                            {/* Контент папки */}
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateRows: isExpanded ? '1fr' : '0fr',
-                                transition: 'grid-template-rows 0.3s ease-in-out',
-                                background: '#fafbfc'
-                            }}>
-                                <div style={{ overflow: 'hidden' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: folderCharts.length > 0 ? '10px 0 20px 0' : '0', gap: '20px' }}>
-                                        {folderCharts.length === 0 ? (
-                                            <div style={{ color: '#aaa', fontStyle: 'italic', fontSize: '13px', padding: '15px 0' }}>Пусто</div>
-                                        ) : (
-                                            [...folderCharts].reverse().map((c, i) => (
-                                                <div 
-                                                    key={i} 
-                                                    className="chart-preview-box" 
-                                                    onClick={() => { if (!isBanned) onSelectChart(c); }} 
-                                                    style={{ 
-                                                        flexDirection: 'column', 
-                                                        width: '92%',
-                                                        cursor: isBanned ? 'not-allowed' : 'pointer',
-                                                        opacity: isBanned ? 0.7 : 1
+                {isDatasetLoaded ? (
+                    FOLDERS.map((folder) => {
+                        const folderCharts = charts.filter((c) =>
+                            folder.types.includes(c.type),
+                        );
+                        const isExpanded = expanded[folder.id];
+                        const isHighlighted = highlightedFolders[folder.id];
+
+                        return (
+                            <div
+                                key={folder.id}
+                                style={{
+                                    width: "100%",
+                                    borderBottom: `1px solid ${COLORS.gray200}`,
+                                    flexShrink: 0,
+                                    // Динамический бордер для подсветки новых графиков
+                                    border: isHighlighted
+                                        ? "1px solid #000000"
+                                        : `1px solid ${COLORS.transparent}`,
+                                    borderBottomColor: isHighlighted
+                                        ? "#000000"
+                                        : COLORS.gray200,
+                                    transition: isHighlighted
+                                        ? "none"
+                                        : "border-color 1.5s ease-out",
+                                }}
+                            >
+                                {/* Заголовок папки */}
+                                <div
+                                    onClick={() => toggleFolder(folder.id)}
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        cursor: "pointer",
+                                        padding: "14px 12px",
+                                        userSelect: "none",
+                                        transition: "background 0.2s",
+                                        background: COLORS.white,
+                                    }}
+                                    onMouseEnter={(e) =>
+                                        (e.currentTarget.style.background = "#f8f9fa")
+                                    }
+                                    onMouseLeave={(e) =>
+                                        (e.currentTarget.style.background = COLORS.white)
+                                    }
+                                >
+                                    <div
+                                        style={{
+                                            transition: "transform 0.3s ease",
+                                            transform: isExpanded
+                                                ? "rotate(90deg)"
+                                                : "rotate(0deg)",
+                                            marginRight: "4px",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            color: "#666",
+                                            marginTop: '1px'
+                                        }}
+                                    >
+                                        <svg
+                                            width="18"
+                                            height="18"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <polyline points="9 18 15 12 9 6"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontWeight: 600,
+                                            color: "#333",
+                                            fontSize: "14px",
+                                            flex: 1,
+                                        }}
+                                    >
+                                        {folder.title}
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: "12px",
+                                            fontWeight: 600,
+                                            color: folderCharts.length > 0 ? "#4a90e2" : "#aaa",
+                                            background:
+                                                folderCharts.length > 0 ? "#e0f0ff" : "#f0f0f0",
+                                            padding: "2px 8px",
+                                            borderRadius: "12px",
+                                        }}
+                                    >
+                                        {folderCharts.length}
+                                    </div>
+                                </div>
+
+                                {/* Контент папки */}
+                                <div
+                                    style={{
+                                        display: "grid",
+                                        gridTemplateRows: isExpanded ? "1fr" : "0fr",
+                                        transition: "grid-template-rows 0.3s ease-in-out",
+                                        background: "#fafbfc",
+                                    }}
+                                >
+                                    <div style={{ overflow: "hidden" }}>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                padding: folderCharts.length > 0 ? "12px" : "0",
+                                                gap: "12px",
+                                            }}
+                                        >
+                                            {folderCharts.length === 0 ? (
+                                                <div
+                                                    style={{
+                                                        color: "#aaa",
+                                                        fontStyle: "italic",
+                                                        fontSize: "13px",
+                                                        padding: "15px 0",
+                                                        textAlign: "center",
                                                     }}
                                                 >
-                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#444', textAlign: 'left', width: '100%', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: '1.3', marginTop: '-10px' }}>
-                                                        {getChartInfo(c).title} {getChartInfo(c).columnName?.split('_').join('\u200B_')}
-                                                    </div>
-                                                    <DataCharts charts={[c]} preview={true} />
+                                                    Пусто
                                                 </div>
-                                            ))
-                                        )}
+                                            ) : (
+                                                [...folderCharts].reverse().map((c, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className="chart-preview-box"
+                                                        onClick={() => {
+                                                            if (!isBanned) onSelectChart(c);
+                                                        }}
+                                                        style={{
+                                                            width: "100%",
+                                                            boxSizing: "border-box",
+                                                            padding: "16px",
+                                                            cursor: isBanned ? "not-allowed" : "pointer",
+                                                            background: COLORS.white,
+                                                            border: "1px solid ${COLORS.gray200}",
+                                                            borderRadius: "12px",
+                                                            boxShadow: "0 2px 4px \${COLORS.shadowLight05}",
+                                                            opacity: isBanned ? 0.7 : 1,
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                fontSize: "13px",
+                                                                fontWeight: 600,
+                                                                color: "#444",
+                                                                textAlign: "left",
+                                                                width: "100%",
+                                                                whiteSpace: "normal",
+                                                                wordBreak: "break-word",
+                                                                lineHeight: "1.3",
+                                                                marginBottom: "12px",
+                                                            }}
+                                                        >
+                                                            {getChartInfo(c).title} <br />
+                                                            <span
+                                                                style={{
+                                                                    fontWeight: 400,
+                                                                    color: COLORS.gray600,
+                                                                }}
+                                                            >
+                                                                {getChartInfo(c)
+                                                                    .columnName?.split("_")
+                                                                    .join("\u200B_")}
+                                                            </span>
+                                                        </div>
+                                                        <div
+                                                            style={{
+                                                                pointerEvents: "none",
+                                                                width: "100%",
+                                                            }}
+                                                        >
+                                                            <DataCharts charts={[c]} preview={true} />
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })
-            ) : (
-                <div style={{ color: '#888', fontStyle: 'italic', fontSize: '14px', textAlign: 'center', marginTop: '40px', lineHeight: '1.6' }}>
-                    Здесь будут графики<br/>
-                </div>
-            )}
-        </div>
+                        );
+                    })
+                ) : (
+                    <div
+                        style={{
+                            color: "#888",
+                            fontStyle: "italic",
+                            fontSize: "14px",
+                            textAlign: "center",
+                            marginTop: "40px",
+                            lineHeight: "1.6",
+                        }}
+                    >
+                        Здесь будут графики
+                        <br />
+                    </div>
+                )}
+            </div >
         </>
     );
 };
