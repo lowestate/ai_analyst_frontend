@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
                 backgroundColor: "rgba(253, 252, 247, 0.9)",
                 backdropFilter: "blur(8px)",
                 width: "100%",
-                height: "64px",
+                height: "55px",
                 display: "flex",
                 alignItems: "center",
                 boxSizing: "border-box",

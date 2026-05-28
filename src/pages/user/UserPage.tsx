@@ -165,6 +165,485 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
         }
     ];
 
+    /* ─── Inline styles (inside component for instant HMR updates) ─── */
+    const styles: Record<string, React.CSSProperties> = {
+        wrapper: {
+            flex: 1,
+            position: 'relative',
+            overflow: 'hidden',
+            minHeight: 0,
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
+        },
+        contentLayer: {
+            position: 'relative',
+            zIndex: 1,
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '28px 0 0 0',
+            alignItems: 'center',
+            overflow: 'hidden',
+            minHeight: 0
+        },
+        loadingText: {
+            margin: 'auto',
+            fontFamily: 'var(--font-mono)',
+            color: 'var(--muted-fg)',
+            fontSize: 13
+        },
+        topBar: {
+            display: 'none'
+        },
+        sessionLabel: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11,
+            color: '#aaa',
+            letterSpacing: '0.04em'
+        },
+        onlineIndicator: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11,
+            fontWeight: 700,
+            color: 'oklch(0.55 0.16 145)',
+            letterSpacing: '0.08em',
+            marginLeft: '30px',
+            marginTop: '2px'
+        },
+        onlineDot: {
+            width: 7,
+            height: 7,
+            borderRadius: '50%',
+            background: 'oklch(0.6 0.2 145)',
+            boxShadow: '0 0 6px oklch(0.6 0.2 145)',
+            display: 'inline-block'
+        },
+
+        /* MONITOR FRAME */
+        monitorOuter: {
+            width: '78%',
+            maxWidth: 1200,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            flex: '1 1 0' as any,
+            minHeight: 0,
+            overflow: 'hidden'
+        },
+        monitorBezel: {
+            width: '100%',
+            background: '#1e1e1e',
+            borderRadius: '12px 12px 0 0',
+            padding: '10px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexShrink: 0,
+            borderBottom: '2px solid #111'
+        },
+        trafficLights: {
+            display: 'flex',
+            gap: 7,
+            alignItems: 'center'
+        },
+        dot: {
+            display: 'inline-block',
+            width: 12,
+            height: 12,
+            borderRadius: '50%'
+        },
+        monitorNeck: {
+            width: 48,
+            height: 28,
+            background: 'linear-gradient(180deg, #2a2a2a 0%, #3a3a3a 100%)',
+            flexShrink: 0
+        },
+        monitorBase: {
+            width: 180,
+            height: 14,
+            background: 'linear-gradient(180deg, #2a2a2a 0%, #404040 100%)',
+            borderRadius: '0 0 10px 10px',
+            flexShrink: 0,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.35)'
+        },
+
+        /* MAIN CARD */
+        mainCard: {
+            width: '100%',
+            flex: 1,
+            background: 'var(--card-bg)',
+            borderLeft: '6px solid #1e1e1e',
+            borderRight: '6px solid #1e1e1e',
+            borderBottom: '6px solid #1e1e1e',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflowY: 'auto',
+            minHeight: 0
+        },
+
+        /* PROFILE */
+        profileSection: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: 20,
+            padding: '20px 28px',
+            borderBottom: '1px solid var(--border-color)',
+            flexShrink: 0,
+            marginBottom: '13px'
+        },
+        avatarBox: {
+            width: 60,
+            height: 60,
+            border: '2px solid var(--border-color)',
+            borderRadius: 6,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--secondary-color)',
+            flexShrink: 0
+        },
+        avatarLetter: {
+            fontFamily: 'var(--font-mono)',
+            fontWeight: 800,
+            fontSize: 22,
+            color: 'var(--primary-color)'
+        },
+        profileInfo: {
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6
+        },
+        usernameLabel: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 10,
+            fontWeight: 600,
+            color: 'var(--muted-fg)',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase'
+        },
+        username: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 20, // Базовый размер, который не ломается
+            fontWeight: 800,
+            color: 'var(--fg-color)',
+            letterSpacing: '-0.01em',
+            display: 'inline-block',
+            transform: 'scale(1.3)',
+            transformOrigin: 'left center'
+        },
+        usernameRow: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12
+        },
+        roleRow: {
+            fontFamily: 'var(--font-display)',
+            fontSize: 12,
+            color: 'var(--muted-fg)'
+        },
+        roleText: {
+            color: 'var(--primary-color)',
+            fontWeight: 600
+        },
+        roleLink: {
+            color: 'var(--primary-color)',
+            textDecoration: 'underline',
+            cursor: 'pointer'
+        },
+        currentPlanBadge: {
+            fontFamily: 'var(--font-mono)',
+            fontWeight: 800,
+            fontSize: 16,
+            letterSpacing: '0.12em',
+            padding: '5px 14px',
+            border: '2px solid var(--primary-color)',
+            borderRadius: 4,
+            color: 'var(--primary-color)',
+            background: 'var(--primary-soft)',
+            flexShrink: 0
+        },
+        banBanner: {
+            margin: '0 28px 0 28px',
+            marginTop: 12,
+            background: 'oklch(0.98 0.03 80)',
+            border: '1px solid oklch(0.85 0.12 80)',
+            borderRadius: 6,
+            padding: '10px 18px',
+            color: 'oklch(0.4 0.1 80)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            fontWeight: 600,
+            textAlign: 'center'
+        },
+
+        /* TABLE SECTION */
+        tableSection: {
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '0 0 0 0',
+            minHeight: 0
+        },
+        tableSectionHeader: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '10px 28px 8px 28px',
+            borderBottom: '1px solid var(--border-color)'
+        },
+        tableSectionTitle: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            fontWeight: 700,
+            color: 'var(--muted-fg)',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase'
+        },
+        effectiveDate: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            color: 'var(--muted-fg)',
+            letterSpacing: '0.06em'
+        },
+        gradeTable: {
+            width: '100%',
+            borderCollapse: 'collapse',
+            tableLayout: 'fixed'
+        },
+        th: {
+            padding: '10px 14px',
+            borderBottom: '1px solid var(--border-color)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 14,
+            fontWeight: 700,
+            color: 'var(--muted-fg)',
+            letterSpacing: '0.1em',
+            textAlign: 'center',
+            background: 'var(--secondary-color)',
+            whiteSpace: 'nowrap'
+        },
+        thGrade: {
+            textAlign: 'left',
+            paddingLeft: 28,
+            width: '9%'
+        },
+        thAI: {
+            textAlign: 'center',
+            paddingLeft: 70
+        },
+        tr: {
+            borderBottom: '1px solid var(--border-color)',
+            transition: 'background 0.15s ease'
+        },
+        trActive: {
+            background: 'var(--primary-soft)'
+        },
+        td: {
+            padding: '12px 14px',
+            textAlign: 'center',
+            verticalAlign: 'middle'
+        },
+        tdGrade: {
+            padding: '12px 14px 12px 28px',
+            verticalAlign: 'middle'
+        },
+        tdFiles: {
+            textAlign: 'center',
+            paddingLeft: 60
+        },
+        tdAI: {
+            textAlign: 'center',
+            paddingLeft: 70
+        },
+        tdAction: {
+            padding: '8px 12px',
+            textAlign: 'center',
+            verticalAlign: 'middle',
+            border: 'none',
+            width: 110
+        },
+        actionBtn: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            padding: '6px 14px',
+            border: 'none',
+            borderRadius: 0,
+            cursor: 'pointer',
+            transition: 'opacity 0.15s',
+            whiteSpace: 'nowrap' as const
+        },
+        gradeNameRow: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 2
+        },
+        gradeName: {
+            fontFamily: 'var(--font-mono)',
+            fontWeight: 800,
+            fontSize: 16
+        },
+        gradeBadge: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            fontWeight: 800,
+            color: '#fff',
+            padding: '2px 6px',
+            borderRadius: 3,
+            letterSpacing: '0.05em'
+        },
+        activeBadge: {
+            color: 'var(--primary-color)',
+            fontSize: 12,
+            marginLeft: 2
+        },
+        gradeLabel: {
+            fontFamily: 'var(--font-display)',
+            fontSize: 12,
+            color: 'var(--muted-fg)'
+        },
+        priceValue: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 18,
+            fontWeight: 800,
+            color: 'var(--fg-color)'
+        },
+        priceLabel: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 16,
+            color: 'var(--muted-fg)',
+            marginLeft: 2
+        },
+
+        /* WHY SECTION */
+        whySection: {
+            borderTop: '1px solid var(--border-color)',
+            padding: '16px 28px 28px 28px'
+        },
+        whyTabsRow: {
+            display: 'flex',
+            gap: 6,
+            marginBottom: 14,
+            flexWrap: 'wrap'
+        },
+        whyTabActive: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            padding: '3px 10px',
+            background: 'var(--primary-color)',
+            color: '#fff',
+            borderRadius: 3
+        },
+        whyTab: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            padding: '3px 10px',
+            background: 'var(--secondary-color)',
+            color: 'var(--muted-fg)',
+            borderRadius: 3,
+            border: '1px solid var(--border-color)'
+        },
+        whyCardsGrid: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 16
+        },
+        whyCard: {
+            background: 'var(--bg-color)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 6,
+            padding: '14px 18px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6
+        },
+        whyCardNum: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 10,
+            fontWeight: 700,
+            color: 'var(--primary-color)',
+            letterSpacing: '0.1em'
+        },
+        whyCardTitle: {
+            fontFamily: 'var(--font-display)',
+            fontSize: 14,
+            fontWeight: 700,
+            color: 'var(--fg-color)'
+        },
+        whyCardText: {
+            fontFamily: 'var(--font-display)',
+            fontSize: 12,
+            color: 'var(--muted-fg)',
+            lineHeight: 1.5
+        },
+
+        /* FOOTER */
+        footer: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 28px',
+            borderTop: '1px solid var(--border-color)',
+            background: 'var(--secondary-color)',
+            flexShrink: 0
+        },
+        footerNote: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11,
+            color: 'var(--muted-fg)',
+            letterSpacing: '0.05em'
+        },
+        upgradeBtn: {
+            background: 'var(--fg-color)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 6,
+            padding: '9px 22px',
+            fontFamily: 'var(--font-mono)',
+            fontWeight: 700,
+            fontSize: 13,
+            cursor: 'pointer',
+            letterSpacing: '0.03em',
+            transition: 'opacity 0.2s, transform 0.15s',
+            boxShadow: 'var(--shadow-paper)'
+        },
+
+        /* DESK SURFACE */
+        deskSurface: {
+            width: '100%',
+            height: 20,
+            flexShrink: 0,
+            background: `
+            repeating-linear-gradient(
+                90deg,
+                rgba(0,0,0,0) 0px,
+                rgba(0,0,0,0) 18px,
+                rgba(0,0,0,0.06) 18px,
+                rgba(0,0,0,0.06) 19px,
+                rgba(255,255,255,0.04) 19px,
+                rgba(255,255,255,0.04) 36px
+            ),
+            linear-gradient(180deg, #9B7050 0%, #8B6040 30%, #7A5230 60%, #6A4525 100%)
+        `,
+            boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.18), 0 6px 20px rgba(0,0,0,0.5)',
+            position: 'relative',
+            overflow: 'hidden',
+            zIndex: 2
+        }
+    };
+
     if (isLoading) {
         return (
             <div style={styles.wrapper}>
@@ -253,25 +732,30 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
                                         <th style={{ ...styles.th, ...styles.thGrade }}>ГРЕЙД</th>
                                         <th style={styles.th}>КОМАНДЫ</th>
                                         <th style={styles.th}>РАБОТА С ФАЙЛАМИ</th>
-                                        <th style={styles.th}>AI</th>
+                                        <th style={{ ...styles.th, ...styles.thAI }}>AI</th>
                                         <th style={styles.th}>ЛИМИТ AI</th>
                                         <th style={styles.th}>РАБОТА С БД</th>
                                         <th style={styles.th}>ДАШБОРДЫ</th>
-                                        <th style={{ ...styles.th, textAlign: 'right' }}>ЦЕНА</th>
+                                        <th style={{ ...styles.th, textAlign: 'right' }}>СТОИМОСТЬ</th>
+                                        <th style={{ ...styles.th, textAlign: 'center', border: 'none' }}>ЗАПРОСИТЬ</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {GRADE_ROWS.map((row) => {
                                         const isActive = currentPlan === row.grade.toLowerCase();
+                                        const gradeOrder = ['junior', 'middle', 'senior'];
+                                        const currentIdx = gradeOrder.indexOf(currentPlan);
+                                        const rowIdx = gradeOrder.indexOf(row.grade.toLowerCase());
+                                        const isAbove = rowIdx > currentIdx;
+                                        const isBelow = rowIdx < currentIdx;
                                         return (
                                             <tr
                                                 key={row.grade}
                                                 style={{
                                                     ...styles.tr,
                                                     ...(isActive ? styles.trActive : {}),
-                                                    cursor: (!isActive && !localBanned) ? 'pointer' : 'default'
+                                                    cursor: 'default'
                                                 }}
-                                                onClick={() => !isActive && !localBanned && handlePlanChange(row.grade.toLowerCase())}
                                             >
                                                 <td style={styles.tdGrade}>
                                                     <div style={styles.gradeNameRow}>
@@ -289,8 +773,8 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
                                                     <div style={styles.gradeLabel}>{row.label}</div>
                                                 </td>
                                                 <td style={styles.td}>{renderCell(row.commands)}</td>
-                                                <td style={styles.td}>{renderCell(row.files)}</td>
-                                                <td style={styles.td}>{renderCell(row.ai)}</td>
+                                                <td style={{ ...styles.td, ...styles.tdFiles }}>{renderCell(row.files)}</td>
+                                                <td style={{ ...styles.td, ...styles.tdAI }}>{renderCell(row.ai)}</td>
                                                 <td style={styles.td}>{renderCell(row.limits)}</td>
                                                 <td style={styles.td}>{renderCell(row.bd)}</td>
                                                 <td style={styles.td}>{renderCell(row.dashboard)}</td>
@@ -298,6 +782,39 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
                                                     <span style={styles.priceValue}>{row.price}</span>
                                                     {row.priceLabel && (
                                                         <span style={styles.priceLabel}>{row.priceLabel}</span>
+                                                    )}
+                                                </td>
+                                                <td style={styles.tdAction}>
+                                                    {isAbove && !localBanned && (
+                                                        <button
+                                                            style={{
+                                                                ...styles.actionBtn,
+                                                                background: 'var(--fg-color)',
+                                                                color: '#fff',
+                                                                opacity: upgrading ? 0.6 : 1,
+                                                                cursor: upgrading ? 'wait' : 'pointer'
+                                                            }}
+                                                            disabled={upgrading}
+                                                            onClick={() => handlePlanChange(row.grade.toLowerCase())}
+                                                        >
+                                                            ПОВЫШЕНИЕ
+                                                        </button>
+                                                    )}
+                                                    {isBelow && !localBanned && (
+                                                        <button
+                                                            style={{
+                                                                ...styles.actionBtn,
+                                                                background: 'transparent',
+                                                                color: 'var(--muted-fg)',
+                                                                border: '1px solid var(--border-color)',
+                                                                opacity: upgrading ? 0.6 : 1,
+                                                                cursor: upgrading ? 'wait' : 'pointer'
+                                                            }}
+                                                            disabled={upgrading}
+                                                            onClick={() => handlePlanChange(row.grade.toLowerCase())}
+                                                        >
+                                                            ПОНИЖЕНИЕ
+                                                        </button>
                                                     )}
                                                 </td>
                                             </tr>
@@ -324,46 +841,7 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
                             </div>
                         </div>
 
-                        {/* FOOTER with upgrade button */}
-                        {nextPlan && nextPlanLabel && !localBanned && (
-                            <div style={styles.footer}>
-                                <span style={styles.footerNote}>↑ к 2026</span>
-                                <div style={{ display: 'flex', gap: 10 }}>
-                                    <button
-                                        style={{
-                                            ...styles.upgradeBtn,
-                                            opacity: upgrading ? 0.7 : 1,
-                                            cursor: upgrading ? 'wait' : 'pointer'
-                                        }}
-                                        onClick={() => handlePlanChange(nextPlan)}
-                                        disabled={upgrading}
-                                    >
-                                        {upgrading ? 'Обновляем...' : nextPlanLabel}
-                                    </button>
-                                    {currentPlan === 'junior' && (
-                                        <button
-                                            style={{
-                                                ...styles.upgradeBtn,
-                                                background: 'var(--accent-color)',
-                                                opacity: upgrading ? 0.7 : 1,
-                                                cursor: upgrading ? 'wait' : 'pointer'
-                                            }}
-                                            onClick={() => handlePlanChange('senior')}
-                                            disabled={upgrading}
-                                        >
-                                            {upgrading ? 'Обновляем...' : '★ Повысить до Senior'}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        )}
 
-                        {currentPlan === 'senior' && !localBanned && (
-                            <div style={styles.footer}>
-                                <span style={styles.footerNote}>Максимальный грейд достигнут</span>
-                                <span style={{ ...styles.footerNote, color: 'var(--accent-color)', fontWeight: 700 }}>★ SENIOR</span>
-                            </div>
-                        )}
                     </div>{/* /mainCard */}
 
                     {/* MONITOR STAND */}
@@ -378,447 +856,4 @@ export const UserPage: React.FC<UserPageProps> = ({ currentUser, onBack, onPlanC
             </div>{/* /contentLayer */}
         </div>
     );
-};
-
-/* ─── Inline styles ─── */
-const styles: Record<string, React.CSSProperties> = {
-    wrapper: {
-        flex: 1,
-        position: 'relative',
-        overflow: 'hidden',
-        minHeight: 0,
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column'
-    },
-    contentLayer: {
-        position: 'relative',
-        zIndex: 1,
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '28px 0 0 0',
-        alignItems: 'center',
-        overflow: 'hidden',
-        minHeight: 0
-    },
-    loadingText: {
-        margin: 'auto',
-        fontFamily: 'var(--font-mono)',
-        color: 'var(--muted-fg)',
-        fontSize: 13
-    },
-    topBar: {
-        display: 'none'
-    },
-    sessionLabel: {
-        fontFamily: 'var(--font-mono)',
-        fontSize: 11,
-        color: '#aaa',
-        letterSpacing: '0.04em'
-    },
-    onlineIndicator: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        fontFamily: 'var(--font-mono)',
-        fontSize: 11,
-        fontWeight: 700,
-        color: 'oklch(0.55 0.16 145)',
-        letterSpacing: '0.08em'
-    },
-    onlineDot: {
-        width: 7,
-        height: 7,
-        borderRadius: '50%',
-        background: 'oklch(0.6 0.2 145)',
-        boxShadow: '0 0 6px oklch(0.6 0.2 145)',
-        display: 'inline-block'
-    },
-
-    /* MONITOR FRAME */
-    monitorOuter: {
-        width: '78%',
-        maxWidth: 1200,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        /* leave room for desk (20px) + a little breathing space (16px) */
-        flex: '1 1 0',
-        minHeight: 0,
-        overflow: 'hidden'
-    },
-    monitorBezel: {
-        width: '100%',
-        background: '#1e1e1e',
-        borderRadius: '12px 12px 0 0',
-        padding: '10px 20px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexShrink: 0,
-        borderBottom: '2px solid #111'
-    },
-    trafficLights: {
-        display: 'flex',
-        gap: 7,
-        alignItems: 'center'
-    },
-    dot: {
-        display: 'inline-block',
-        width: 12,
-        height: 12,
-        borderRadius: '50%'
-    },
-    monitorNeck: {
-        width: 48,
-        height: 28,
-        background: 'linear-gradient(180deg, #2a2a2a 0%, #3a3a3a 100%)',
-        flexShrink: 0
-    },
-    monitorBase: {
-        width: 180,
-        height: 14,
-        background: 'linear-gradient(180deg, #2a2a2a 0%, #404040 100%)',
-        borderRadius: '0 0 10px 10px',
-        flexShrink: 0,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.35)'
-    },
-
-    /* MAIN CARD */
-    mainCard: {
-        width: '100%',
-        flex: 1,
-        background: 'var(--card-bg)',
-        borderLeft: '6px solid #1e1e1e',
-        borderRight: '6px solid #1e1e1e',
-        borderBottom: '6px solid #1e1e1e',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflowY: 'auto',
-        minHeight: 0
-    },
-
-    /* DESK SURFACE */
-    deskSurface: {
-        width: '100%',
-        height: 20,
-        flexShrink: 0,
-        background: `
-            repeating-linear-gradient(
-                90deg,
-                rgba(0,0,0,0) 0px,
-                rgba(0,0,0,0) 18px,
-                rgba(0,0,0,0.06) 18px,
-                rgba(0,0,0,0.06) 19px,
-                rgba(255,255,255,0.04) 19px,
-                rgba(255,255,255,0.04) 36px
-            ),
-            linear-gradient(180deg, #9B7050 0%, #8B6040 30%, #7A5230 60%, #6A4525 100%)
-        `,
-        boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.18), 0 6px 20px rgba(0,0,0,0.5)',
-        position: 'relative',
-        overflow: 'hidden',
-        zIndex: 2
-    },
-
-    /* PROFILE */
-    profileSection: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 20,
-        padding: '20px 28px',
-        borderBottom: '1px solid var(--border-color)',
-        flexShrink: 0
-    },
-    avatarBox: {
-        width: 52,
-        height: 52,
-        border: '2px solid var(--border-color)',
-        borderRadius: 6,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--secondary-color)',
-        flexShrink: 0
-    },
-    avatarLetter: {
-        fontFamily: 'var(--font-mono)',
-        fontWeight: 800,
-        fontSize: 22,
-        color: 'var(--primary-color)'
-    },
-    profileInfo: {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 3
-    },
-    usernameLabel: {
-        fontFamily: 'var(--font-mono)',
-        fontSize: 10,
-        fontWeight: 600,
-        color: 'var(--muted-fg)',
-        letterSpacing: '0.1em',
-        textTransform: 'uppercase'
-    },
-    username: {
-        fontFamily: 'var(--font-mono)',
-        fontSize: 28,
-        fontWeight: 800,
-        color: 'var(--fg-color)',
-        letterSpacing: '-0.01em'
-    },
-    usernameRow: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12
-    },
-    roleRow: {
-        fontFamily: 'var(--font-display)',
-        fontSize: 12,
-        color: 'var(--muted-fg)'
-    },
-    roleText: {
-        color: 'var(--primary-color)',
-        fontWeight: 600
-    },
-    roleLink: {
-        color: 'var(--primary-color)',
-        textDecoration: 'underline',
-        cursor: 'pointer'
-    },
-    currentPlanBadge: {
-        fontFamily: 'var(--font-mono)',
-        fontWeight: 800,
-        fontSize: 14,
-        letterSpacing: '0.12em',
-        padding: '5px 14px',
-        border: '2px solid var(--primary-color)',
-        borderRadius: 4,
-        color: 'var(--primary-color)',
-        background: 'var(--primary-soft)',
-        flexShrink: 0
-    },
-    banBanner: {
-        margin: '0 28px 0 28px',
-        marginTop: 12,
-        background: 'oklch(0.98 0.03 80)',
-        border: '1px solid oklch(0.85 0.12 80)',
-        borderRadius: 6,
-        padding: '10px 18px',
-        color: 'oklch(0.4 0.1 80)',
-        fontFamily: 'var(--font-mono)',
-        fontSize: 12,
-        fontWeight: 600,
-        textAlign: 'center'
-    },
-
-    /* TABLE SECTION */
-    tableSection: {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '0 0 0 0',
-        minHeight: 0
-    },
-    tableSectionHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '10px 28px 8px 28px',
-        borderBottom: '1px solid var(--border-color)'
-    },
-    tableSectionTitle: {
-        fontFamily: 'var(--font-mono)',
-        fontSize: 12,
-        fontWeight: 700,
-        color: 'var(--muted-fg)',
-        letterSpacing: '0.12em',
-        textTransform: 'uppercase'
-    },
-    effectiveDate: {
-        fontFamily: 'var(--font-mono)',
-        fontSize: 12,
-        color: 'var(--muted-fg)',
-        letterSpacing: '0.06em'
-    },
-    gradeTable: {
-        width: '100%',
-        borderCollapse: 'collapse',
-        tableLayout: 'fixed'
-    },
-    th: {
-        padding: '10px 14px',
-        borderBottom: '1px solid var(--border-color)',
-        fontFamily: 'var(--font-mono)',
-        fontSize: 14,
-        fontWeight: 700,
-        color: 'var(--muted-fg)',
-        letterSpacing: '0.1em',
-        textAlign: 'center',
-        background: 'var(--secondary-color)',
-        whiteSpace: 'nowrap'
-    },
-    thGrade: {
-        textAlign: 'left',
-        paddingLeft: 28,
-        width: '10%'
-    },
-    tr: {
-        borderBottom: '1px solid var(--border-color)',
-        transition: 'background 0.15s ease'
-    },
-    trActive: {
-        background: 'var(--primary-soft)'
-    },
-    td: {
-        padding: '12px 14px',
-        textAlign: 'center',
-        verticalAlign: 'middle'
-    },
-    tdGrade: {
-        padding: '12px 14px 12px 28px',
-        verticalAlign: 'middle'
-    },
-    gradeNameRow: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 2
-    },
-    gradeName: {
-        fontFamily: 'var(--font-mono)',
-        fontWeight: 800,
-        fontSize: 16
-    },
-    gradeBadge: {
-        fontFamily: 'var(--font-mono)',
-        fontSize: 12,
-        fontWeight: 800,
-        color: '#fff',
-        padding: '2px 6px',
-        borderRadius: 3,
-        letterSpacing: '0.05em'
-    },
-    activeBadge: {
-        color: 'var(--primary-color)',
-        fontSize: 12,
-        marginLeft: 2
-    },
-    gradeLabel: {
-        fontFamily: 'var(--font-display)',
-        fontSize: 12,
-        color: 'var(--muted-fg)'
-    },
-    priceValue: {
-        fontFamily: 'var(--font-mono)',
-        fontSize: 18,
-        fontWeight: 800,
-        color: 'var(--fg-color)'
-    },
-    priceLabel: {
-        fontFamily: 'var(--font-mono)',
-        fontSize: 16,
-        color: 'var(--muted-fg)',
-        marginLeft: 2
-    },
-
-    /* WHY SECTION */
-    whySection: {
-        padding: '16px 28px 20px 28px'
-    },
-    whyTabsRow: {
-        display: 'flex',
-        gap: 6,
-        marginBottom: 14,
-        flexWrap: 'wrap'
-    },
-    whyTabActive: {
-        fontFamily: 'var(--font-mono)',
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: '0.1em',
-        padding: '3px 10px',
-        background: 'var(--primary-color)',
-        color: '#fff',
-        borderRadius: 3
-    },
-    whyTab: {
-        fontFamily: 'var(--font-mono)',
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: '0.1em',
-        padding: '3px 10px',
-        background: 'var(--secondary-color)',
-        color: 'var(--muted-fg)',
-        borderRadius: 3,
-        border: '1px solid var(--border-color)'
-    },
-    whyCardsGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: 16
-    },
-    whyCard: {
-        background: 'var(--bg-color)',
-        border: '1px solid var(--border-color)',
-        borderRadius: 6,
-        padding: '14px 18px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 6
-    },
-    whyCardNum: {
-        fontFamily: 'var(--font-mono)',
-        fontSize: 10,
-        fontWeight: 700,
-        color: 'var(--primary-color)',
-        letterSpacing: '0.1em'
-    },
-    whyCardTitle: {
-        fontFamily: 'var(--font-display)',
-        fontSize: 14,
-        fontWeight: 700,
-        color: 'var(--fg-color)'
-    },
-    whyCardText: {
-        fontFamily: 'var(--font-display)',
-        fontSize: 12,
-        color: 'var(--muted-fg)',
-        lineHeight: 1.5
-    },
-
-    /* FOOTER */
-    footer: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 28px',
-        borderTop: '1px solid var(--border-color)',
-        background: 'var(--secondary-color)',
-        flexShrink: 0,
-        minHeight: '61px'
-    },
-    footerNote: {
-        fontFamily: 'var(--font-mono)',
-        fontSize: 11,
-        color: 'var(--muted-fg)',
-        letterSpacing: '0.05em'
-    },
-    upgradeBtn: {
-        background: 'var(--fg-color)',
-        color: '#fff',
-        border: 'none',
-        borderRadius: 6,
-        padding: '9px 22px',
-        fontFamily: 'var(--font-mono)',
-        fontWeight: 700,
-        fontSize: 13,
-        cursor: 'pointer',
-        letterSpacing: '0.03em',
-        transition: 'opacity 0.2s, transform 0.15s',
-        boxShadow: 'var(--shadow-paper)'
-    }
 };
